@@ -291,6 +291,13 @@ body{font-family:var(--font);background:var(--slate-50);color:var(--slate-800);d
 .tax-story-summary .tax-story-step__text{font-size:18px;font-weight:900;color:#111827}
 .tax-story-summary .tax-story-amount{font-size:25px}
 .tax-story-summary-check{width:28px;height:28px;border-radius:999px;background:#059669;color:#fff;display:inline-grid;place-items:center;font-size:13px;flex-shrink:0}
+.tax-error{display:none;margin-top:7px;color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:8px 10px;font-size:12px;font-weight:800}
+.tax-input-income.has-error input{border-color:#ef4444;background:#fff7f7}
+.tax-result-disclaimer{margin-top:12px;background:#f8fafc;border:1px solid var(--slate-200);border-radius:12px;padding:10px 12px;color:var(--slate-600);font-size:11.5px;font-weight:700;line-height:1.55;display:flex;gap:8px;align-items:flex-start}
+.tax-result-disclaimer i{color:#f59e0b;margin-top:2px;flex-shrink:0}
+.tax-share-row{display:flex;justify-content:center;margin-top:14px}
+.tax-share-btn{display:inline-flex;align-items:center;gap:8px;background:#25d366;color:#fff;text-decoration:none;border-radius:999px;padding:10px 20px;font-size:13.5px;font-weight:900;box-shadow:0 4px 16px rgba(37,211,102,.32);transition:transform .15s,box-shadow .15s}
+.tax-share-btn:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(37,211,102,.42)}
 .tax-result-box.show-story .tax-story-step,.tax-result-box.show-story .tax-story-summary{animation:storyReveal .58s ease both}
 .tax-result-box.show-story .tax-story-step:nth-child(1){animation-delay:.08s}
 .tax-result-box.show-story .tax-story-step:nth-child(2){animation-delay:.36s}
@@ -316,11 +323,20 @@ body{font-family:var(--font);background:var(--slate-50);color:var(--slate-800);d
 .cta-sub strong{background:#fde68a;color:#78350f;padding:1px 7px;border-radius:4px;font-weight:800}
 .btn-cta{display:inline-flex;align-items:center;gap:9px;background:#25d366;color:#fff;text-decoration:none;border-radius:999px;padding:12px 28px;font-family:var(--font);font-size:15px;font-weight:800;box-shadow:0 4px 18px rgba(37,211,102,.4);transition:transform .15s,box-shadow .15s;position:relative}
 .btn-cta:hover{transform:translateY(-2px);box-shadow:0 6px 26px rgba(37,211,102,.5)}
+.advisor-card{margin:0 0 18px;background:#fff;border:1.5px solid #d1fae5;border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center}
+.advisor-card__icon{width:44px;height:44px;border-radius:14px;background:#ecfdf5;color:#059669;display:grid;place-items:center;font-size:20px}
+.advisor-card h3{margin:0 0 4px;color:var(--slate-900);font-size:18px;font-weight:900}
+.advisor-card p{margin:0;color:var(--slate-600);font-size:13px;font-weight:700;line-height:1.7}
+.advisor-card__meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.advisor-card__meta span{background:#f0fdfa;color:#0f766e;border:1px solid #99f6e4;border-radius:999px;padding:4px 10px;font-size:11.5px;font-weight:900}
 .mini-disclaimer{margin:0 0 18px;text-align:center;color:var(--slate-600);font-size:12px;line-height:1.7}
 .mini-disclaimer strong{display:block;color:var(--slate-800);font-size:13px;margin-bottom:2px}
 .mini-disclaimer__links{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:6px}
 .mini-disclaimer__links a{color:var(--teal);font-weight:700;text-decoration:none}
 .btn-cta i{font-size:18px}
+.floating-whatsapp{position:fixed;right:16px;bottom:16px;z-index:60;display:none;align-items:center;gap:8px;background:#25d366;color:#fff;text-decoration:none;border-radius:999px;padding:11px 16px;font-weight:900;font-size:13px;box-shadow:0 10px 30px rgba(22,163,74,.35);transform:translateY(22px);opacity:0;pointer-events:none;transition:opacity .22s,transform .22s}
+.floating-whatsapp.is-visible{opacity:1;transform:translateY(0);pointer-events:auto}
+.floating-whatsapp i{font-size:18px}
 
 .legal-sections{display:grid;gap:12px;margin-bottom:18px}
 .legal-card{background:var(--white);border:1.5px solid var(--slate-200);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
@@ -348,6 +364,7 @@ body{font-family:var(--font);background:var(--slate-50);color:var(--slate-800);d
   .btn-calc{font-size:14px;padding:11px 24px}
   .main-tab-btn{font-size:11px;padding:8px 4px}
 }
+@media(max-width:760px){.floating-whatsapp{display:inline-flex}.advisor-card{grid-template-columns:1fr;text-align:center}.advisor-card__icon{margin:0 auto}.advisor-card__meta{justify-content:center}}
 
 input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 input[type=number]{-moz-appearance:textfield}
@@ -754,6 +771,7 @@ input[type=number]{-moz-appearance:textfield}
             <span class="tip-icon" data-tip="הכנסה לאחר הניכויים, הקיזוזים והפטורים שהותרו ממנה לפי כל דין, ולפני הניכויים המותרים בגין הפקדה לקרן השתלמות או לקופת גמל/קרן פנסיה."><i class="fas fa-circle-info"></i></span>
           </label>
           <input type="text" id="annualIncome" inputmode="numeric" value="250,000"/>
+          <div class="tax-error" id="annualIncomeError">יש להזין הכנסה שנתית חייבת גדולה מ-0 כדי לחשב את הטבות המס.</div>
         </div>
         <div style="align-self:flex-end;flex-shrink:0">
           <button class="btn-calc" id="btnCalcTax" style="padding:10px 22px;font-size:14px;white-space:nowrap"><i class="fas fa-calculator"></i> חשב הטבות</button>
@@ -828,6 +846,15 @@ input[type=number]{-moz-appearance:textfield}
           <i class="fas fa-triangle-exclamation"></i>
           <span id="taxNoticeText"></span>
         </div>
+        <div class="tax-result-disclaimer">
+          <i class="fas fa-circle-info"></i>
+          <span>החישוב הוא אומדן להמחשה בלבד ואינו מהווה ייעוץ מס, שיווק פנסיוני או תחליף לבדיקה אישית מול בעל מקצוע.</span>
+        </div>
+        <div class="tax-share-row">
+          <a href="https://wa.me/972528089808" class="tax-share-btn" id="taxShareWhatsApp" target="_blank" rel="noopener">
+            <i class="fab fa-whatsapp"></i> שלח לי את התוצאה בוואטסאפ
+          </a>
+        </div>
       </div>
     </div>
   </div><!-- /panelTax -->
@@ -844,6 +871,19 @@ input[type=number]{-moz-appearance:textfield}
     </div>
   </section>
 
+  <section class="advisor-card" aria-label="על רועי רומנו">
+    <div class="advisor-card__icon"><i class="fas fa-user-tie"></i></div>
+    <div>
+      <h3>רועי רומנו</h3>
+      <p>מתכנן פיננסי וסוכן פנסיוני מורשה, מלווה עצמאים בבחירת קרן השתלמות, ניצול הטבות מס ותכנון חיסכון שמתאים לצרכים האישיים שלהם.</p>
+      <div class="advisor-card__meta">
+        <span>רישיון 00117164</span>
+        <span>קרנות השתלמות</span>
+        <span>תכנון פיננסי לעצמאים</span>
+      </div>
+    </div>
+  </section>
+
   <section class="mini-disclaimer" aria-label="פרטי התקשרות וגילוי נאות">
     <strong>רועי רומנו, מתכנן פיננסי וסוכן פנסיוני מורשה | רישיון 00117164</strong>
     <div>roeir@ar-fo.co.il | 052-8089808</div>
@@ -853,6 +893,11 @@ input[type=number]{-moz-appearance:textfield}
       <a href="accessibility.html">הצהרת נגישות</a>
     </div>
   </section>
+
+  <a href="https://wa.me/972528089808?text=%D7%A9%D7%9C%D7%95%D7%9D%20%D7%A8%D7%95%D7%A2%D7%99%21%20%D7%94%D7%92%D7%A2%D7%AA%D7%99%20%D7%9E%D7%94%D7%9E%D7%97%D7%A9%D7%91%D7%95%D7%9F%20%D7%9C%D7%A7%D7%A8%D7%9F%20%D7%94%D7%A9%D7%AA%D7%9C%D7%9E%D7%95%D7%AA%20%D7%9C%D7%A2%D7%A6%D7%9E%D7%90%D7%99%D7%9D.%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%A9%D7%95%D7%97%D7%97."
+    class="floating-whatsapp" id="floatingWhatsApp" target="_blank" rel="noopener" aria-label="שיחה בוואטסאפ עם רועי רומנו">
+    <i class="fab fa-whatsapp"></i> וואטסאפ
+  </a>
 
   <section class="legal-sections" aria-label="מסמכים משפטיים">
     <details class="legal-card" id="disclaimer">
@@ -964,12 +1009,16 @@ const set=(id,v)=>{
 };
 const getN=id=>parseInputNumber($(id).value);
 const getI=id=>parseInt($(id).value)||0;
+const WHATSAPP_PHONE='972528089808';
 
 function fmtILS(n){
   return new Intl.NumberFormat('he-IL',{style:'currency',currency:'ILS',
     minimumFractionDigits:0,maximumFractionDigits:0}).format(Math.round(n));
 }
 function fmtPct(n){ return n+'%'; }
+function buildWhatsAppUrl(message){
+  return `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(message)}`;
+}
 
 /* fill month select */
 function fillMonthSelect(el){
@@ -1642,7 +1691,42 @@ function animateCounter(el, target, duration, delay) {
   }, delay);
 }
 
+function validateTaxIncome(){
+  const income=getN('annualIncome');
+  const field=$('annualIncome')?.closest('.tax-input-income');
+  const error=$('annualIncomeError');
+  const isValid=Number.isFinite(income)&&income>0;
+  if(field) field.classList.toggle('has-error',!isValid);
+  if(error) error.style.display=isValid?'none':'block';
+  if(!isValid){
+    $('taxResultBox').style.display='none';
+    $('annualIncome')?.focus({preventScroll:true});
+  }
+  return isValid;
+}
+
+function updateTaxShareLink({income,year,totalProtected,capitalGainsTaxBenefit,deductible,taxBenefit,niBenefit,totalBenefit}){
+  const share=$('taxShareWhatsApp');
+  if(!share) return;
+  const message=[
+    'שלום רועי,',
+    'הגעתי מהמחשבון שלך לקרן השתלמות לעצמאים ואשמח לבדוק את האפשרויות שלי.',
+    '',
+    `הכנסה שנתית חייבת שהזנתי: ${fmtILS(income)}`,
+    `תקרת הפקדה מוטבת לשנת ${year}: ${fmtILS(totalProtected)}`,
+    `שווי הטבת פטור ממס רווחי הון: ${fmtILS(capitalGainsTaxBenefit)}`,
+    `הפקדה מוכרת כהוצאה: ${fmtILS(deductible)}`,
+    `שווי הטבת מס הכנסה: ${fmtILS(taxBenefit)}`,
+    `אומדן חיסכון ביטוח לאומי/בריאות: ${fmtILS(niBenefit)}`,
+    `סיכום שווי הטבות המס: ${fmtILS(totalBenefit)}`,
+    '',
+    'אשמח לקבל ייעוץ אישי.'
+  ].join('\n');
+  share.href=buildWhatsAppUrl(message);
+}
+
 function runTaxCalc(){
+  if(!validateTaxIncome()) return;
   const year   =2026;
   const income =getN('annualIncome');
   const d      =getCeiling(year);
@@ -1673,6 +1757,7 @@ function runTaxCalc(){
   animateCounter($('storyNiBenefit'), niBenefit, 1600, 720);
   // סיכום — מופיע ב-0.92s, counter ארוך במיוחד
   animateCounter($('storyTotalBenefit'), totalBenefit, 2400, 1020);
+  updateTaxShareLink({income,year,totalProtected,capitalGainsTaxBenefit,deductible,taxBenefit,niBenefit,totalBenefit});
 
   // Notice if income > ceiling
   const noticeBar=$('taxNoticeBar');
@@ -1844,6 +1929,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     setTimeout(()=>{ runCalculation(); btn.classList.remove('loading'); },100);
   });
   $('btnCalcTax').addEventListener('click',()=>{
+    if(!validateTaxIncome()) return;
     const overlay=$('taxLoadingOverlay');
     overlay.classList.add('show');
     $('taxResultBox').classList.remove('show-story');
@@ -1853,6 +1939,11 @@ document.addEventListener('DOMContentLoaded',()=>{
       overlay.classList.remove('show');
       $('btnCalcTax').disabled=false;
     },1000);
+  });
+  $('annualIncome')?.addEventListener('input',()=>{
+    const field=$('annualIncome').closest('.tax-input-income');
+    field&&field.classList.remove('has-error');
+    if($('annualIncomeError')) $('annualIncomeError').style.display='none';
   });
   $('btnReset').addEventListener('click',resetToDefaults);
   $('btnSuggest').addEventListener('click',applyRecommendedMonthlyDefaults);
@@ -1865,13 +1956,26 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
 
   document.querySelectorAll('input,select').forEach(el=>
-    el.addEventListener('keydown',e=>{ if(e.key==='Enter') runCalculation(); })
+    el.addEventListener('keydown',e=>{
+      if(e.key!=='Enter') return;
+      if(el.id==='annualIncome') $('btnCalcTax').click();
+      else runCalculation();
+    })
   );
 
   document.querySelectorAll('.tip-icon').forEach(icon=>{
     icon.addEventListener('mouseenter',showTip);
     icon.addEventListener('mouseleave',hideTip);
   });
+  const floatingWhatsApp=$('floatingWhatsApp');
+  if(floatingWhatsApp){
+    const toggleFloatingWhatsApp=()=>{
+      floatingWhatsApp.classList.toggle('is-visible',window.innerWidth<=760&&window.scrollY>360);
+    };
+    window.addEventListener('scroll',toggleFloatingWhatsApp,{passive:true});
+    window.addEventListener('resize',toggleFloatingWhatsApp);
+    toggleFloatingWhatsApp();
+  }
 
   updateTaxCeilingBar();
   updateLegalDataYear();
