@@ -1,0 +1,1891 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>מחשבון קרן השתלמות לעצמאים</title>
+  <meta name="description" content="מחשבון קרן השתלמות לעצמאים לבדיקת תקרת הפקדה, צבירה משוערת ושווי הטבות מס, כולל פטור ממס רווחי הון, הוצאה מוכרת ואומדן ביטוח לאומי ובריאות."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:locale" content="he_IL"/>
+  <meta property="og:title" content="מחשבון קרן השתלמות לעצמאים"/>
+  <meta property="og:description" content="בדקו כמה להפקיד לקרן השתלמות ומה שווי הטבות המס שלכם כעצמאים."/>
+  <meta property="og:image" content="og-image.svg"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ecfdf5'/%3E%3Cpath d='M18 33l9 9 20-24' fill='none' stroke='%23059669' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"/>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#2563eb;--blue-dark:#1d4ed8;--blue-light:#eff6ff;
+  --green:#10b981;--green-light:#ecfdf5;
+  --gold:#f59e0b;--gold-light:#fffbeb;
+  --purple:#7c3aed;--purple-light:#f5f3ff;
+  --teal:#0d9488;--teal-light:#f0fdfa;
+  --orange:#ea580c;--orange-light:#fff7ed;
+  --red:#ef4444;
+  --slate-900:#0f172a;--slate-800:#1e293b;--slate-700:#334155;
+  --slate-600:#475569;--slate-400:#94a3b8;--slate-300:#cbd5e1;
+  --slate-200:#e2e8f0;--slate-100:#f1f5f9;--slate-50:#f8fafc;
+  --white:#ffffff;
+  --radius:16px;--radius-sm:10px;
+  --shadow:0 4px 24px rgba(15,23,42,.09);
+  --shadow-lg:0 8px 40px rgba(15,23,42,.14);
+  --font:'Heebo','Arial Hebrew',Arial,sans-serif
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--slate-50);color:var(--slate-800);direction:rtl;min-height:100vh;font-size:15px;line-height:1.6}
+.container{width:100%;max-width:980px;margin:0 auto;padding:0 16px}
+.skip-link{position:absolute;top:8px;right:8px;transform:translateY(-140%);background:#fff;color:var(--blue-dark);border:2px solid var(--blue);border-radius:8px;padding:8px 12px;font-weight:900;z-index:1000;text-decoration:none}
+.skip-link:focus{transform:translateY(0)}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 55%,#0ea5e9 100%);color:#fff;padding:36px 0 44px;position:relative;overflow:hidden;text-align:center}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,rgba(255,255,255,.08) 0%,transparent 60%),radial-gradient(ellipse at 10% 90%,rgba(14,165,233,.18) 0%,transparent 50%);pointer-events:none}
+.hero .container{position:relative;z-index:1}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:13px;font-weight:600;padding:5px 15px;border-radius:999px;margin-bottom:14px;backdrop-filter:blur(6px)}
+.hero-title{font-size:clamp(24px,5.5vw,44px);font-weight:900;letter-spacing:-.5px;margin-bottom:8px;line-height:1.2}
+.hero-sub{font-size:clamp(14px,2.8vw,17px);opacity:.88;margin-bottom:0}
+
+/* MAIN */
+.main-content{padding:0 0 48px}
+
+/* MAIN TABS */
+.main-tabs{display:flex;gap:0;background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);border:1.5px solid var(--slate-200);padding:5px;margin-top:-20px;margin-bottom:20px;position:relative;z-index:10}
+.main-tab-btn{flex:1;padding:10px 8px;border:none;background:transparent;font-family:var(--font);font-size:13px;font-weight:600;color:var(--slate-600);cursor:pointer;border-radius:var(--radius-sm);transition:background .15s,color .15s,box-shadow .15s;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
+.main-tab-btn.active{background:linear-gradient(135deg,var(--blue),#3b82f6);color:#fff;box-shadow:0 2px 10px rgba(37,99,235,.3)}
+.main-tab-btn i{font-size:13px}
+@media(max-width:520px){.main-tab-btn{font-size:11.5px;gap:3px;padding:9px 5px}.main-tab-btn i{display:none}}
+
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* SECTION HEADERS */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.section-header h2{font-size:16px;font-weight:700;color:var(--slate-800);display:flex;align-items:center;gap:7px}
+.section-header h2 i{color:var(--blue)}
+
+/* DEPOSIT TABS */
+.deposit-tabs{display:flex;gap:0;background:var(--slate-100);border-radius:var(--radius-sm);padding:4px;margin-bottom:20px}
+.dep-tab-btn{flex:1;padding:9px 10px;border:none;background:transparent;font-family:var(--font);font-size:13px;font-weight:600;color:var(--slate-600);cursor:pointer;border-radius:7px;transition:background .15s,color .15s,box-shadow .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.dep-tab-btn.active{background:var(--white);color:var(--blue-dark);box-shadow:0 1px 6px rgba(15,23,42,.1)}
+@media(max-width:480px){.dep-tab-btn{font-size:11.5px;padding:8px 4px}}
+
+/* INPUTS */
+.inputs-section{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);border:1.5px solid var(--slate-200);padding:22px 18px 18px;margin-bottom:20px}
+.inputs-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:0;align-items:end}
+@media(min-width:500px){.inputs-grid{grid-template-columns:1fr 1fr;align-items:end}}
+@media(min-width:780px){.inputs-grid{grid-template-columns:1fr 1fr 1fr;align-items:end}}
+.input-group{display:flex;flex-direction:column;gap:5px}
+.input-group.hidden{display:none}
+.input-group label{font-size:12.5px;font-weight:600;color:var(--slate-700);display:flex;align-items:center;gap:4px}
+.input-hint{font-size:11px;color:var(--purple);font-weight:600;margin-top:2px;padding:3px 8px;background:var(--purple-light);border-radius:5px;display:inline-block;line-height:1.4}
+.input-hint.green{color:#065f46;background:var(--green-light)}
+.input-hint.empty{display:none}
+
+.input-group input[type="number"],.input-group input[type="text"],.input-group select{width:100%;padding:9px 13px;border:1.5px solid var(--slate-200);border-radius:var(--radius-sm);font-family:var(--font);font-size:15px;font-weight:600;color:var(--slate-800);background:var(--slate-50);direction:rtl;transition:border-color .18s,box-shadow .18s;-webkit-appearance:none;appearance:none}
+.input-group input:focus,.input-group select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.12);background:var(--white)}
+.input-group select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 12px center;padding-left:34px;cursor:pointer}
+
+.inputs-divider{grid-column:1/-1;font-size:11.5px;font-weight:700;color:var(--slate-400);text-transform:uppercase;letter-spacing:.4px;border-top:1px solid var(--slate-100);padding-top:10px;margin-top:4px;display:flex;align-items:center;gap:6px}
+.inputs-divider i{color:inherit}
+
+.input-with-slider{display:flex;align-items:center;gap:10px}
+.input-with-slider input[type="range"]{flex:1;-webkit-appearance:none;appearance:none;height:5px;border-radius:99px;background:linear-gradient(to left,var(--blue) 0%,var(--slate-200) 100%);outline:none;cursor:pointer;direction:ltr}
+.input-with-slider input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--blue);box-shadow:0 2px 6px rgba(37,99,235,.35);cursor:pointer}
+.input-with-slider input[type="number"]{width:70px;flex-shrink:0;text-align:center}
+
+/* YEARLY SUMMARY BAR */
+.yearly-summary{background:linear-gradient(135deg,#f0fdfa,#ecfdf5);border:1.5px solid #99f6e4;border-radius:var(--radius-sm);padding:13px 15px;margin-top:14px;margin-bottom:0;font-size:13px;color:#134e4a;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.yearly-summary i{color:#0f766e;font-size:16px;flex-shrink:0}
+.yearly-summary__text{flex:1;line-height:1.5}
+.yearly-summary__amounts{display:flex;gap:16px;flex-wrap:wrap;margin-top:4px;align-items:flex-end}
+.yearly-summary__note{margin-top:8px;font-size:12px;font-weight:800;color:#0f766e}
+.yearly-summary__note.is-warning{color:#b45309}
+.yearly-summary__item{display:flex;flex-direction:column;gap:1px}
+.yearly-summary__item span:first-child{font-size:10.5px;color:#0f766e;font-weight:700;text-transform:uppercase}
+.yearly-summary__item span:last-child{font-size:15px;font-weight:900;color:#134e4a}
+.yearly-summary strong,.yearly-summary strong span{color:#134e4a!important}
+.yearly-summary__item span[id]{color:#134e4a!important}
+
+.form-action-row{display:flex;justify-content:flex-start;gap:8px;flex-wrap:wrap;margin:12px 0 14px}
+.btn-suggest{background:var(--green-light);border:1.5px solid #a7f3d0;border-radius:var(--radius-sm);padding:6px 12px;font-family:var(--font);font-size:12.5px;font-weight:700;color:#047857;cursor:pointer;display:flex;align-items:center;gap:5px;transition:border-color .18s,color .18s,background .18s}
+.btn-suggest:hover{border-color:var(--green);color:#065f46;background:#d1fae5}
+.monthly-divider{font-weight:bold!important;color:#111!important;font-size:16px!important}
+.monthly-divider i{color:#111!important}
+.annual-divider{font-weight:bold!important;color:#111!important;font-size:16px!important;text-transform:none;letter-spacing:0}
+.annual-divider i{color:#111!important}
+.general-divider{font-size:14px!important;color:#111!important;text-transform:none;letter-spacing:0}
+.general-divider i{color:#111!important}
+@media(max-width:620px){.form-action-row{justify-content:flex-start}}
+
+/* UNDERUSE WARNING */
+.underuse-warning{display:none;padding:11px 14px;background:var(--orange-light);border:1.5px solid #fed7aa;border-radius:var(--radius-sm);color:#7c2d12;font-size:13px;line-height:1.6;margin-top:10px}
+.underuse-warning.show{display:flex;gap:10px;align-items:flex-start}
+.underuse-warning i{color:var(--orange);font-size:16px;flex-shrink:0;margin-top:2px}
+.underuse-warning strong{font-size:15px;font-weight:900}
+
+/* CALC BUTTON */
+.calc-btn-wrapper{text-align:center;margin-top:18px}
+.btn-calc{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--blue),#3b82f6);color:#fff;border:none;border-radius:999px;padding:13px 38px;font-family:var(--font);font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 18px rgba(37,99,235,.35);transition:transform .15s,box-shadow .15s,opacity .15s}
+.btn-calc:hover{transform:translateY(-2px);box-shadow:0 6px 26px rgba(37,99,235,.45)}
+.btn-calc:active{transform:translateY(0)}
+.btn-calc.loading{opacity:.7;pointer-events:none}
+
+/* RESULTS */
+.results-area{margin-top:20px}
+.results-grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:540px){.results-grid{grid-template-columns:1fr 1fr}}
+@media(min-width:820px){.results-grid{grid-template-columns:repeat(6,1fr)}}
+.result-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:17px 15px 13px;display:flex;flex-direction:column;gap:4px;border:1.5px solid var(--slate-200);transition:transform .18s,box-shadow .18s;position:relative;overflow:hidden}
+.result-card::before{content:'';position:absolute;top:0;right:0;left:0;height:4px;background:linear-gradient(90deg,var(--blue),#38bdf8);border-radius:var(--radius) var(--radius) 0 0}
+.result-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.rc--main{background:linear-gradient(135deg,#eff6ff,#dbeafe);border-color:#bfdbfe;padding:22px 18px 16px;grid-column:1/-1}
+.rc--main::before{background:linear-gradient(90deg,#1d4ed8,#0ea5e9)}
+.rc--total::before{background:linear-gradient(90deg,var(--blue),#38bdf8)}
+.rc--profit::before{background:linear-gradient(90deg,var(--green),#34d399)}
+.rc--tax::before{background:linear-gradient(90deg,var(--purple),#a78bfa)}
+.rc--liquidity::before{background:linear-gradient(90deg,var(--gold),#fcd34d)}
+.rc--deposits::before{background:linear-gradient(90deg,var(--teal),#2dd4bf)}
+.rc--negative::before{background:linear-gradient(90deg,var(--red),#f87171)}
+.rc__icon{font-size:18px;color:var(--blue);margin-bottom:2px}
+.rc--profit .rc__icon{color:var(--green)}
+.rc--total .rc__icon{color:var(--blue)}
+.rc--tax .rc__icon{color:var(--purple)}
+.rc--liquidity .rc__icon{color:var(--gold)}
+.rc--deposits .rc__icon{color:var(--teal)}
+.rc__label{font-size:11px;font-weight:600;color:var(--slate-600);text-transform:uppercase;letter-spacing:.3px}
+.rc__value{font-size:clamp(19px,3.8vw,28px);font-weight:900;color:var(--blue-dark);line-height:1.1}
+.rc--main .rc__value{font-size:clamp(26px,5vw,38px)}
+.rc__value--sm{font-size:clamp(16px,3.2vw,22px)}
+.rc--profit .rc__value{color:#059669}
+.rc--total .rc__value{color:var(--blue-dark)}
+.rc--tax .rc__value{color:#6d28d9}
+.rc--liquidity .rc__value{color:#b45309}
+.rc--deposits .rc__value{color:#0f766e}
+.rc--negative .rc__value{color:var(--red)}
+.rc__sub{font-size:10.5px;color:var(--slate-400)}
+.rc--total.is-exempt-only::before{background:linear-gradient(90deg,var(--green),#34d399)}
+.rc--total.is-exempt-only .rc__icon,.rc--total.is-exempt-only .rc__value{color:#059669}
+.results-summary{display:grid;grid-template-columns:1fr;gap:14px}
+.balance-hero{background:linear-gradient(135deg,#eef6ff,#dbeafe);border:1.5px solid #bfdbfe;border-top:4px solid var(--blue);border-radius:16px;padding:28px 22px;text-align:center}
+.balance-hero__icon{color:var(--blue);font-size:20px;margin-bottom:8px}
+.balance-hero__label{font-size:13px;font-weight:800;color:var(--slate-700)}
+.balance-hero__value{font-size:clamp(34px,7vw,52px);font-weight:900;color:var(--blue-dark);line-height:1;margin-top:6px}
+.balance-hero__sub{margin-top:8px;font-size:12px;font-weight:700;color:var(--slate-500)}
+.results-lines{background:var(--white);border:1.5px solid var(--slate-200);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.result-line{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--slate-100)}
+.result-line:last-child{border-bottom:none}
+.result-line__icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--slate-100);color:var(--slate-600);font-size:15px}
+.result-line__label{font-size:14px;font-weight:900;color:var(--slate-800)}
+.result-line__sub{font-size:11.5px;font-weight:600;color:var(--slate-500);line-height:1.4;margin-top:2px}
+.result-line__value{font-size:clamp(20px,4vw,28px);font-weight:900;color:var(--slate-900);white-space:nowrap}
+.result-line--exempt{background:linear-gradient(90deg,rgba(16,185,129,.08),#fff)}
+.result-line--exempt .result-line__icon{background:var(--green-light);color:#059669}
+.result-line--exempt .result-line__value{color:#059669}
+.result-line--profit-total .result-line__icon{background:var(--blue-light);color:var(--blue)}
+.result-line--profit-total .result-line__value{color:var(--blue-dark)}
+.result-line--taxable .result-line__icon{background:var(--purple-light);color:#6d28d9}
+.result-line--taxable .result-line__value{color:#6d28d9}
+.result-line--deposits .result-line__icon{background:var(--teal-light);color:#0f766e}
+.result-line--deposits .result-line__value{color:#0f766e}
+.result-line--liquidity .result-line__icon{background:var(--gold-light);color:#b45309}
+.result-line--liquidity .result-line__value{color:#b45309}
+@media(max-width:540px){
+  .balance-hero{padding:22px 14px}
+  .result-line{grid-template-columns:auto 1fr;gap:10px;padding:14px 12px}
+  .result-line__value{grid-column:2;justify-self:start;white-space:normal}
+}
+@keyframes popIn{0%{transform:scale(.92);opacity:.5}60%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+.animate-pop{animation:popIn .3s ease-out both}
+
+/* CHART */
+.chart-section{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);border:1.5px solid var(--slate-200);padding:20px 16px 16px;margin-top:20px}
+.chart-container{width:100%;height:260px;position:relative}
+@media(min-width:600px){.chart-container{height:320px}}
+.chart-legend{display:flex;justify-content:center;gap:20px;margin-top:12px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--slate-600)}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.legend-item--balance .legend-dot{background:var(--blue)}
+.legend-item--deposits .legend-dot{background:var(--green)}
+
+/* TABLE */
+.table-section{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);border:1.5px solid var(--slate-200);padding:20px 16px 16px;margin-top:20px}
+.btn-toggle-table{background:var(--blue-light);border:1.5px solid #bfdbfe;border-radius:var(--radius-sm);padding:6px 14px;font-family:var(--font);font-size:12.5px;font-weight:600;color:var(--blue-dark);cursor:pointer;display:flex;align-items:center;gap:5px;transition:background .18s}
+.btn-toggle-table:hover{background:#dbeafe}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:8px}
+#monthlyTable{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}
+#monthlyTable thead tr{background:linear-gradient(90deg,#1e3a8a,#2563eb);color:#fff}
+#monthlyTable th{padding:9px 10px;font-weight:900;text-align:right;white-space:nowrap;font-size:11px}
+#monthlyTable tbody tr{border-bottom:1px solid var(--slate-100);transition:background .1s}
+#monthlyTable tbody tr:hover{background:#f0f7ff}
+#monthlyTable tbody tr:nth-child(even){background:var(--slate-50)}
+#monthlyTable tbody tr:nth-child(even):hover{background:#f0f7ff}
+#monthlyTable td{padding:7px 10px;text-align:right;color:var(--slate-700);white-space:nowrap}
+.col-index{color:var(--slate-400);font-size:10.5px}
+.col-num{font-variant-numeric:tabular-nums}
+.col-closing{color:var(--blue-dark)}
+.hl-lump{color:#b45309!important;font-weight:700}
+.hl-monthly{color:var(--green)!important;font-weight:600}
+.hl-annual{color:var(--purple)!important;font-weight:700}
+.hl-return{color:#7c3aed;font-weight:600}
+.row-lump td{background:#fffbeb!important}
+.row-annual td{background:#f5f3ff!important}
+.row-so2 td{background:#faf5ff!important}
+.row-last td{background:#eff6ff!important;font-weight:700}
+
+/* BTN RESET */
+.btn-reset{background:none;border:1.5px solid var(--slate-200);border-radius:var(--radius-sm);padding:6px 12px;font-family:var(--font);font-size:12.5px;font-weight:600;color:var(--slate-600);cursor:pointer;display:flex;align-items:center;gap:5px;transition:border-color .18s,color .18s}
+.btn-reset:hover{border-color:var(--blue);color:var(--blue)}
+
+/* TOOLTIP */
+.tip-icon{cursor:help;color:var(--slate-400);font-size:11.5px;transition:color .15s}
+.tip-icon:hover{color:var(--blue)}
+.tooltip-popup{position:fixed;z-index:9999;background:var(--slate-800);color:#fff;font-size:12.5px;font-family:var(--font);direction:rtl;padding:9px 13px;border-radius:8px;max-width:260px;line-height:1.5;box-shadow:0 4px 16px rgba(0,0,0,.25);pointer-events:none;opacity:0;transition:opacity .15s}
+.tooltip-popup.visible{opacity:1}
+
+/* TAX PANEL */
+.tax-panel{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);border:1.5px solid var(--slate-200);padding:22px 18px;margin-bottom:22px}
+.tax-inputs-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px}
+.tax-input-year{width:110px;flex-shrink:0}
+.tax-input-income{flex:1;min-width:200px}
+.tax-ceiling-bar{background:linear-gradient(135deg,#f0fdfa,#ecfeff);border:1.5px solid #99f6e4;border-radius:var(--radius-sm);padding:10px 14px;margin-top:14px;font-size:12.5px;color:#134e4a;display:flex;align-items:flex-start;gap:9px;line-height:1.5}
+.tax-ceiling-bar i{color:#0f766e;font-size:14px;flex-shrink:0;margin-top:2px}
+.tax-ceiling-bar a{color:#0f766e;text-decoration:underline}
+
+/* TAX RESULT */
+.tax-result-box{border-radius:var(--radius);padding:20px 18px;margin-top:16px;background:var(--white);border:1.5px solid #99f6e4}
+.tax-result-title{font-size:18px;font-weight:800;color:#111827;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.tax-result-title i{color:#111827}
+.tax-input-income label{font-size:15px}
+.tax-input-income input[type="text"]{font-size:16px;font-weight:700}
+.tax-panel{position:relative}
+.tax-loading-overlay{position:absolute;inset:0;background:rgba(255,255,255,.84);backdrop-filter:blur(3px);border-radius:var(--radius);display:none;align-items:center;justify-content:center;z-index:10}
+.tax-loading-overlay.show{display:flex}
+.tax-loading-card{background:var(--white);border:1.5px solid #99f6e4;border-radius:14px;padding:22px 26px;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;align-items:center;gap:12px;color:#134e4a;font-size:15px;font-weight:900;text-align:center}
+.tax-loading-spinner{width:42px;height:42px;border:4px solid #ccfbf1;border-top-color:#059669;border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.tax-story{display:flex;flex-direction:column;gap:10px}
+.tax-story-step{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:flex-start;padding:13px 0;border-bottom:1px solid rgba(15,118,110,.14);opacity:1;transform:none}
+.tax-story-step:last-child{border-bottom:none}
+.tax-story-step__num{width:28px;height:28px;border-radius:999px;background:#f0fdfa;color:#0f766e;display:grid;place-items:center;font-weight:900;font-size:13px;flex-shrink:0}
+.tax-story-step__text{font-size:16.5px;font-weight:600;color:var(--slate-700);line-height:1.7}
+.tax-story-step__text strong{color:#111827;font-weight:900;font-size:1.07em}
+.tax-story-copy{display:block}
+.tax-story-line{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;margin:4px 0}
+.tax-story-line .tax-story-copy{display:inline}
+.tax-story-amount{color:#059669;font-size:23px;font-weight:900;white-space:nowrap;display:block;line-height:1.35;margin:4px 0}
+.tax-story-line .tax-story-amount{display:inline;margin:0}
+.tax-story-note{display:inline;color:var(--slate-900);font-size:12px;font-weight:600}
+.tax-story-note--block{display:block;margin-top:2px}
+.tax-story-capital-gains{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;margin-top:3px;color:#111827;font-weight:800}
+.tax-story-capital-gains .tax-story-note{font-size:12px;font-weight:600;color:var(--slate-700)}
+.tax-story-marker{position:relative;isolation:isolate;padding:0 8px}
+.tax-story-marker::before{content:'';position:absolute;z-index:-1;left:-8px;right:-8px;bottom:.08em;height:.78em;background:linear-gradient(90deg,rgba(254,240,138,.18),rgba(253,224,71,.9) 8%,rgba(253,230,138,.95) 50%,rgba(250,204,21,.82) 90%,rgba(254,240,138,.2));border-radius:3px 9px 4px 11px;transform:rotate(-1.2deg) skewX(-5deg);box-shadow:0 2px 0 rgba(245,158,11,.16)}
+.tax-story-marker::after{content:'';position:absolute;z-index:-1;left:-5px;right:-5px;bottom:.28em;height:.32em;background:rgba(254,249,195,.62);border-radius:8px 3px 10px 4px;transform:rotate(.6deg) skewX(8deg)}
+.tax-story-summary{background:rgba(16,185,129,.12);border:1.5px solid #99f6e4;border-radius:12px;padding:16px 14px;margin-top:4px;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;opacity:1;transform:none}
+.tax-story-summary .tax-story-step__num{display:none}
+.tax-story-summary .tax-story-step__text{font-size:18px;font-weight:900;color:#111827}
+.tax-story-summary .tax-story-amount{font-size:25px}
+.tax-story-summary-check{width:28px;height:28px;border-radius:999px;background:#059669;color:#fff;display:inline-grid;place-items:center;font-size:13px;flex-shrink:0}
+.tax-result-box.show-story .tax-story-step,.tax-result-box.show-story .tax-story-summary{animation:storyReveal .58s ease both}
+.tax-result-box.show-story .tax-story-step:nth-child(1){animation-delay:.08s}
+.tax-result-box.show-story .tax-story-step:nth-child(2){animation-delay:.36s}
+.tax-result-box.show-story .tax-story-step:nth-child(3){animation-delay:.64s}
+.tax-result-box.show-story .tax-story-summary{animation-delay:.92s}
+@keyframes storyReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.notice-bar{background:var(--orange-light);border:1.5px solid #fed7aa;border-radius:var(--radius-sm);padding:10px 14px;font-size:12.5px;color:#7c2d12;display:flex;gap:8px;align-items:flex-start;margin-top:12px}
+.notice-bar i{color:var(--orange);font-size:15px;flex-shrink:0;margin-top:1px}
+
+/* ceiling bar annual */
+.ceiling-info-bar{background:linear-gradient(135deg,var(--purple-light),#ede9fe);border:1.5px solid #c4b5fd;border-radius:var(--radius-sm);padding:12px 15px;margin-bottom:16px;font-size:13px;color:#4c1d95;display:flex;align-items:flex-start;gap:10px}
+.ceiling-info-bar i{color:var(--purple);font-size:16px;flex-shrink:0;margin-top:2px}
+.ceiling-info-bar a{color:var(--purple);text-decoration:underline}
+
+/* CTA */
+.cta-section{margin-top:22px;margin-bottom:26px}
+.cta-card{background:linear-gradient(135deg,#0f172a,#1e3a8a);border-radius:var(--radius);padding:34px 22px;text-align:center;color:#fff;box-shadow:var(--shadow-lg);position:relative;overflow:hidden}
+.cta-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 80%,rgba(37,99,235,.3) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(14,165,233,.2) 0%,transparent 50%);pointer-events:none}
+.cta-emoji{font-size:44px;margin-bottom:11px;display:block}
+.cta-title{font-size:clamp(18px,3.8vw,26px);font-weight:800;margin-bottom:9px;position:relative}
+.cta-sub{font-size:13.5px;opacity:.85;margin-bottom:20px;position:relative}
+.cta-sub strong{background:#fde68a;color:#78350f;padding:1px 7px;border-radius:4px;font-weight:800}
+.btn-cta{display:inline-flex;align-items:center;gap:9px;background:#25d366;color:#fff;text-decoration:none;border-radius:999px;padding:12px 28px;font-family:var(--font);font-size:15px;font-weight:800;box-shadow:0 4px 18px rgba(37,211,102,.4);transition:transform .15s,box-shadow .15s;position:relative}
+.btn-cta:hover{transform:translateY(-2px);box-shadow:0 6px 26px rgba(37,211,102,.5)}
+.mini-disclaimer{margin:0 0 18px;text-align:center;color:var(--slate-600);font-size:12px;line-height:1.7}
+.mini-disclaimer strong{display:block;color:var(--slate-800);font-size:13px;margin-bottom:2px}
+.mini-disclaimer__links{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:6px}
+.mini-disclaimer__links a{color:var(--teal);font-weight:700;text-decoration:none}
+.btn-cta i{font-size:18px}
+
+.legal-sections{display:grid;gap:12px;margin-bottom:18px}
+.legal-card{background:var(--white);border:1.5px solid var(--slate-200);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.legal-card summary{cursor:pointer;list-style:none;padding:14px 16px;font-weight:900;color:var(--slate-900);display:flex;align-items:center;gap:8px}
+.legal-card summary::-webkit-details-marker{display:none}
+.legal-card summary i{color:var(--teal)}
+.legal-card__body{padding:0 16px 16px;color:var(--slate-700);font-size:12.5px;line-height:1.75}
+.legal-card__body h4{font-size:13.5px;color:var(--slate-900);margin:12px 0 4px}
+.legal-card__body p{margin:0 0 8px}
+.legal-card__body ul{padding-right:18px;margin:0 0 8px}
+.legal-card__body li{margin-bottom:3px}
+
+/* DISCLAIMER */
+.disclaimer{margin-bottom:12px}
+.disclaimer-inner{background:#f8fafc;border:1.5px solid var(--slate-200);border-radius:var(--radius);padding:16px 18px;display:flex;align-items:flex-start;gap:10px;color:var(--slate-700);font-size:11.5px;line-height:1.7}
+.disclaimer-inner i{font-size:16px;color:var(--gold);flex-shrink:0;margin-top:2px}
+.disclaimer-inner h3{margin:0 0 8px;font-size:14px;color:var(--slate-900)}
+.disclaimer-inner p{margin:0}
+
+@media(max-width:480px){
+  .hero{padding:30px 0 40px}
+  .inputs-section,.chart-section,.table-section,.tax-panel{padding:14px 11px}
+  .cta-card{padding:24px 13px}
+  .result-card{padding:14px 12px 11px}
+  .btn-calc{font-size:14px;padding:11px 24px}
+  .main-tab-btn{font-size:11px;padding:8px 4px}
+}
+
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+.table-scroll::-webkit-scrollbar{height:6px}
+.table-scroll::-webkit-scrollbar-track{background:var(--slate-100);border-radius:99px}
+.table-scroll::-webkit-scrollbar-thumb{background:var(--slate-400);border-radius:99px}
+  </style>
+</head>
+<body>
+<a class="skip-link" href="#mainContent">דלג לתוכן המרכזי</a>
+
+<!-- HERO (ללא pill) -->
+<header class="hero">
+  <div class="hero-bg"></div>
+  <div class="container">
+    <div class="hero-badge"><i class="fas fa-star"></i> לעצמאים בלבד</div>
+    <h1 class="hero-title">קרן השתלמות לעצמאים</h1>
+    <p class="hero-sub">בדקו כמה להפקיד כדי לנצל את תקרת <span id="heroCeilingYear">—</span></p>
+  </div>
+</header>
+
+<main class="container main-content" id="mainContent">
+
+  <!-- MAIN TABS -->
+  <nav class="main-tabs" role="tablist">
+    <button class="main-tab-btn active" id="tabCalcBtn" onclick="switchMainTab('calc')" role="tab" style="font-size: 16px;">
+      <i class="fas fa-calculator"></i> מחשבון צבירה
+    </button>
+    <button class="main-tab-btn" id="tabTaxBtn" onclick="switchMainTab('tax')" role="tab" style="font-weight: bold; color: rgb(17, 1, 1); font-size: 16px;">
+      <i class="fas fa-shield-halved"></i> הטבות מס
+    </button>
+  </nav>
+
+  <!-- ════════════════════════════════
+       TAB 1: CALCULATOR
+  ════════════════════════════════ -->
+  <div class="tab-panel active" id="panelCalc">
+    <section class="inputs-section" aria-label="נתוני קלט">
+      <!-- DEPOSIT MODE TABS -->
+      <div class="deposit-tabs" role="group">
+        <button class="dep-tab-btn active" id="modeMonthlyBtn" onclick="setDepositMode('monthly')" style="font-size: 14px; font-weight: bold;">
+          <i class="fas fa-calendar-day"></i> הפקדה חד פעמית + הוראת קבע שוטפת
+        </button>
+        <button class="dep-tab-btn" id="modeAnnualBtn" onclick="setDepositMode('annual')" style="font-size: 14px; font-weight: bold;">
+          <i class="fas fa-calendar-alt"></i> הפקדה שנתית
+        </button>
+      </div>
+
+      <!-- ── MONTHLY FIELDS ── -->
+      <div id="fieldsMonthly">
+        <div class="form-action-row">
+          <button class="btn-reset" id="btnReset" type="button"><i class="fas fa-undo"></i> איפוס</button>
+          <button class="btn-suggest" id="btnSuggest" type="button"><i class="fas fa-wand-magic-sparkles"></i> עדכן המלצות</button>
+        </div>
+
+        <div class="inputs-grid">
+
+          <!-- הפקדה חד פעמית -->
+          <div class="input-group">
+              <label for="lumpSum" style="font-weight: bold; font-size: 16px; color: rgb(0, 0, 0);">הכנס הפקדה חד פעמית (₪)
+                <span class="tip-icon" id="lumpTip" data-tip="תקרת הפקדה מוטבת לשנת 2026: ‏20,566 ‏₪"><i class="fas fa-circle-info"></i></span>
+              </label>
+              <input type="text" id="lumpSum" inputmode="numeric"/>
+          </div>
+
+          <div class="input-group">
+            <label for="lumpSumMonth" style="font-weight: bold;">חודש ביצוע ההפקדה החד פעמית</label>
+            <select id="lumpSumMonth">
+              <option value="1">ינואר</option><option value="2">פברואר</option>
+              <option value="3">מרץ</option><option value="4">אפריל</option>
+              <option value="5">מאי</option><option value="6">יוני</option>
+              <option value="7">יולי</option><option value="8">אוגוסט</option>
+              <option value="9">ספטמבר</option><option value="10">אוקטובר</option>
+              <option value="11">נובמבר</option><option value="12">דצמבר</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="lumpSumYear" style="font-weight: bold;">שנת ההפקדה החד פעמית
+              <span class="tip-icon" data-tip="שנת המס הראשונה – קובעת את מועד הנזילות (31.01 + 6 שנים)."><i class="fas fa-circle-info"></i></span>
+            </label>
+            <input type="number" id="lumpSumYear" min="2020" max="2035"/>
+          </div>
+
+          <!-- divider הוראת קבע -->
+          <div class="inputs-divider"></div>
+
+          <div class="input-group">
+            <label for="monthlyDeposit" style="font-weight: bold; font-size: 16px; color: rgb(0, 0, 0);"><i class="fas fa-repeat" style="color:#111;margin-left:5px"></i> הכנס הוראת קבע חודשית
+              <span class="tip-icon" id="monthlySuggestedTip" data-tip="מומלץ: ‏1,713 ‏₪/חודש (‏20,566 ‏₪ תקרה 2027)"><i class="fas fa-circle-info"></i></span>
+            </label>
+            <input type="text" id="monthlyDeposit" inputmode="numeric"/>
+          </div>
+
+          <div class="input-group">
+            <label for="standingOrderMonth" style="font-weight: bold;">חודש תחילת הוראת הקבע</label>
+            <select id="standingOrderMonth"></select>
+          </div>
+
+          <div class="input-group">
+            <label for="standingOrderYear" style="font-weight: bold;">שנת תחילת הוראת הקבע</label>
+            <input type="number" id="standingOrderYear" min="2020" max="2040"/>
+          </div>
+
+        </div><!-- /inputs-grid -->
+
+        <!-- הצעה הפוכה: חשב הפקדה חד פעמית לפי הו"ק -->
+        <div id="reverseSuggestion" style="display:none;margin-top:12px;padding:13px 16px;background:linear-gradient(135deg,#eff6ff,#dbeafe);border:2px solid #93c5fd;border-radius:12px;font-size:13px">
+          <div style="font-weight:800;margin-bottom:8px;color:#1e3a8a;display:flex;align-items:center;gap:7px;font-size:16px">
+            <i class="fas fa-calculator" style="color:#2563eb;font-size:15px"></i>
+            כדי להגיע לתקרה בשנת <span id="reverseSuggYear" style="color:#2563eb"></span>
+          </div>
+          <div style="color:#1e40af;margin-bottom:12px;line-height:1.6;font-size:13px" id="reverseSuggDesc"></div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <button onclick="applyReverseLump()" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;border-radius:8px;padding:9px 20px;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 2px 8px rgba(37,99,235,.3)">
+              <i class="fas fa-check"></i> קבע הפקדה חד פעמית
+            </button>
+            <button onclick="dismissReverseSugg()" style="background:#fff;color:#1e3a8a;border:1.5px solid #93c5fd;border-radius:8px;padding:9px 20px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">
+              <i class="fas fa-xmark"></i> לא עכשיו
+            </button>
+          </div>
+        </div>
+
+        <!-- אזהרת אי-ניצול (מעל הסיכום) -->
+        <div class="underuse-warning" id="underuseWarning" style="margin-top:14px;margin-bottom:0">
+          <i class="fas fa-triangle-exclamation"></i>
+          <span id="underuseText"></span>
+        </div>
+
+        <!-- הצעת הו"ק לשנה הבאה -->
+        <div id="nextYearSOSuggestion" style="display:none;margin-top:10px;padding:14px 16px;background:linear-gradient(135deg,#fffbeb,#fff7ed);border:2px solid #f97316;border-radius:12px;font-size:13px">
+          <div style="font-weight:800;margin-bottom:10px;color:#7c2d12;display:flex;align-items:center;gap:7px;font-size:14px">
+            <i class="fas fa-lightbulb" style="color:#ea580c;font-size:16px"></i>
+            הצעה: עדכן הו"ק משנת <span id="nextYearLabel" style="color:#ea580c;font-size:16px"></span>
+          </div>
+          <div style="color:#92400e;margin-bottom:12px;line-height:1.5;font-size:13px" id="nextYearSODesc"></div>
+          <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <label style="font-size:12px;font-weight:700;color:#7c2d12">סכום חודשי (₪)</label>
+              <input type="text" id="nextYearSO" inputmode="numeric" aria-label="סכום הוראת קבע מומלץ לשנה הבאה"
+                style="width:130px;padding:7px 12px;border:2px solid #f97316;border-radius:8px;font-family:var(--font);font-size:15px;font-weight:800;color:#7c2d12;background:#fff;text-align:center"/>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <label style="font-size:12px;font-weight:700;color:#7c2d12">חודש תחילה</label>
+              <select id="nextYearSOMonth" aria-label="חודש תחילת הוראת קבע לשנה הבאה" style="padding:7px 10px;border:2px solid #f97316;border-radius:8px;font-family:var(--font);font-size:14px;font-weight:700;color:#7c2d12;background:#fff;min-width:120px"></select>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <label style="font-size:12px;font-weight:700;color:#7c2d12">שנה</label>
+              <input type="number" id="nextYearSOYear" min="2024" max="2040" aria-label="שנת תחילת הוראת קבע לשנה הבאה"
+                style="width:90px;padding:7px 10px;border:2px solid #f97316;border-radius:8px;font-family:var(--font);font-size:14px;font-weight:700;color:#7c2d12;background:#fff;text-align:center"/>
+            </div>
+            <span style="font-size:11.5px;color:#9a3412;font-style:italic;padding-bottom:8px" id="nextYearSOHint"></span>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button onclick="applyNextYearSO()" style="background:linear-gradient(135deg,#ea580c,#dc2626);color:#fff;border:none;border-radius:8px;padding:9px 20px;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 2px 8px rgba(234,88,12,.3)">
+              <i class="fas fa-check"></i> עדכן וחשב מחדש
+            </button>
+            <button onclick="dismissNextYearSO()" style="background:#fff;color:#7c2d12;border:1.5px solid #fed7aa;border-radius:8px;padding:9px 20px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">
+              <i class="fas fa-xmark"></i> אל תעדכן
+            </button>
+          </div>
+        </div>
+
+        <!-- סיכום שנתי -->
+        <div class="yearly-summary" id="yearlySummary">
+          <i class="fas fa-calendar-check"></i>
+          <div class="yearly-summary__text">
+            <strong><span style="font-size:16px">סיכום הפקדות בשנת המס </span><span id="summaryYear" style="font-size:16px">—</span></strong>
+            <div class="yearly-summary__amounts">
+              <div class="yearly-summary__item">
+                <span>הפקדה חד פעמית</span>
+                <span id="summaryLump">—</span>
+              </div>
+              <div class="yearly-summary__item">
+                <span>הו"ק שוטפת (שנה ראשונה)</span>
+                <span id="summaryMonthly">—</span>
+              </div>
+              <div class="yearly-summary__item">
+                <span>סה"כ הפקדות</span>
+                <span id="summaryTotal" style="font-size:16px">—</span>
+              </div>
+              <div class="yearly-summary__item" id="summarySO2Row" style="display:none">
+                <span id="summarySO2Label" style="font-size:16px">הו"ק מעודכנת</span>
+                <span id="summarySO2">—</span>
+              </div>
+            </div>
+            <div class="yearly-summary__note" id="summaryTaxNote"></div>
+          </div>
+        </div>
+
+        <!-- divider פרמטרים כלליים -->
+        <div class="inputs-grid" style="margin-top:14px">
+          <div class="inputs-divider general-divider"><i class="fas fa-gear"></i> פרמטרים כלליים</div>
+
+          <div class="input-group">
+            <label for="annualReturn">צפי תשואה שנתית ממוצעת (%)</label>
+            <div class="input-with-slider">
+              <input type="range" id="annualReturnSlider" min="1" max="20" step="0.5" value="9" aria-label="צפי תשואה שנתית ממוצעת"/>
+              <input type="number" id="annualReturn" min="0" max="30" step="0.5" value="9"/>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="calcYears" style="font-weight: bold; font-size: 14px;">מספר שנים לחישוב</label>
+            <input type="number" id="calcYears" min="1" max="30" step="1" value="6"/>
+          </div>
+
+          <div class="input-group">
+            <label for="mgmtFee" style="font-size: 14px; font-weight: bold;">דמי ניהול שנתיים (%)</label>
+            <input type="number" id="mgmtFee" min="0" max="3" step="0.1" value="0"/>
+          </div>
+        </div>
+
+      </div><!-- /fieldsMonthly -->
+
+      <!-- ── ANNUAL FIELDS ── -->
+      <div id="fieldsAnnual" style="display:none">
+        <div class="inputs-grid">
+
+          <div class="input-group">
+            <label for="annualLumpSum" style="font-weight: bold; font-size: 16px; color: rgb(0, 0, 0);">הפקדה חד פעמית (₪)
+              <span class="tip-icon" id="annualLumpTip" data-tip="סכום חד פעמי בשנה הראשונה – מופקד בתחילת חודש הביצוע."><i class="fas fa-circle-info"></i></span>
+            </label>
+            <input type="text" id="annualLumpSum" inputmode="numeric" value="20,566"/>
+          </div>
+
+          <div class="input-group">
+            <label for="annualLumpMonth">חודש ביצוע ההפקדה החד פעמית</label>
+            <select id="annualLumpMonth">
+              <option value="1">ינואר</option><option value="2">פברואר</option>
+              <option value="3">מרץ</option><option value="4">אפריל</option>
+              <option value="5">מאי</option><option value="6">יוני</option>
+              <option value="7">יולי</option><option value="8">אוגוסט</option>
+              <option value="9">ספטמבר</option><option value="10">אוקטובר</option>
+              <option value="11">נובמבר</option><option value="12">דצמבר</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="annualTaxYear">שנת הפקדה</label>
+            <input type="number" id="annualTaxYear" min="2020" max="2035"/>
+          </div>
+
+          <div class="inputs-divider"></div>
+
+          <div class="input-group">
+            <label for="annualDeposit" style="font-weight: bold; font-size: 16px; color: rgb(0, 0, 0);"><i class="fas fa-calendar-plus" style="color:#111;margin-left:5px"></i> הפקדה שנתית חוזרת
+              <span class="tip-icon" data-tip="מופקד בתחילת החודש שנבחר, פעם בשנה."><i class="fas fa-circle-info"></i></span>
+            </label>
+            <input type="text" id="annualDeposit" inputmode="numeric" value="20,566"/>
+          </div>
+
+          <div class="input-group">
+            <label for="annualDepMonth">חודש ביצוע ההפקדה השנתית
+              <span class="tip-icon" data-tip="ההפקדה מתבצעת תמיד בתחילת החודש (לא בסוף). זה משפיע על חישוב התשואה."><i class="fas fa-circle-info"></i></span>
+            </label>
+            <select id="annualDepMonth">
+              <option value="1" selected>ינואר</option><option value="2">פברואר</option>
+              <option value="3">מרץ</option><option value="4">אפריל</option>
+              <option value="5">מאי</option><option value="6">יוני</option>
+              <option value="7">יולי</option><option value="8">אוגוסט</option>
+              <option value="9">ספטמבר</option><option value="10">אוקטובר</option>
+              <option value="11">נובמבר</option><option value="12">דצמבר</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="annualDepStartYear">החל משנת</label>
+            <input type="number" id="annualDepStartYear" min="2020" max="2040"/>
+          </div>
+
+          <!-- אזהרת אי-ניצול annual -->
+          <div class="inputs-divider" style="grid-column:1/-1"></div>
+
+          <div class="underuse-warning" id="underuseWarningAnnual" style="grid-column:1/-1;margin-top:0">
+            <i class="fas fa-triangle-exclamation"></i>
+            <span id="underuseTextAnnual"></span>
+          </div>
+        </div>
+
+        <div class="inputs-grid" style="margin-top:14px">
+          <div class="inputs-divider general-divider"><i class="fas fa-gear"></i> פרמטרים כלליים</div>
+
+          <div class="input-group">
+            <label for="annualReturn2">תשואה שנתית ממוצעת (%)</label>
+            <div class="input-with-slider">
+              <input type="range" id="annualReturn2Slider" min="1" max="20" step="0.5" value="9" aria-label="תשואה שנתית ממוצעת בחוצץ הפקדה שנתית"/>
+              <input type="number" id="annualReturn2" min="0" max="30" step="0.5" value="9"/>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="calcYears2">מספר שנים לחישוב</label>
+            <input type="number" id="calcYears2" min="1" max="30" step="1" value="6"/>
+          </div>
+
+          <div class="input-group">
+            <label for="mgmtFee2">דמי ניהול שנתיים (%)</label>
+            <input type="number" id="mgmtFee2" min="0" max="3" step="0.1" value="0"/>
+          </div>
+        </div>
+      </div><!-- /fieldsAnnual -->
+
+      <div class="calc-btn-wrapper">
+        <button class="btn-calc" id="btnCalc"><i class="fas fa-calculator"></i> חשב עכשיו</button>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <div class="results-area" id="resultsArea" style="display:none">
+      <div class="results-summary">
+        <div class="balance-hero">
+          <div class="balance-hero__icon"><i class="fas fa-piggy-bank"></i></div>
+          <div class="balance-hero__label">צבירה משוערת בסוף התקופה</div>
+          <div class="balance-hero__value" id="totalBalance">—</div>
+          <div class="balance-hero__sub" id="liquidityUnderBalance">מועד נזילות צפוי: —</div>
+        </div>
+        <div class="results-lines">
+          <div class="result-line result-line--profit-total" id="totalProfitRow" style="display:none">
+            <div class="result-line__icon"><i class="fas fa-chart-line"></i></div>
+            <div>
+              <div class="result-line__label">סך הרווחים</div>
+              <div class="result-line__sub">רווחים שנצברו לאורך התקופה</div>
+            </div>
+            <div class="result-line__value" id="totalProfitValue">—</div>
+          </div>
+          <div class="result-line result-line--exempt" id="exemptProfitRow">
+            <div class="result-line__icon"><i class="fas fa-shield-halved"></i></div>
+            <div>
+              <div class="result-line__label">רווחים פטורים ממס</div>
+              <div class="result-line__sub" id="exemptTaxSaved">שווי החיסכון במס: —</div>
+            </div>
+            <div class="result-line__value" id="exemptProfitValue">—</div>
+          </div>
+          <div class="result-line result-line--taxable" id="taxableProfitRow">
+            <div class="result-line__icon"><i class="fas fa-scale-balanced"></i></div>
+            <div>
+              <div class="result-line__label">רווח חייב במס</div>
+              <div class="result-line__sub">רווח שנוצר מהפקדות מעל התקרה המוטבת</div>
+            </div>
+            <div class="result-line__value" id="taxableProfitValue">—</div>
+          </div>
+          <div class="result-line result-line--deposits">
+            <div class="result-line__icon"><i class="fas fa-wallet"></i></div>
+            <div>
+              <div class="result-line__label">סך הפקדות</div>
+              <div class="result-line__sub">הקרן שהופקדה לאורך התקופה</div>
+            </div>
+            <div class="result-line__value" id="totalDeposits">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <div class="section-header">
+          <h2><i class="fas fa-chart-area"></i> גרף צמיחת הקרן</h2>
+        </div>
+        <div class="chart-container"><canvas id="growthChart"></canvas></div>
+        <div class="chart-legend">
+          <span class="legend-item legend-item--deposits"><span class="legend-dot"></span> סך הפקדות מצטבר</span>
+          <span class="legend-item legend-item--balance"><span class="legend-dot"></span> יתרה כוללת (כולל תשואה)</span>
+        </div>
+      </div>
+
+      <div class="table-section">
+        <div class="section-header">
+          <h2><i class="fas fa-table"></i> פירוט חודשי</h2>
+          <button class="btn-toggle-table" id="btnToggleTable"><i class="fas fa-eye"></i> הצג טבלה</button>
+        </div>
+        <div id="tableWrapper" style="display:none">
+          <div class="table-scroll">
+            <table id="monthlyTable">
+              <thead id="tableHead"><tr>
+                <th>#</th><th>חודש ושנה</th><th>יתרת פתיחה</th>
+                <th id="thDeposit">הפקדה חד פעמית</th><th id="thRecurring">הו"ק שוטפת</th>
+                <th>סך הפקדות מצטבר</th><th>תשואה חודשית</th><th>יתרת סגירה</th>
+              </tr></thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div><!-- /results-area -->
+  </div><!-- /panelCalc -->
+
+  <!-- ════════════════════════════════
+       TAB 2: TAX BENEFITS
+  ════════════════════════════════ -->
+  <div class="tab-panel" id="panelTax">
+    <div class="tax-panel">
+      <div class="tax-loading-overlay" id="taxLoadingOverlay" aria-live="polite">
+        <div class="tax-loading-card">
+          <div class="tax-loading-spinner"></div>
+          <div>רועי רומנו מחשב את הטבות המס המגיעות לך</div>
+        </div>
+      </div>
+      <div class="section-header">
+        <h2><i class="fas fa-shield-halved"></i> בדוק מה שווי הטבות המס שלך לשנת <span id="taxHeaderYear">2026</span>.</h2>
+      </div>
+
+      <div class="tax-inputs-row">
+        <div class="input-group tax-input-income">
+          <label for="annualIncome">מה ההכנסה השנתית החייבת שלך¹ (₪)
+            <span class="tip-icon" data-tip="הכנסה לאחר הניכויים, הקיזוזים והפטורים שהותרו ממנה לפי כל דין, ולפני הניכויים המותרים בגין הפקדה לקרן השתלמות או לקופת גמל/קרן פנסיה."><i class="fas fa-circle-info"></i></span>
+          </label>
+          <input type="text" id="annualIncome" inputmode="numeric" value="250,000"/>
+        </div>
+        <div style="align-self:flex-end;flex-shrink:0">
+          <button class="btn-calc" id="btnCalcTax" style="padding:10px 22px;font-size:14px;white-space:nowrap"><i class="fas fa-calculator"></i> חשב הטבות</button>
+        </div>
+      </div>
+
+      <div class="tax-result-box" id="taxResultBox" style="display:none">
+        <div class="tax-result-title"><i class="fas fa-receipt"></i> תוצאות חישוב לשנת <span id="taxResultYear"></span></div>
+
+        <div class="tax-story">
+          <div class="tax-story-step">
+            <div class="tax-story-step__num">1</div>
+            <div class="tax-story-step__text">
+              <span class="tax-story-copy">הפקדה של</span>
+              <span class="tax-story-line">
+                <span class="tax-story-amount" id="storyProtected">—</span>
+                <span class="tax-story-copy"><strong>פטורה ממס רווחי הון</strong>⁶.</span>
+              </span>
+              <span class="tax-story-capital-gains">
+                <span>שווי הטבת מס של</span>
+                <span class="tax-story-amount tax-story-marker" id="storyCapitalGainsTaxBenefit">—</span>
+                <span class="tax-story-note">(בהנחת תשואה של 8% שנתי למשך 6 שנים)</span>
+              </span>
+            </div>
+          </div>
+          <div class="tax-story-step">
+            <div class="tax-story-step__num">2</div>
+            <div class="tax-story-step__text">
+              <span class="tax-story-copy">מתוכה, סכום של</span>
+              <span class="tax-story-line">
+                <span class="tax-story-amount" id="storyDeductible">—</span>
+                <span class="tax-story-copy">יוכר לך כ<strong>הוצאה מוכרת בעסק</strong>⁵.</span>
+              </span>
+              <span class="tax-story-line">
+                <span class="tax-story-copy"><strong>שווי הטבת מס של</strong></span>
+                <span class="tax-story-amount tax-story-marker" id="storyTaxBenefit">—</span>
+              </span>
+              <span class="tax-story-note tax-story-note--block" id="storyTaxCalc">—</span>
+            </div>
+          </div>
+          <div class="tax-story-step">
+            <div class="tax-story-step__num">3</div>
+            <div class="tax-story-step__text">
+              <span class="tax-story-copy"><strong>חיסכון בביטוח לאומי/בריאות</strong>
+                <span class="tip-icon" data-tip="אומדן לפי שיעורי עובד עצמאי עד גיל פרישה לשנת 2026: 7.7% עד 7,703 ₪ לחודש ו-18% מעל מדרגה זו עד התקרה. החישוב מניח שההפקדה המוכרת מפחיתה את ההכנסה החייבת בדמי ביטוח."><i class="fas fa-circle-info"></i></span>
+              </span>
+              <span class="tax-story-line">
+                <span class="tax-story-copy"><strong>שווי הטבת מס</strong></span>
+                <span class="tax-story-amount tax-story-marker" id="storyNiBenefit">—</span>
+              </span>
+            </div>
+          </div>
+          <div class="tax-story-summary">
+            <div class="tax-story-step__num"><i class="fas fa-check"></i></div>
+            <div class="tax-story-step__text">
+              <span class="tax-story-line">
+                <span class="tax-story-summary-check"><i class="fas fa-check"></i></span>
+                <span class="tax-story-copy">סיכום שווי הטבות המס שלך</span>
+                <span class="tax-story-amount tax-story-marker" id="storyTotalBenefit">—</span>
+              </span>
+              <span class="tax-story-copy">רק כי הפקדת לקרן ההשתלמות שלך !</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tax-ceiling-bar" id="taxCeilingBar">
+          <i class="fas fa-circle-info"></i>
+          <span id="taxCeilingText">בחר שנה כדי לראות את נתוני התקרה.</span>
+        </div>
+
+        <div class="notice-bar" id="taxNoticeBar" style="display:none">
+          <i class="fas fa-triangle-exclamation"></i>
+          <span id="taxNoticeText"></span>
+        </div>
+      </div>
+    </div>
+  </div><!-- /panelTax -->
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="cta-card">
+      <span class="cta-emoji">💬</span>
+      <h3 class="cta-title">מוכן/ת להתחיל לחסוך במס?</h3>
+      <a href="https://wa.me/972528089808?text=%D7%A9%D7%9C%D7%95%D7%9D%20%D7%A8%D7%95%D7%A2%D7%99%21%20%F0%9F%91%8B%0A%D7%94%D7%92%D7%A2%D7%AA%D7%99%20%D7%9E%D7%94%D7%9E%D7%97%D7%A9%D7%91%D7%95%D7%9F%20%D7%A9%D7%9C%D7%9A%20%D7%9C%D7%A7%D7%A8%D7%9F%20%D7%94%D7%A9%D7%AA%D7%9C%D7%9E%D7%95%D7%AA%20%D7%9C%D7%A2%D7%A6%D7%9E%D7%90%D7%99%D7%9D.%0A%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%A7%D7%91%D7%9C%20%D7%99%D7%99%D7%A2%D7%95%D7%A5%20%D7%90%D7%99%D7%A9%D7%99%20%D7%95%D7%9C%D7%A9%D7%9E%D7%95%D7%A2%20%D7%A2%D7%9C%20%D7%94%D7%90%D7%A4%D7%A9%D7%A8%D7%95%D7%99%D7%95%D7%AA%20%D7%A9%D7%9C%D7%99%20%F0%9F%99%8F"
+        class="btn-cta" target="_blank" rel="noopener">
+        <i class="fab fa-whatsapp"></i> שוחח/י איתי עכשיו בוואטסאפ
+      </a>
+    </div>
+  </section>
+
+  <section class="mini-disclaimer" aria-label="פרטי התקשרות וגילוי נאות">
+    <strong>רועי רומנו, מתכנן פיננסי וסוכן פנסיוני מורשה | רישיון 00117164</strong>
+    <div>roeir@ar-fo.co.il | 052-8089808</div>
+    <div class="mini-disclaimer__links">
+      <a href="#disclaimer">גילוי נאות</a>
+      <a href="privacy.html">מדיניות פרטיות</a>
+      <a href="accessibility.html">הצהרת נגישות</a>
+    </div>
+  </section>
+
+  <section class="legal-sections" aria-label="מסמכים משפטיים">
+    <details class="legal-card" id="disclaimer">
+      <summary><i class="fas fa-scale-balanced"></i> גילוי נאות</summary>
+      <div class="legal-card__body">
+        <p>רועי רומנו הינו סוכן פנסיוני, אשר משווק מוצרים פנסיוניים ומוצרי ביטוח נוספים אשר בגינם ייתכן ויהיה זכאי לעמלות ומשווק את המוצרים הפנסיונים הבאים: קרנות השתלמות, קופות גמל, קופות פיצויים מרכזיות, ביטוחי מנהלים, קרנות פנסיה ומוצרים שנמכרים אגב המוצרים הנ״ל, לרועי הסכמים קיימים עם הגופים המובילים במשק.</p>
+      </div>
+    </details>
+
+  </section>
+
+  <footer class="disclaimer" id="legal-notes" role="contentinfo">
+    <div class="disclaimer-inner">
+      <i class="fas fa-triangle-exclamation"></i>
+      <div>
+        <h3>הערות משפטיות</h3>
+        <p>¹ הכנסה חייבת כהגדרת מונח זה בפקודת מס הכנסה (נוסח חדש), התשכ"א-1961 (להלן: "פקודת מס הכנסה") (הכנסה לאחר הניכויים, הקיזוזים והפטורים שהותרו ממנה לפי כל דין), ולפני הניכויים המותרים בגין הפקדה לקרן השתלמות או לקופת גמל/קרן פנסיה. ² חישוב הנתון "הכנסה מזכה שנתית" אינו לוקח בחשבון את ההוצאה המוכרת בגין הפקדה לקרן השתלמות (ככל שבוצעה). ³ סכום הפקדה מינימלי על פי חוק ההתייעלות הכלכלית (תיקוני חקיקה להשגת יעדי התקציב לשנות התקציב 2017 ו- 2018), התשע"ז-2016, פרק ב' חיסכון וסיוע לעצמאים. ⁴ הנתון של "הפקדה לצורך זיכוי" מחושב במחשבון לפי שיעור של 5.5% מתוך ההכנסה המזכה השנתית, ובהנחה כי המשתמש אינו נהנה מהוצאה מוכרת בגין רכישת ביטוח לאובדן כושר עבודה. אם המשתמש נהנה מהוצאה מוכרת בגין רכישת ביטוח לאובדן כושר עבודה, תוצאת החישוב אינה רלוונטית לגביו (יש לבצע את החישוב לפי שיעור של 5% בלבד מתוך ההכנסה המזכה השנתית, ולא 5.5%). ⁵ הפקדה המוכרת כהוצאה (ניכוי) בקרן השתלמות וההפקדה לצורך ניכוי בקופת גמל/קרן פנסיה מחושבת על פי מדרגת המס השולי הגבוהה ביותר בלבד, ואינה מתחשבת בהוצאה של תשלומים לביטוח לאומי ולמס בריאות. ⁶ מעבר לסכום זה יחול מס בשיעור 25% על הרווח הריאלי. הסכומים מעוגלים ולא מציגים אגורות. המחשבון מיועד ליחיד עצמאי בעל הכנסה מעסק או משלח יד, הזכאי להטבות מס בהתאם להוראות הדין ופקודת מס הכנסה. המידע והנתונים המוצגים לעיל, לרבות תוצאות המחשבון (להלן: "המידע והנתונים") מעודכנים לשנת <span id="legalDataYear">—</span>. המידע והנתונים הם לצורך המחשה בלבד, והם כפופים להוראות ההסדר התחיקתי, להוראות התקנונים הרלוונטיים ולנהלי החברה, כפי שיעודכנו מעת לעת. במקרה של סתירה או אי התאמה תגברנה הוראות ההסדר התחיקתי, התקנון הרלוונטי ו/או נהלי החברה, לפי העניין. המידע והנתונים אינם מבוססים על נתונים ייחודיים של המשתמש, למעט הנתונים שהוזנו על ידו במחשבון, ולפיכך עשויים שלא לשקף את מטרותיו וצרכיו האמתיים של המשתמש. השימוש במחשבון וההסתמכות על המידע והנתונים הם באחריותו המלאה והבלעדית של המשתמש, ורועי רומנו ו/או מי מטעמו לא יהיו אחראים בכל צורה שהיא לאמיתות המידע והנתונים ולא יהיו אחראים בכל צורה שהיא לנזק ו/או הפסד שיגרם למשתמש ו/או לצד שלישי כלשהו משימוש במחשבון ו/או מהסתמכות על המידע והנתונים. השימוש במחשבון אינו מהווה תחליף לייעוץ/שיווק השקעות/פנסיוני או יעוץ מס, המתחשב בנתונים ובצרכים המיוחדים של כל אדם. מובהר, כי חבות המס הסופית תיקבע אך ורק על ידי רשויות המס. מובהר, כי על אף שרועי רומנו נוקט באמצעים סבירים על מנת לוודא כי המידע והנתונים המופיעים באתר האינטרנט שלו הינם נכונים, מבוססים ואמינים, ייתכנו מקרים שבהם יפלו במידע המופיע באתר טעויות ו/או שיבושים ו/או שגיאות ו/או אי דיוקים ו/או השמטות.</p>
+      </div>
+    </div>
+  </footer>
+
+</main>
+
+<div class="tooltip-popup" id="tooltipPopup"></div>
+
+<script>
+/* ============================================================
+   DATA
+   ============================================================ */
+const CEILING_DATA = {
+  2024: { ceiling:20520,  taxableIncome:286000, maxDeductible:12870, source:'ספר ניכויים 2024' },
+  2025: { ceiling:20520,  taxableIncome:293400, maxDeductible:13203, source:'ספר ניכויים 2025' },
+  2026: { ceiling:20566,  taxableIncome:293397, maxDeductible:13203, source:'ספר ניכויים 2026' },
+};
+
+// מדרגות מס הכנסה (מיגיעה אישית) — שנתי בש"ח
+// [עד הכנסה, שיעור מס%]
+const TAX_BRACKETS = {
+  2024:[
+    [81480,  10],[116760, 14],[187440, 20],
+    [260520, 31],[542160, 35],[698280, 47],[Infinity,50]
+  ],
+  2025:[
+    [84120,  10],[120720, 14],[193800, 20],
+    [269280, 31],[560280, 35],[721560, 47],[Infinity,50]
+  ],
+  2026:[
+    [84120,  10],[120720, 14],[193800, 20],
+    [269280, 31],[560280, 35],[721560, 47],[Infinity,50]
+  ]
+};
+
+const NATIONAL_INSURANCE_DATA = {
+  2026: {
+    reducedMonthly: 7703,
+    maxMonthly: 51910,
+    reducedRate: 0.077,
+    regularRate: 0.18,
+    source: 'ביטוח לאומי, שיעורי דמי הביטוח לעובד עצמאי 2026'
+  }
+};
+
+const MONTH_NAMES=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+
+const now=new Date();
+const CUR_YEAR=now.getFullYear();
+const CUR_MONTH=now.getMonth()+1;
+
+function getCeiling(year){
+  if(CEILING_DATA[year]) return {...CEILING_DATA[year],isEstimate:false};
+  const yrs=Object.keys(CEILING_DATA).map(Number).sort((a,b)=>a-b);
+  const nearest=yrs.reduce((a,b)=>Math.abs(b-year)<Math.abs(a-year)?b:a);
+  return {...CEILING_DATA[nearest],isEstimate:true,estimatedFrom:nearest};
+}
+
+function getMarginalRate(income,year){
+  const brackets=TAX_BRACKETS[year]||TAX_BRACKETS[2026];
+  for(const [top,rate] of brackets){ if(income<=top) return rate; }
+  return 50;
+}
+
+function calcNationalInsuranceDue(income,year){
+  const d=NATIONAL_INSURANCE_DATA[year]||NATIONAL_INSURANCE_DATA[2026];
+  const threshold=d.reducedMonthly*12;
+  const maxIncome=d.maxMonthly*12;
+  const taxable=Math.min(Math.max(0,income),maxIncome);
+  const reducedPart=Math.min(taxable,threshold);
+  const regularPart=Math.max(0,taxable-threshold);
+  return reducedPart*d.reducedRate + regularPart*d.regularRate;
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+const $=id=>document.getElementById(id);
+const MONEY_INPUT_IDS=new Set(['lumpSum','monthlyDeposit','nextYearSO','annualLumpSum','annualDeposit','annualIncome']);
+function parseInputNumber(v){
+  return parseFloat(String(v??'').replace(/[^\d.-]/g,''))||0;
+}
+function formatInputNumber(v){
+  if(v==='' || v===null || typeof v==='undefined') return '';
+  const n=parseInputNumber(v);
+  if(!Number.isFinite(n) || n===0 && String(v).trim()==='') return '';
+  return new Intl.NumberFormat('en-US',{maximumFractionDigits:0}).format(Math.floor(n));
+}
+const set=(id,v)=>{
+  const el=$(id); if(!el) return;
+  el.value=MONEY_INPUT_IDS.has(id)?formatInputNumber(v):v;
+};
+const getN=id=>parseInputNumber($(id).value);
+const getI=id=>parseInt($(id).value)||0;
+
+function fmtILS(n){
+  return new Intl.NumberFormat('he-IL',{style:'currency',currency:'ILS',
+    minimumFractionDigits:0,maximumFractionDigits:0}).format(Math.round(n));
+}
+function fmtPct(n){ return n+'%'; }
+
+/* fill month select */
+function fillMonthSelect(el){
+  el.innerHTML='';
+  MONTH_NAMES.forEach((name,i)=>{
+    const opt=document.createElement('option');
+    opt.value=i+1; opt.textContent=name;
+    el.appendChild(opt);
+  });
+}
+
+/* ============================================================
+   MAIN TAB SWITCH
+   ============================================================ */
+function switchMainTab(tab){
+  $('panelCalc').classList.toggle('active',tab==='calc');
+  $('panelTax').classList.toggle('active',tab==='tax');
+  $('tabCalcBtn').classList.toggle('active',tab==='calc');
+  $('tabTaxBtn').classList.toggle('active',tab==='tax');
+  try{ localStorage.setItem('mainActiveTab',tab); }catch(e){}
+  if(tab==='tax') updateTaxCeilingBar();
+}
+
+function getSavedMainTab(){
+  try{
+    const tab=localStorage.getItem('mainActiveTab');
+    return tab==='tax'||tab==='calc'?tab:'calc';
+  }catch(e){
+    return 'calc';
+  }
+}
+
+/* ============================================================
+   DEPOSIT MODE
+   ============================================================ */
+let depositMode='monthly';
+
+function setDepositMode(mode){
+  depositMode=mode;
+  $('modeMonthlyBtn').classList.toggle('active',mode==='monthly');
+  $('modeAnnualBtn').classList.toggle('active',mode==='annual');
+  $('fieldsMonthly').style.display=mode==='monthly'?'':'none';
+  $('fieldsAnnual').style.display=mode==='annual'?'':'none';
+  if(mode==='monthly'){
+    setTimeout(()=>$('lumpSum') && $('lumpSum').focus({preventScroll:true}),0);
+  }
+  if(mode==='annual') updateAnnualCeilingBar();
+  refreshMonthlyDefaults();
+  updateHints();
+  updateYearlySummary();
+  checkUnderutilization();
+  calcReverseLump();
+}
+
+/* ============================================================
+   SMART DEFAULTS — monthly mode
+   ============================================================ */
+function refreshMonthlyDefaults(){
+  if(depositMode!=='monthly') return;
+  const year     = getI('lumpSumYear')||CUR_YEAR;
+  const lumpMonth= getI('lumpSumMonth')||CUR_MONTH;
+  const lump     = getN('lumpSum')||0;
+  const d        = getCeiling(year);
+
+  // חישוב הוראת קבע מוצעת
+  const remaining = Math.max(0, d.ceiling - lump);
+  const setMonthlyTip = (text) => {
+    if($('monthlySuggestedTip')) $('monthlySuggestedTip').setAttribute('data-tip', text);
+  };
+
+  // אם הפקיד את התקרה המלאה → הוראת קבע מינואר שנה הבאה
+  if(lump >= d.ceiling){
+    set('standingOrderMonth', 1);
+    set('standingOrderYear', year+1);
+    // סכום: תקרה שנה הבאה / 12
+    const nextCeiling = getCeiling(year+1).ceiling;
+    const nextSuggestedAmt = Math.floor(nextCeiling/12);
+    if(!$('monthlyDeposit').dataset.userEdited){
+      set('monthlyDeposit', nextSuggestedAmt);
+      // סמן שהו"ק הוגדרה אוטומטית ותואמת בדיוק לתקרה÷12
+      _autoSOMatchesCeiling = true;
+    } else {
+      // המשתמש שינה ידנית — בדוק אם עדיין תואם
+      _autoSOMatchesCeiling = (getN('monthlyDeposit') === nextSuggestedAmt);
+    }
+    setMonthlyTip(`מומלץ: ${fmtILS(nextSuggestedAmt)}/חודש (${fmtILS(nextCeiling)} תקרה ${year+1})`);
+  } else if(lump > 0){
+    // הפקיד חלקית → הוראת קבע מהחודש הבא באותה שנה
+    _autoSOMatchesCeiling = false;
+    const nextMonth = lumpMonth < 12 ? lumpMonth+1 : 1;
+    const nextYear  = lumpMonth < 12 ? year : year+1;
+    // חודשים שנשארו עד סוף שנת ההפקדה
+    const monthsLeft = lumpMonth < 12 ? 12-lumpMonth : 12;
+    const suggested  = monthsLeft > 0 ? Math.floor(remaining/monthsLeft) : 0;
+
+    set('standingOrderMonth', nextMonth);
+    set('standingOrderYear', nextYear);
+    if(!$('monthlyDeposit').dataset.userEdited){
+      set('monthlyDeposit', suggested);
+    }
+    if(remaining>0 && suggested>0){
+      setMonthlyTip(`מומלץ: ${fmtILS(suggested)}/חודש (יתרה ${fmtILS(remaining)} ב-${monthsLeft} חודשים)`);
+    } else {
+      setMonthlyTip(`מומלץ: ${fmtILS(Math.floor(d.ceiling/12))}/חודש`);
+    }
+  } else {
+    // לפ"ח = 0 → הו"ק: חודש הבא, שנה נוכחית (לא שנה הבאה)
+    _autoSOMatchesCeiling = false;
+    const nextMonth = CUR_MONTH < 12 ? CUR_MONTH+1 : 1;
+    const nextYear  = CUR_MONTH < 12 ? year : year+1;
+    if(!$('standingOrderMonth').dataset.userEdited) set('standingOrderMonth', nextMonth);
+    if(!$('standingOrderYear').dataset.userEdited)  set('standingOrderYear',  nextYear);
+    setMonthlyTip(`מומלץ: ${fmtILS(Math.floor(d.ceiling/12))}/חודש לניצול מלוא התקרה`);
+  }
+}
+
+/* ============================================================
+   YEARLY SUMMARY
+   ============================================================ */
+function updateYearlySummary(){
+  if(depositMode!=='monthly') return;
+  const year     = getI('lumpSumYear')||CUR_YEAR;
+  const lumpMonth= getI('lumpSumMonth')||CUR_MONTH;
+  const lump     = getN('lumpSum')||0;
+  const soMonth  = getI('standingOrderMonth')||1;
+  const soYear   = getI('standingOrderYear')||year+1;
+  const monthly  = getN('monthlyDeposit')||0;
+  if(lump<=0 && monthly<=0 && !(_so2 && _so2.active && _so2.amount>0)){
+    $('yearlySummary').style.display='none';
+    return;
+  }
+  $('yearlySummary').style.display='';
+
+  // הוראת קבע בשנת ההפקדה הראשונה
+  let soInFirstYear=0;
+  if(soYear===year && soMonth<=12){
+    soInFirstYear = monthly*(13-soMonth);
+  }
+  const total=lump+soInFirstYear;
+  const ceiling=getCeiling(year).ceiling;
+
+  $('summaryYear').textContent=year;
+  $('summaryLump').textContent=fmtILS(lump);
+  $('summaryMonthly').textContent=soInFirstYear>0?fmtILS(soInFirstYear):'—';
+  $('summaryTotal').textContent=fmtILS(total);
+  // הו"ק שנייה (מחליפה את הראשונה)
+  if(_so2 && _so2.active && _so2.amount>0){
+    const mName = MONTH_NAMES[(_so2.month||1)-1];
+    $('summarySO2').textContent=`${fmtILS(_so2.amount)}/חודש`;
+    if($('summarySO2Label')) $('summarySO2Label').textContent=`הו"ק מ-${mName} ${_so2.year}`;
+    $('summarySO2Row').style.display='';
+  } else {
+    $('summarySO2Row').style.display='none';
+  }
+  const note=$('summaryTaxNote');
+  if(total>ceiling){
+    note.textContent='רווחים מהפקדות שמעל התקרה המוטבת יהיו חייבים במס רווח הון בעת הפדיון.';
+    note.classList.add('is-warning');
+  } else if(total>=ceiling){
+    note.textContent='בוצע ניצול מלא של הטבת המס בשנת המס.';
+    note.classList.remove('is-warning');
+  } else {
+    note.textContent='';
+    note.classList.remove('is-warning');
+  }
+}
+
+/* ============================================================
+   UNDERUTILIZATION WARNING
+   ============================================================ */
+/* הצע עדכון הו"ק לשנה הבאה כאשר מנצלים תקרה בשניים ביחד */
+// הו"ק שנייה: מחליפה את הראשונה מהחודש שנבחר
+let _so2 = { active:false, year:null, month:1, amount:0 };
+let _nextYearDismissed = false;
+let _autoSOMatchesCeiling = false; // true בלבד כשלפ"ח=תקרה מלאה והו"ק נקבעה אוטומטית ל-תקרה÷12
+
+// מלא סלקר חודשים להצעה
+function fillNextYearSOMonth(defaultMonth, defaultYear){
+  const sel = $('nextYearSOMonth');
+  if(!sel) return;
+  sel.innerHTML = '';
+  MONTH_NAMES.forEach((name,i)=>{
+    const opt = document.createElement('option');
+    opt.value = i+1; opt.textContent = name;
+    if(i+1===defaultMonth) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  if($('nextYearSOYear')) $('nextYearSOYear').value = defaultYear;
+}
+
+function showNextYearSOSuggestion(lumpYear, lump, monthly, soMonth, soYear, ceiling){
+  const soDiv = $('nextYearSOSuggestion');
+  if(_nextYearDismissed){ soDiv.style.display='none'; return; }
+
+  // אין נתונים בכלל — אל תציג
+  if(lump <= 0 && monthly <= 0){ soDiv.style.display='none'; return; }
+
+  const nextYear      = lumpYear + 1;
+  const nextD         = getCeiling(nextYear);
+  const nextSuggested = Math.floor(nextD.ceiling / 12);
+
+  // ===== המקרה היחיד שלא מציגים =====
+  // לפ"ח = תקרה מלאה של השנה הנוכחית
+  // AND הו"ק הוגדרה אוטומטית (לא ידנית) בדיוק ל-תקרה שנה הבאה ÷ 12
+  // => המשתמש כבר מנצל את תקרת השנה הנוכחית ומוגדר לנצל את השנה הבאה
+  if(lump >= ceiling && _autoSOMatchesCeiling && !_so2.active){
+    soDiv.style.display='none'; return;
+  }
+
+  // _so2 כבר מוגדר ומנצל את התקרה — לא להציע שוב
+  if(_so2.active && _so2.amount >= nextSuggested){ soDiv.style.display='none'; return; }
+
+  // ===== הצג את ההצעה =====
+  $('nextYearLabel').textContent = nextYear;
+  const curVal = _so2.active ? _so2.amount : nextSuggested;
+  $('nextYearSO').value = curVal || nextSuggested;
+  const defMonth = _so2.active ? _so2.month : 1;
+  fillNextYearSOMonth(defMonth, nextYear);
+  const est = nextD.isEstimate ? ` (אומדן מ-${nextD.estimatedFrom})` : '';
+  $('nextYearSOHint').textContent = `מומלץ: ${fmtILS(nextSuggested)}/חודש (${fmtILS(nextD.ceiling)} תקרה ${nextYear}${est} ÷ 12)`;
+  const curDesc = _so2.active
+    ? `הו"ק משנת ${nextYear} מוגדרת כעת ל-${fmtILS(_so2.amount)}/חודש. רוצה לעדכן?`
+    : lump > 0
+      ? ``
+      : ``;
+  $('nextYearSODesc').textContent = curDesc;
+  $('nextYearSODesc').style.display = curDesc ? '' : 'none';
+  soDiv.style.display = '';
+}
+
+function applyNextYearSO(){
+  const newAmt   = parseFloat($('nextYearSO').value)||0;
+  const newMonth = parseInt($('nextYearSOMonth').value)||1;
+  const newYear  = parseInt($('nextYearSOYear').value)||((getI('lumpSumYear')||CUR_YEAR)+1);
+  // שמור — לא נוגעים בשדות הו"ק הנוכחית
+  _so2 = { active:true, year:newYear, month:newMonth, amount:newAmt };
+  _nextYearDismissed = true;
+  $('nextYearSOSuggestion').style.display = 'none';
+  updateYearlySummary();
+  checkUnderutilization();
+  if($('resultsArea').style.display!=='none') runCalculation();
+}
+
+function dismissNextYearSO(){
+  _nextYearDismissed = true;
+  $('nextYearSOSuggestion').style.display = 'none';
+}
+
+function applyRecommendedMonthlyDefaults(){
+  const d=getCeiling(CUR_YEAR);
+  const nextD=getCeiling(CUR_YEAR+1);
+  set('lumpSumMonth',CUR_MONTH);
+  set('lumpSumYear',CUR_YEAR);
+  set('lumpSum',d.ceiling);
+  set('monthlyDeposit',Math.floor(nextD.ceiling/12));
+  set('standingOrderMonth',1);
+  set('standingOrderYear',CUR_YEAR+1);
+  delete $('monthlyDeposit').dataset.userEdited;
+  delete $('standingOrderMonth').dataset.userEdited;
+  delete $('standingOrderYear').dataset.userEdited;
+  _so2 = { active:false, year:null, month:1, amount:0 };
+  _nextYearDismissed = false;
+  _reverseDismissed = false;
+  _autoSOMatchesCeiling = true;
+  $('nextYearSOSuggestion').style.display='none';
+  $('reverseSuggestion').style.display='none';
+  updateHints();
+  updateYearlySummary();
+  checkUnderutilization();
+  calcReverseLump();
+  if($('resultsArea').style.display!=='none') runCalculation();
+}
+
+/* ============================================================
+   הצעה הפוכה: חשב הפקדה חד פעמית לפי הו"ק
+   ============================================================ */
+let _reverseDismissed = false;
+
+function calcReverseLump(){
+  // פעיל רק במצב monthly
+  if(depositMode !== 'monthly') return;
+
+  const year     = getI('lumpSumYear') || CUR_YEAR;
+  const soMonth  = getI('standingOrderMonth') || 1;
+  const soYear   = getI('standingOrderYear') || year;
+  const monthly  = getN('monthlyDeposit') || 0;
+  const lump     = getN('lumpSum') || 0;
+  const d        = getCeiling(year);
+
+  // הצג רק כאשר: הו"ק מוגדרת, מתחילה בשנת המס, ולא הוזן לפ"ח
+  if(monthly <= 0 || soYear !== year){ $('reverseSuggestion').style.display='none'; return; }
+  if(_reverseDismissed){ $('reverseSuggestion').style.display='none'; return; }
+
+  // חשב כמה חודשי הו"ק יש בשנה
+  const monthsInYear = 13 - soMonth; // מחודש soMonth עד דצמבר כולל
+  const soTotal = monthly * monthsInYear;
+
+  // הפקדה חד פעמית הדרושה להשלמת התקרה
+  const neededLump = Math.max(0, d.ceiling - soTotal);
+
+  // אם הו"ק לבד מכסה את כל התקרה — אין צורך בהצעה
+  if(neededLump <= 0){ $('reverseSuggestion').style.display='none'; return; }
+
+  // אם יש כבר לפ"ח שמכסה — אין צורך
+  if(lump >= neededLump){ $('reverseSuggestion').style.display='none'; return; }
+
+  const mName = MONTH_NAMES[soMonth-1];
+  $('reverseSuggYear').textContent = year;
+  $('reverseSuggDesc').innerHTML =
+    `יש לבצע גם הפקדה חד פעמית של <strong style="font-size:16px;color:#1e3a8a">${fmtILS(neededLump)}</strong><br>`+
+    `הו"ק של <strong>${fmtILS(monthly)}/חודש</strong> מ-${mName} ${year} תצבור `+
+    `<strong>${fmtILS(soTotal)}</strong> (${monthsInYear} חודשים).`;
+  $('reverseSuggestion').dataset.lump = neededLump;
+  $('reverseSuggestion').style.display = '';
+}
+
+function applyReverseLump(){
+  const neededLump = parseFloat($('reverseSuggestion').dataset.lump) || 0;
+  set('lumpSum', Math.round(neededLump));
+  delete $('monthlyDeposit').dataset.userEdited;
+  _reverseDismissed = true;
+  $('reverseSuggestion').style.display = 'none';
+  updateHints(); updateYearlySummary(); checkUnderutilization();
+  if($('resultsArea').style.display !== 'none') runCalculation();
+}
+
+function dismissReverseSugg(){
+  _reverseDismissed = true;
+  $('reverseSuggestion').style.display = 'none';
+}
+
+function checkUnderutilization(){
+  if(depositMode==='monthly'){
+    const year    = getI('lumpSumYear')||CUR_YEAR;
+    const d       = getCeiling(year);
+    const lump    = getN('lumpSum')||0;
+    const soMonth = getI('standingOrderMonth')||1;
+    const soYear  = getI('standingOrderYear')||year+1;
+    const monthly = getN('monthlyDeposit')||0;
+    let soInFirstYear=0;
+    if(soYear===year && soMonth<=12) soInFirstYear=monthly*(13-soMonth);
+    const total=lump+soInFirstYear;
+    const remaining=d.ceiling-total;
+    const warn=$('underuseWarning');
+    if(remaining>0.5 && total>0){
+      $('underuseText').innerHTML=`לא מנצל את מלוא הטבת המס בשנת ${year} — נשאר לניצול: <strong><span style="font-size:16px">${fmtILS(remaining)}</span></strong>`;
+      warn.classList.add('show');
+    } else {
+      warn.classList.remove('show');
+    }
+    // תמיד בדוק אם להציע עדכון הו"ק לשנה הבאה (גם כשמנצלים תקרה מלאה)
+    showNextYearSOSuggestion(year, lump, monthly, soMonth, soYear, d.ceiling);
+  } else {
+    const year = getI('annualTaxYear')||CUR_YEAR;
+    const d    = getCeiling(year);
+    const lump = getN('annualLumpSum')||0;
+    const remaining=d.ceiling-lump;
+    const warn=$('underuseWarningAnnual');
+    if(remaining>0.5 && lump>0 && lump<d.ceiling){
+      $('underuseTextAnnual').innerHTML=`לא מנצל את מלוא הטבת המס בשנת ${year} — נשאר לניצול: <strong>${fmtILS(remaining)}</strong>`;
+      warn.classList.add('show');
+    } else {
+      warn.classList.remove('show');
+    }
+  }
+}
+
+/* ============================================================
+   HINTS
+   ============================================================ */
+function updateHints(){
+  if(depositMode==='monthly'){
+    const year=getI('lumpSumYear')||CUR_YEAR;
+    const d=getCeiling(year);
+    if($('lumpTip')) $('lumpTip').setAttribute('data-tip',`תקרת הפקדה מוטבת לשנת ${year}: ${fmtILS(d.ceiling)}`);
+  } else {
+    const year=getI('annualTaxYear')||CUR_YEAR;
+    const d=getCeiling(year);
+    if($('annualLumpTip')) $('annualLumpTip').setAttribute('data-tip',`תקרת הפקדה מוטבת לשנת ${year}: ${fmtILS(d.ceiling)}. סכום חד פעמי בשנה הראשונה – מופקד בתחילת חודש הביצוע.`);
+  }
+}
+
+/* ============================================================
+   CEILING BARS
+   ============================================================ */
+function updateAnnualCeilingBar(){
+  // ceiling bar removed — no DOM element to update
+}
+
+function updateTaxCeilingBar(){
+  const year=2026;
+  const d=getCeiling(year);
+  let html=`נתוני ${year}: תקרת הפקדה מוטבת⁶ <strong>${fmtILS(d.ceiling)}</strong> | הכנסה קובעת¹ <strong>${fmtILS(d.taxableIncome)}</strong> | ניכוי מרבי⁵ <strong>${fmtILS(d.maxDeductible)}</strong>`;
+  if(d.isEstimate) html+=` <em style="color:#b45309">(אומדן מ-${d.estimatedFrom})</em>`;
+  html+=` — <a href="https://www.gov.il/BlobFolder/generalpage/income-tax-monthly-deductions-booklet/he/generalInformation_income-tax-monthly-deductions-booklet_monthly-deductions-booklet-${year}.pdf" target="_blank" rel="noopener">ספר ניכויים ${year}</a> | אומדן ביטוח לאומי/בריאות לפי שיעורי עובד עצמאי 2026`;
+  $('taxCeilingText').innerHTML=html;
+  if($('taxHeaderYear')) $('taxHeaderYear').textContent=year;
+}
+
+function updateLegalDataYear(){
+  const latestYear=Math.max(...Object.keys(CEILING_DATA).map(Number));
+  if($('legalDataYear')) $('legalDataYear').textContent=latestYear;
+  if($('heroCeilingYear')) $('heroCeilingYear').textContent=latestYear;
+}
+
+function openLegalSectionFromHash(){
+  const id=decodeURIComponent(location.hash.replace('#',''));
+  if(!id) return;
+  const el=$(id);
+  if(el && el.tagName==='DETAILS') el.open=true;
+}
+
+/* ============================================================
+   CALCULATOR
+   ============================================================ */
+function getCalcParams(){
+  if(depositMode==='monthly'){
+    return{
+      mode:'monthly',
+      taxYear:      getI('lumpSumYear')||CUR_YEAR,
+      lumpSum:      getN('lumpSum'),
+      lumpSumMonth: getI('lumpSumMonth')||CUR_MONTH,
+      monthlyDeposit:     getN('monthlyDeposit'),
+      standingOrderMonth: getI('standingOrderMonth'),
+      standingOrderYear:  getI('standingOrderYear'),
+      // הו"ק שנייה (ינואר שנה הבאה)
+      so2: _so2.active ? {..._so2} : null,
+      annualReturn: getN('annualReturn'),
+      calcMonths:   (getI('calcYears')||6)*12,
+      mgmtFee:      getN('mgmtFee'),
+    };
+  } else {
+    return{
+      mode:'annual',
+      taxYear:       getI('annualTaxYear')||CUR_YEAR,
+      lumpSum:       getN('annualLumpSum'),
+      lumpSumMonth:  getI('annualLumpMonth')||CUR_MONTH,
+      annualDeposit: getN('annualDeposit'),
+      annualDepMonth:     getI('annualDepMonth'),
+      annualDepStartYear: getI('annualDepStartYear'),
+      annualReturn:  getN('annualReturn2'),
+      calcMonths:    (getI('calcYears2')||6)*12,
+      mgmtFee:       getN('mgmtFee2'),
+    };
+  }
+}
+
+function calculateFund(p){
+  const netAnnual  =p.annualReturn-p.mgmtFee;
+  const monthlyRate=Math.pow(1+netAnnual/100,1/12)-1;
+  let exemptBalance=0,taxableBalance=0,totalDeposited=0;
+  let exemptDeposited=0,taxableDeposited=0;
+  const yearlyDepositUsage={};
+  const rows=[];
+  const startYear =p.taxYear;
+  const startMonth=p.lumpSumMonth;
+
+  function allocateDeposit(amount, year){
+    if(amount<=0) return {exempt:0,taxable:0};
+    const ceiling=getCeiling(year).ceiling;
+    const used=yearlyDepositUsage[year]||0;
+    const exempt=Math.max(0,Math.min(amount,ceiling-used));
+    const taxable=Math.max(0,amount-exempt);
+    yearlyDepositUsage[year]=used+amount;
+    exemptBalance+=exempt;
+    taxableBalance+=taxable;
+    exemptDeposited+=exempt;
+    taxableDeposited+=taxable;
+    totalDeposited+=amount;
+    return {exempt,taxable};
+  }
+
+  for(let i=0;i<p.calcMonths;i++){
+    const totalM=(startYear*12+startMonth-1)+i;
+    const curYear =Math.floor(totalM/12);
+    const curMonth=(totalM%12)+1;
+    const mIdx=curMonth-1;
+    const opening=exemptBalance+taxableBalance;
+    let lumpThis=0,recurringThis=0;
+    let exemptDepositThis=0,taxableDepositThis=0;
+
+    if(i===0 && p.lumpSum>0){
+      lumpThis=p.lumpSum;
+      const allocation=allocateDeposit(p.lumpSum,curYear);
+      exemptDepositThis+=allocation.exempt;
+      taxableDepositThis+=allocation.taxable;
+    }
+
+    if(p.mode==='monthly'){
+      const soStart  = new Date(p.standingOrderYear,p.standingOrderMonth-1,1).getTime();
+      const curTs    = new Date(curYear,mIdx,1).getTime();
+      // הו"ק שנייה: מתחילה מחודש/שנה שנבחרו
+      const hasSO2   = p.so2 && p.so2.active && p.so2.amount>0;
+      const so2Start = hasSO2 ? new Date(p.so2.year, p.so2.month-1, 1).getTime() : Infinity;
+
+      if(hasSO2 && curTs>=so2Start){
+        // הו"ק שנייה מחליפה — אן הו"ק ראשונה
+        recurringThis=p.so2.amount;
+        const allocation=allocateDeposit(p.so2.amount,curYear);
+        exemptDepositThis+=allocation.exempt;
+        taxableDepositThis+=allocation.taxable;
+      } else if(p.monthlyDeposit>0 && curTs>=soStart){
+        // הו"ק ראשונה
+        recurringThis=p.monthlyDeposit;
+        const allocation=allocateDeposit(p.monthlyDeposit,curYear);
+        exemptDepositThis+=allocation.exempt;
+        taxableDepositThis+=allocation.taxable;
+      }
+    } else {
+      const depStart=new Date(p.annualDepStartYear,p.annualDepMonth-1,1).getTime();
+      const curTs   =new Date(curYear,mIdx,1).getTime();
+      if(p.annualDeposit>0 && curTs>=depStart && curMonth===p.annualDepMonth){
+        recurringThis=p.annualDeposit;
+        const allocation=allocateDeposit(p.annualDeposit,curYear);
+        exemptDepositThis+=allocation.exempt;
+        taxableDepositThis+=allocation.taxable;
+      }
+    }
+
+    const exemptReturn=exemptBalance*monthlyRate;
+    const taxableReturn=taxableBalance*monthlyRate;
+    exemptBalance+=exemptReturn;
+    taxableBalance+=taxableReturn;
+    const ret=exemptReturn+taxableReturn;
+    const balance=exemptBalance+taxableBalance;
+
+    rows.push({
+      index:i+1,year:curYear,month:curMonth,
+      label:`${MONTH_NAMES[mIdx]} ${curYear}`,
+      openingBalance:opening,
+      lumpSumDeposit:lumpThis,
+      recurringDeposit:recurringThis,
+      exemptDeposit:exemptDepositThis,
+      taxableDeposit:taxableDepositThis,
+      isAnnualRow:p.mode==='annual'&&recurringThis>0,
+      totalDeposited,monthlyReturn:ret,
+      exemptReturn,taxableReturn,
+      closingBalance:balance,
+      exemptBalance,taxableBalance
+    });
+  }
+
+  const balance=exemptBalance+taxableBalance;
+  const exemptProfit=exemptBalance-exemptDeposited;
+  const taxableProfit=taxableBalance-taxableDeposited;
+  const totalProfit=balance-totalDeposited;
+  const taxableTax=Math.max(0,taxableProfit*0.25);
+  const taxSaved=Math.max(0,exemptProfit*0.25);
+  const liquidityYear=p.taxYear+6;
+  return{
+    finalBalance:balance,totalDeposited,
+    exemptDeposited,taxableDeposited,
+    totalProfit,exemptProfit,taxableProfit,
+    taxSaved,taxableTax,
+    liquidityFull:`31.01.${liquidityYear}`,
+    liquidityYear,monthlyData:rows,taxYear:p.taxYear
+  };
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function updateCards(res,params){
+  $('totalBalance').textContent    =fmtILS(res.finalBalance);
+  $('totalDeposits').textContent   =fmtILS(res.totalDeposited);
+  const hasTaxableProfit = res.taxableProfit > 0.5;
+  $('totalProfitRow').style.display = hasTaxableProfit ? 'grid' : 'none';
+  if(hasTaxableProfit) $('totalProfitValue').textContent=fmtILS(res.totalProfit);
+  $('exemptProfitValue').textContent=fmtILS(res.exemptProfit);
+  $('exemptTaxSaved').textContent   =`שווי החיסכון במס: ${fmtILS(res.taxSaved)}`;
+  $('taxableProfitRow').style.display = hasTaxableProfit ? 'grid' : 'none';
+  if(hasTaxableProfit) $('taxableProfitValue').textContent=fmtILS(res.taxableProfit);
+  $('liquidityUnderBalance').textContent=`מועד נזילות צפוי: ${res.liquidityFull}`;
+  document.querySelectorAll('.rc__value,.balance-hero__value,.result-line__value').forEach(el=>{
+    el.classList.remove('animate-pop'); void el.offsetWidth; el.classList.add('animate-pop');
+  });
+}
+
+let chartInst=null;
+function renderChart(data){
+  const ctx=$('growthChart').getContext('2d');
+  const labels=data.map(d=>d.label);
+  const bals  =data.map(d=>Math.round(d.closingBalance));
+  const deps  =data.map(d=>Math.round(d.totalDeposited));
+  if(chartInst) chartInst.destroy();
+  chartInst=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'יתרה כוללת',data:bals,borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.10)',fill:true,tension:.35,borderWidth:2.5,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:'#2563eb'},
+      {label:'סך הפקדות',data:deps,borderColor:'#10b981',backgroundColor:'rgba(16,185,129,.06)',fill:true,tension:.35,borderWidth:2,borderDash:[6,3],pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:'#10b981'}
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{rtl:true,textDirection:'rtl',backgroundColor:'rgba(15,23,42,.92)',titleColor:'#e2e8f0',bodyColor:'#cbd5e1',borderColor:'rgba(148,163,184,.2)',borderWidth:1,padding:12,
+          callbacks:{label:c=>` ${c.dataset.label}: ${fmtILS(c.parsed.y)}`}}
+      },
+      scales:{
+        x:{ticks:{font:{family:'Heebo',size:10},color:'#64748b',maxTicksLimit:12,maxRotation:45},grid:{color:'rgba(148,163,184,.1)'}},
+        y:{ticks:{font:{family:'Heebo',size:10},color:'#64748b',callback:v=>v>=1000?'₪'+(v/1000).toFixed(0)+'K':'₪'+v},grid:{color:'rgba(148,163,184,.1)'}}
+      }
+    }
+  });
+}
+
+function renderTable(data, mode){
+  const tbody=$('tableBody'); tbody.innerHTML='';
+  const isAnnual = (mode === 'annual');
+  // כותרת עמודת הפקדה
+  if($('thDeposit')) $('thDeposit').textContent = isAnnual ? 'הפקדה' : 'הפקדה חד פעמית';
+  if($('thRecurring')) $('thRecurring').textContent = isAnnual ? 'הו"ק שוטפת' : 'הו"ק שוטפת';
+
+  data.forEach((row,idx)=>{
+    const tr=document.createElement('tr');
+    if(row.lumpSumDeposit>0) tr.classList.add('row-lump');
+    if(row.isAnnualRow)      tr.classList.add('row-annual');
+    if(idx===data.length-1)  tr.classList.add('row-last');
+
+    // עמודת הפקדה: במצב שנתי = לפ"ח או הפקדה חוזרת; במצב חודשי = לפ"ח בלבד
+    const depVal = isAnnual
+      ? (row.lumpSumDeposit > 0 ? row.lumpSumDeposit : row.recurringDeposit)
+      : row.lumpSumDeposit;
+    const depCls = isAnnual
+      ? (row.lumpSumDeposit > 0 ? 'hl-lump' : (row.recurringDeposit > 0 ? 'hl-annual' : ''))
+      : (row.lumpSumDeposit > 0 ? 'hl-lump' : '');
+
+    // עמודת הו"ק: במצב שנתי תמיד ריקה (—); במצב חודשי = הו"ק הרגילה
+    const recVal = isAnnual ? 0 : row.recurringDeposit;
+    const recCls = isAnnual ? '' : (row.isAnnualRow ? 'hl-annual' : (row.recurringDeposit > 0 ? 'hl-monthly' : ''));
+
+    tr.innerHTML=`
+      <td class="col-index">${row.index}</td>
+      <td><strong>${row.label}</strong></td>
+      <td class="col-num">${fmtILS(row.openingBalance)}</td>
+      <td class="col-num ${depCls}">${depVal > 0 ? fmtILS(depVal) : '—'}</td>
+      <td class="col-num ${recCls}">${recVal > 0 ? fmtILS(recVal) : '—'}</td>
+      <td class="col-num">${fmtILS(row.totalDeposited)}</td>
+      <td class="col-num hl-return">${fmtILS(row.monthlyReturn)}</td>
+      <td class="col-num col-closing"><strong>${fmtILS(row.closingBalance)}</strong></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function runCalculation(){
+  const params=getCalcParams();
+  const results=calculateFund(params);
+  updateCards(results,params);
+  renderChart(results.monthlyData);
+  renderTable(results.monthlyData, params.mode);
+  $('resultsArea').style.display='';
+  setTimeout(()=>$('resultsArea').scrollIntoView({behavior:'smooth',block:'start'}),80);
+}
+
+/* ============================================================
+   TAX BENEFITS
+   ============================================================ */
+
+function animateCounter(el, target, duration, delay) {
+  setTimeout(() => {
+    const start = Date.now();
+    el.textContent = fmtILS(0);
+    (function tick() {
+      const progress = Math.min((Date.now() - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = fmtILS(Math.round(eased * target));
+      if (progress < 1) requestAnimationFrame(tick);
+    })();
+  }, delay);
+}
+
+function runTaxCalc(){
+  const year   =2026;
+  const income =getN('annualIncome');
+  const d      =getCeiling(year);
+
+  const baseIncome   =Math.min(income,d.taxableIncome);
+  const rawDeductible=baseIncome*0.045;
+  const deductible   =Math.min(rawDeductible,d.maxDeductible);
+  const marginal     =getMarginalRate(income,year);
+  const taxBenefit   =deductible*(marginal/100);
+  const niBenefit    =Math.max(0,calcNationalInsuranceDue(income,year)-calcNationalInsuranceDue(Math.max(0,income-deductible),year));
+  const totalProtected=d.ceiling;
+  const exemptReturnRate=0.08;
+  const exemptYears=6;
+  const capitalGainsTaxRate=0.25;
+  const protectedGain=totalProtected*(Math.pow(1+exemptReturnRate,exemptYears)-1);
+  const capitalGainsTaxBenefit=protectedGain*capitalGainsTaxRate;
+  const totalBenefit =capitalGainsTaxBenefit+taxBenefit+niBenefit;
+
+  $('taxResultYear').textContent=year;
+  // שלב 1 — מופיע ב-0.08s, counter מתחיל ב-120ms
+  $('storyProtected').textContent = fmtILS(totalProtected);
+  animateCounter($('storyCapitalGainsTaxBenefit'), capitalGainsTaxBenefit, 1600, 120);
+  // שלב 2 — מופיע ב-0.36s, ללא ספירה על ההוצאה המוכרת
+  $('storyDeductible').textContent = fmtILS(deductible);
+  animateCounter($('storyTaxBenefit'), taxBenefit, 1600, 420);
+  $('storyTaxCalc').textContent=`(${fmtILS(deductible)} × המס השולי שלך ${fmtPct(marginal)})`;
+  // שלב 3 — מופיע ב-0.64s, counter מתחיל ב-720ms
+  animateCounter($('storyNiBenefit'), niBenefit, 1600, 720);
+  // סיכום — מופיע ב-0.92s, counter ארוך במיוחד
+  animateCounter($('storyTotalBenefit'), totalBenefit, 2400, 1020);
+
+  // Notice if income > ceiling
+  const noticeBar=$('taxNoticeBar');
+  if(income>d.taxableIncome){
+    $('taxNoticeText').innerHTML=`הכנסתך (${fmtILS(income)}) עולה על תקרת ההכנסה הקובעת (${fmtILS(d.taxableIncome)}). הניכוי מוגבל ל-${fmtILS(deductible)}, אך ניתן להפקיד עד ${fmtILS(totalProtected)} ולהנות מפטור ממס רווח הון.`;
+    noticeBar.style.display='flex';
+  } else {
+    noticeBar.style.display='none';
+  }
+
+  const taxResultBox=$('taxResultBox');
+  taxResultBox.classList.remove('show-story');
+  taxResultBox.style.display='';
+  void taxResultBox.offsetWidth;
+  taxResultBox.classList.add('show-story');
+}
+
+/* ============================================================
+   RESET
+   ============================================================ */
+function resetToDefaults(){
+  // איפוס הפקדות ל-0
+  set('lumpSumMonth',CUR_MONTH); set('lumpSumYear',CUR_YEAR);
+  set('lumpSum','');
+  set('monthlyDeposit','');
+  delete $('monthlyDeposit').dataset.userEdited;
+  // הו"ק: חודש הבא, שנה נוכחית
+  const nextMo = CUR_MONTH < 12 ? CUR_MONTH+1 : 1;
+  const nextYr = CUR_MONTH < 12 ? CUR_YEAR : CUR_YEAR+1;
+  set('standingOrderMonth', nextMo);
+  set('standingOrderYear',  nextYr);
+  // איפוס שאר פרמטרים
+  set('annualReturn',9); set('annualReturnSlider',9);
+  set('calcYears',6); set('mgmtFee',0);
+  const _rc = getCeiling(CUR_YEAR).ceiling;
+  set('annualLumpSum',_rc); set('annualLumpMonth',CUR_MONTH);
+  set('annualTaxYear',CUR_YEAR);
+  set('annualDeposit',_rc); set('annualDepMonth',1);
+  set('annualDepStartYear',CUR_YEAR+1);
+  set('annualReturn2',9); set('annualReturn2Slider',9);
+  set('calcYears2',6); set('mgmtFee2',0);
+  // איפוס state
+  _so2 = { active:false, year:null, month:1, amount:0 };
+  _nextYearDismissed     = false;
+  _reverseDismissed      = false;
+  _autoSOMatchesCeiling  = false;
+  $('nextYearSOSuggestion').style.display='none';
+  $('reverseSuggestion').style.display='none';
+  updateHints(); updateYearlySummary(); checkUnderutilization(); calcReverseLump();
+  $('resultsArea').style.display='none';
+  setTimeout(()=>$('lumpSum') && $('lumpSum').focus({preventScroll:true}),0);
+}
+
+/* ============================================================
+   TOOLTIPS
+   ============================================================ */
+function showTip(e){
+  const tip=e.currentTarget.getAttribute('data-tip'); if(!tip)return;
+  const p=$('tooltipPopup'); p.textContent=tip; p.classList.add('visible');
+  const r=e.currentTarget.getBoundingClientRect();
+  p.style.top=(r.bottom+8)+'px';
+  p.style.right=Math.max(8,window.innerWidth-r.right+r.width/2-130)+'px';
+  p.style.left='auto';
+}
+function hideTip(){$('tooltipPopup').classList.remove('visible');}
+
+function formatMoneyInputElement(el){
+  if(!el) return;
+  el.value=formatInputNumber(el.value);
+}
+
+function initMoneyInputs(){
+  MONEY_INPUT_IDS.forEach(id=>{
+    const el=$(id);
+    if(!el) return;
+    formatMoneyInputElement(el);
+    el.addEventListener('input',()=>formatMoneyInputElement(el));
+    el.addEventListener('blur',()=>formatMoneyInputElement(el));
+  });
+}
+
+function focusAnnualIncomeAtTop(){
+  const el=$('annualIncome');
+  window.scrollTo({top:0,left:0,behavior:'auto'});
+  if(!el) return;
+  el.focus({preventScroll:true});
+  el.select && el.select();
+  window.scrollTo({top:0,left:0,behavior:'auto'});
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+document.addEventListener('DOMContentLoaded',()=>{
+  initMoneyInputs();
+  // Fill month selects
+  fillMonthSelect($('standingOrderMonth'));
+  fillMonthSelect($('lumpSumMonth'));
+  fillNextYearSOMonth(1, CUR_YEAR+1); // ברירת מחדל ינואר שנה הבאה
+
+  // Set current month/year defaults
+  set('lumpSumMonth',CUR_MONTH);
+  set('lumpSumYear',CUR_YEAR);
+  set('annualLumpMonth',CUR_MONTH);
+  set('annualTaxYear',CUR_YEAR);
+  set('annualDepStartYear',CUR_YEAR+1);
+  // ברירת מחדל לחוצץ שנתי: תקרה שנתית נוכחית
+  const _annualCeil = getCeiling(CUR_YEAR).ceiling;
+  set('annualLumpSum', _annualCeil);
+  set('annualDeposit',  _annualCeil);
+
+  // Run smart defaults
+  setDepositMode('monthly');
+
+  // Slider syncs
+  $('annualReturnSlider').addEventListener('input',e=>set('annualReturn',e.target.value));
+  $('annualReturn').addEventListener('input',e=>{const v=parseFloat(e.target.value);if(!isNaN(v))set('annualReturnSlider',Math.min(20,Math.max(1,v)));});
+  $('annualReturn2Slider').addEventListener('input',e=>set('annualReturn2',e.target.value));
+  $('annualReturn2').addEventListener('input',e=>{const v=parseFloat(e.target.value);if(!isNaN(v))set('annualReturn2Slider',Math.min(20,Math.max(1,v)));});
+
+  // Input changes → update smart defaults
+  ['lumpSumYear','lumpSumMonth','lumpSum'].forEach(id=>{
+    $(id)&&$(id).addEventListener('change',()=>{
+      delete $('monthlyDeposit').dataset.userEdited;
+      delete $('standingOrderMonth').dataset.userEdited;
+      delete $('standingOrderYear').dataset.userEdited;
+      _nextYearDismissed    = false;
+      _reverseDismissed     = false;
+      _autoSOMatchesCeiling = false; // יתעדכן מחדש ב-refreshMonthlyDefaults
+      _so2 = { active:false, year:null, amount:0 };
+      refreshMonthlyDefaults(); updateHints(); updateYearlySummary(); checkUnderutilization(); calcReverseLump();
+    });
+    $(id)&&$(id).addEventListener('input',()=>{
+      delete $('monthlyDeposit').dataset.userEdited;
+      delete $('standingOrderMonth').dataset.userEdited;
+      delete $('standingOrderYear').dataset.userEdited;
+      _nextYearDismissed    = false;
+      _reverseDismissed     = false;
+      _autoSOMatchesCeiling = false; // יתעדכן מחדש ב-refreshMonthlyDefaults
+      _so2 = { active:false, year:null, amount:0 };
+      refreshMonthlyDefaults(); updateHints(); updateYearlySummary(); checkUnderutilization(); calcReverseLump();
+    });
+  });
+
+  ['standingOrderMonth','standingOrderYear','monthlyDeposit'].forEach(id=>{
+    $(id)&&$(id).addEventListener('change',()=>{
+      if(id==='standingOrderMonth') $('standingOrderMonth').dataset.userEdited='1';
+      if(id==='standingOrderYear')  $('standingOrderYear').dataset.userEdited='1';
+      if(id==='monthlyDeposit')     $('monthlyDeposit').dataset.userEdited='1';
+      _autoSOMatchesCeiling = false; // המשתמש שינה ידנית — מבטל את הדגל האוטומטי
+      updateYearlySummary(); checkUnderutilization(); calcReverseLump();
+    });
+    $(id)&&$(id).addEventListener('input',()=>{
+      if(id==='standingOrderMonth') $('standingOrderMonth').dataset.userEdited='1';
+      if(id==='standingOrderYear')  $('standingOrderYear').dataset.userEdited='1';
+      if(id==='monthlyDeposit')     $('monthlyDeposit').dataset.userEdited='1';
+      _autoSOMatchesCeiling = false; // המשתמש שינה ידנית — מבטל את הדגל האוטומטי
+      updateYearlySummary(); checkUnderutilization(); calcReverseLump();
+    });
+  });
+
+  ['annualTaxYear','annualLumpSum'].forEach(id=>{
+    $(id)&&$(id).addEventListener('input',()=>{ updateHints(); checkUnderutilization(); if(depositMode==='annual') updateAnnualCeilingBar(); });
+    $(id)&&$(id).addEventListener('change',()=>{ updateHints(); checkUnderutilization(); if(depositMode==='annual') updateAnnualCeilingBar(); });
+  });
+
+  $('btnCalc').addEventListener('click',()=>{
+    const btn=$('btnCalc'); btn.classList.add('loading');
+    setTimeout(()=>{ runCalculation(); btn.classList.remove('loading'); },100);
+  });
+  $('btnCalcTax').addEventListener('click',()=>{
+    const overlay=$('taxLoadingOverlay');
+    overlay.classList.add('show');
+    $('taxResultBox').classList.remove('show-story');
+    $('btnCalcTax').disabled=true;
+    setTimeout(()=>{
+      runTaxCalc();
+      overlay.classList.remove('show');
+      $('btnCalcTax').disabled=false;
+    },1000);
+  });
+  $('btnReset').addEventListener('click',resetToDefaults);
+  $('btnSuggest').addEventListener('click',applyRecommendedMonthlyDefaults);
+
+  $('btnToggleTable').addEventListener('click',()=>{
+    const w=$('tableWrapper'),btn=$('btnToggleTable');
+    const show=w.style.display==='none';
+    w.style.display=show?'':'none';
+    btn.innerHTML=show?'<i class="fas fa-eye-slash"></i> הסתר טבלה':'<i class="fas fa-eye"></i> הצג טבלה';
+  });
+
+  document.querySelectorAll('input,select').forEach(el=>
+    el.addEventListener('keydown',e=>{ if(e.key==='Enter') runCalculation(); })
+  );
+
+  document.querySelectorAll('.tip-icon').forEach(icon=>{
+    icon.addEventListener('mouseenter',showTip);
+    icon.addEventListener('mouseleave',hideTip);
+  });
+
+  updateTaxCeilingBar();
+  updateLegalDataYear();
+  openLegalSectionFromHash();
+  if('scrollRestoration' in history) history.scrollRestoration='manual';
+  const savedMainTab=getSavedMainTab();
+  switchMainTab(savedMainTab);
+  if(savedMainTab==='tax'){
+    requestAnimationFrame(focusAnnualIncomeAtTop);
+    setTimeout(focusAnnualIncomeAtTop,120);
+    setTimeout(focusAnnualIncomeAtTop,320);
+  }else{
+    requestAnimationFrame(()=>window.scrollTo({top:0,left:0,behavior:'auto'}));
+  }
+  window.addEventListener('hashchange',openLegalSectionFromHash);
+});
+</script>
+</body>
+</html>
