@@ -58,12 +58,11 @@ body{font-family:var(--font);background:var(--slate-50);color:var(--slate-800);d
 .hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:13px;font-weight:600;padding:5px 15px;border-radius:999px;margin-bottom:14px;backdrop-filter:blur(6px)}
 .hero-title{font-size:clamp(24px,5.5vw,44px);font-weight:900;letter-spacing:-.5px;margin-bottom:8px;line-height:1.2}
 .hero-sub{font-size:clamp(14px,2.8vw,17px);opacity:.88;margin-bottom:0}
-.brand-under-title{width:100%;background:#fff;padding:12px 14px 28px}
-.brand-under-title__image{display:block;width:min(100%,1200px);height:auto;aspect-ratio:1200/630;object-fit:cover;margin:0 auto;border-radius:16px;box-shadow:0 8px 28px rgba(15,23,42,.1);border:1px solid var(--slate-200)}
-@media(max-width:600px){.brand-under-title{padding:8px 8px 24px}.brand-under-title__image{border-radius:10px}}
 
 /* MAIN */
-.main-content{padding:0 0 48px}
+.main-content{padding:0 0 48px;position:relative;isolation:isolate}
+.main-content::before{content:'';position:absolute;inset:0;z-index:-1;background-image:url('og-share.jpg');background-repeat:no-repeat;background-position:center 52px;background-size:min(1100px,96vw) auto;opacity:.055;pointer-events:none}
+@media(max-width:600px){.main-content::before{background-position:center 70px;background-size:150% auto;opacity:.04}}
 
 /* MAIN TABS */
 .main-tabs{display:flex;gap:0;background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);border:1.5px solid var(--slate-200);padding:5px;margin-top:-20px;margin-bottom:20px;position:relative;z-index:10}
@@ -412,10 +411,6 @@ input[type=number]{-moz-appearance:textfield}
     <p class="hero-sub">בדקו כמה להפקיד כדי לנצל את תקרת <span id="heroCeilingYear">—</span></p>
   </div>
 </header>
-
-<div class="brand-under-title">
-  <img class="brand-under-title__image" src="og-share.jpg" alt="מחשבון קרן השתלמות לעצמאים — רועי רומנו מתכנן פיננסי" width="1200" height="630"/>
-</div>
 
 <main class="container main-content" id="mainContent">
 
