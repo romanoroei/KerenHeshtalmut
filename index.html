@@ -64,7 +64,7 @@ body{font-family:var(--font);background:var(--slate-50);color:var(--slate-800);d
 @media(max-width:600px){.main-content{background-image:linear-gradient(rgba(248,250,252,.72),rgba(248,250,252,.72)),url('og-share.jpg');background-position:center 70px;background-size:150% auto}}
 
 /* MAIN TABS */
-.main-tabs{display:flex;gap:0;background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);border:1.5px solid var(--slate-200);padding:5px;margin-top:-20px;margin-bottom:20px;position:relative;z-index:10}
+.main-tabs{display:flex;gap:0;background:rgba(255,255,255,.9);border-radius:var(--radius);box-shadow:var(--shadow);border:1.5px solid var(--slate-200);padding:5px;margin-top:-20px;margin-bottom:20px;position:relative;z-index:10}
 .main-tab-btn{flex:1;padding:10px 8px;border:none;background:transparent;font-family:var(--font);font-size:13px;font-weight:600;color:var(--slate-600);cursor:pointer;border-radius:var(--radius-sm);transition:background .15s,color .15s,box-shadow .15s;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
 .main-tab-btn.active{background:linear-gradient(135deg,var(--blue),#3b82f6);color:#fff;box-shadow:0 2px 10px rgba(37,99,235,.3)}
 .main-tab-btn i{font-size:13px}
@@ -91,7 +91,7 @@ body{font-family:var(--font);background:var(--slate-50);color:var(--slate-800);d
 @media(max-width:480px){.dep-tab-btn{font-size:11.5px;padding:8px 4px}}
 
 /* INPUTS */
-.inputs-section{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);border:1.5px solid var(--slate-200);padding:22px 18px 18px;margin-bottom:20px}
+.inputs-section{background:rgba(255,255,255,.9);border-radius:var(--radius);box-shadow:var(--shadow);border:1.5px solid var(--slate-200);padding:22px 18px 18px;margin-bottom:20px}
 .inputs-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:0;align-items:end}
 @media(min-width:500px){.inputs-grid{grid-template-columns:1fr 1fr;align-items:end}}
 @media(min-width:780px){.inputs-grid{grid-template-columns:1fr 1fr 1fr;align-items:end}}
@@ -110,7 +110,7 @@ body{font-family:var(--font);background:var(--slate-50);color:var(--slate-800);d
 .inputs-divider i{color:inherit}
 
 .input-with-slider{display:flex;align-items:center;gap:10px}
-.input-with-slider input[type="range"]{flex:1;-webkit-appearance:none;appearance:none;height:5px;border-radius:99px;background:linear-gradient(to left,var(--blue) 0%,var(--slate-200) 100%);outline:none;cursor:pointer;direction:rtl}
+.input-with-slider input[type="range"]{flex:1;-webkit-appearance:none;appearance:none;height:5px;border-radius:99px;background:linear-gradient(to right,var(--blue) 0%,var(--slate-200) 100%);outline:none;cursor:pointer;direction:rtl}
 .input-with-slider input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--blue);box-shadow:0 2px 6px rgba(37,99,235,.35);cursor:pointer}
 .input-with-slider input[type="number"]{width:70px;flex-shrink:0;text-align:center}
 
@@ -156,7 +156,7 @@ body{font-family:var(--font);background:var(--slate-50);color:var(--slate-800);d
 .results-grid{display:grid;grid-template-columns:1fr;gap:12px}
 @media(min-width:540px){.results-grid{grid-template-columns:1fr 1fr}}
 @media(min-width:820px){.results-grid{grid-template-columns:repeat(6,1fr)}}
-.result-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:17px 15px 13px;display:flex;flex-direction:column;gap:4px;border:1.5px solid var(--slate-200);transition:transform .18s,box-shadow .18s;position:relative;overflow:hidden}
+.result-card{background:rgba(255,255,255,.9);border-radius:var(--radius);box-shadow:var(--shadow);padding:17px 15px 13px;display:flex;flex-direction:column;gap:4px;border:1.5px solid var(--slate-200);transition:transform .18s,box-shadow .18s;position:relative;overflow:hidden}
 .result-card::before{content:'';position:absolute;top:0;right:0;left:0;height:4px;background:linear-gradient(90deg,var(--blue),#38bdf8);border-radius:var(--radius) var(--radius) 0 0}
 .result-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
 .rc--main{background:linear-gradient(135deg,#eff6ff,#dbeafe);border-color:#bfdbfe;padding:22px 18px 16px;grid-column:1/-1}
@@ -192,7 +192,7 @@ body{font-family:var(--font);background:var(--slate-50);color:var(--slate-800);d
 .balance-hero__label{font-size:13px;font-weight:800;color:var(--slate-700)}
 .balance-hero__value{font-size:clamp(34px,7vw,52px);font-weight:900;color:var(--blue-dark);line-height:1;margin-top:6px}
 .balance-hero__sub{margin-top:8px;font-size:12px;font-weight:700;color:var(--slate-500)}
-.results-lines{background:var(--white);border:1.5px solid var(--slate-200);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.results-lines{background:rgba(255,255,255,.9);border:1.5px solid var(--slate-200);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
 .result-line{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--slate-100)}
 .result-line:last-child{border-bottom:none}
 .result-line__icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--slate-100);color:var(--slate-600);font-size:15px}
@@ -219,7 +219,7 @@ body{font-family:var(--font);background:var(--slate-50);color:var(--slate-800);d
 .animate-pop{animation:popIn .3s ease-out both}
 
 /* CHART */
-.chart-section{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);border:1.5px solid var(--slate-200);padding:20px 16px 16px;margin-top:20px}
+.chart-section{background:rgba(255,255,255,.9);border-radius:var(--radius);box-shadow:var(--shadow);border:1.5px solid var(--slate-200);padding:20px 16px 16px;margin-top:20px}
 .chart-container{width:100%;height:260px;position:relative}
 @media(min-width:600px){.chart-container{height:320px}}
 .chart-legend{display:flex;justify-content:center;gap:20px;margin-top:12px;flex-wrap:wrap}
@@ -229,7 +229,7 @@ body{font-family:var(--font);background:var(--slate-50);color:var(--slate-800);d
 .legend-item--deposits .legend-dot{background:var(--green)}
 
 /* TABLE */
-.table-section{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);border:1.5px solid var(--slate-200);padding:20px 16px 16px;margin-top:20px}
+.table-section{background:rgba(255,255,255,.9);border-radius:var(--radius);box-shadow:var(--shadow);border:1.5px solid var(--slate-200);padding:20px 16px 16px;margin-top:20px}
 .btn-toggle-table{background:var(--blue-light);border:1.5px solid #bfdbfe;border-radius:var(--radius-sm);padding:6px 14px;font-family:var(--font);font-size:12.5px;font-weight:600;color:var(--blue-dark);cursor:pointer;display:flex;align-items:center;gap:5px;transition:background .18s}
 .btn-toggle-table:hover{background:#dbeafe}
 .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:8px}
@@ -264,7 +264,7 @@ body{font-family:var(--font);background:var(--slate-50);color:var(--slate-800);d
 .tooltip-popup.visible{opacity:1}
 
 /* TAX PANEL */
-.tax-panel{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);border:1.5px solid var(--slate-200);padding:22px 18px;margin-bottom:22px}
+.tax-panel{background:rgba(255,255,255,.9);border-radius:var(--radius);box-shadow:var(--shadow);border:1.5px solid var(--slate-200);padding:22px 18px;margin-bottom:22px}
 .tax-inputs-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px}
 .tax-input-year{width:110px;flex-shrink:0}
 .tax-input-income{flex:1;min-width:200px}
@@ -273,7 +273,7 @@ body{font-family:var(--font);background:var(--slate-50);color:var(--slate-800);d
 .tax-ceiling-bar a{color:#0f766e;text-decoration:underline}
 
 /* TAX RESULT */
-.tax-result-box{border-radius:var(--radius);padding:20px 18px;margin-top:16px;background:var(--white);border:1.5px solid #99f6e4}
+.tax-result-box{border-radius:var(--radius);padding:20px 18px;margin-top:16px;background:rgba(255,255,255,.9);border:1.5px solid #99f6e4}
 .tax-result-title{font-size:18px;font-weight:800;color:#111827;margin-bottom:14px;display:flex;align-items:center;gap:6px}
 .tax-result-title i{color:#111827}
 .tax-input-income label{font-size:15px}
