@@ -60,9 +60,8 @@ body{font-family:var(--font);background:var(--slate-50);color:var(--slate-800);d
 .hero-sub{font-size:clamp(14px,2.8vw,17px);opacity:.88;margin-bottom:0}
 
 /* MAIN */
-.main-content{padding:0 0 48px;position:relative;isolation:isolate}
-.main-content::before{content:'';position:absolute;inset:0;z-index:-1;background-image:url('og-share.jpg');background-repeat:no-repeat;background-position:center 52px;background-size:min(1100px,96vw) auto;opacity:.055;pointer-events:none}
-@media(max-width:600px){.main-content::before{background-position:center 70px;background-size:150% auto;opacity:.04}}
+.main-content{padding:0 0 48px;background-image:linear-gradient(rgba(248,250,252,.64),rgba(248,250,252,.64)),url('og-share.jpg');background-repeat:no-repeat;background-position:center 48px;background-size:min(1100px,96vw) auto;border-radius:0 0 24px 24px}
+@media(max-width:600px){.main-content{background-image:linear-gradient(rgba(248,250,252,.72),rgba(248,250,252,.72)),url('og-share.jpg');background-position:center 70px;background-size:150% auto}}
 
 /* MAIN TABS */
 .main-tabs{display:flex;gap:0;background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);border:1.5px solid var(--slate-200);padding:5px;margin-top:-20px;margin-bottom:20px;position:relative;z-index:10}
@@ -111,7 +110,7 @@ body{font-family:var(--font);background:var(--slate-50);color:var(--slate-800);d
 .inputs-divider i{color:inherit}
 
 .input-with-slider{display:flex;align-items:center;gap:10px}
-.input-with-slider input[type="range"]{flex:1;-webkit-appearance:none;appearance:none;height:5px;border-radius:99px;background:linear-gradient(to left,var(--blue) 0%,var(--slate-200) 100%);outline:none;cursor:pointer;direction:ltr}
+.input-with-slider input[type="range"]{flex:1;-webkit-appearance:none;appearance:none;height:5px;border-radius:99px;background:linear-gradient(to left,var(--blue) 0%,var(--slate-200) 100%);outline:none;cursor:pointer;direction:rtl}
 .input-with-slider input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--blue);box-shadow:0 2px 6px rgba(37,99,235,.35);cursor:pointer}
 .input-with-slider input[type="number"]{width:70px;flex-shrink:0;text-align:center}
 
@@ -607,7 +606,7 @@ input[type=number]{-moz-appearance:textfield}
 
           <div class="input-group">
             <label for="mgmtFee" style="font-size: 14px; font-weight: bold;">דמי ניהול שנתיים (%)</label>
-            <input type="number" id="mgmtFee" min="0" max="3" step="0.1" value="0"/>
+            <input type="number" id="mgmtFee" min="0" max="3" step="0.1" value="0.7"/>
           </div>
         </div>
 
@@ -696,7 +695,7 @@ input[type=number]{-moz-appearance:textfield}
 
           <div class="input-group">
             <label for="mgmtFee2">דמי ניהול שנתיים (%)</label>
-            <input type="number" id="mgmtFee2" min="0" max="3" step="0.1" value="0"/>
+            <input type="number" id="mgmtFee2" min="0" max="3" step="0.1" value="0.7"/>
           </div>
         </div>
       </div><!-- /fieldsAnnual -->
@@ -1847,14 +1846,14 @@ function resetToDefaults(){
   set('standingOrderYear',  nextYr);
   // איפוס שאר פרמטרים
   set('annualReturn',9); set('annualReturnSlider',9);
-  set('calcYears',6); set('mgmtFee',0);
+  set('calcYears',6); set('mgmtFee',0.7);
   const _rc = getCeiling(CUR_YEAR).ceiling;
   set('annualLumpSum',_rc); set('annualLumpMonth',CUR_MONTH);
   set('annualTaxYear',CUR_YEAR);
   set('annualDeposit',_rc); set('annualDepMonth',1);
   set('annualDepStartYear',CUR_YEAR+1);
   set('annualReturn2',9); set('annualReturn2Slider',9);
-  set('calcYears2',6); set('mgmtFee2',0);
+  set('calcYears2',6); set('mgmtFee2',0.7);
   // איפוס state
   _so2 = { active:false, year:null, month:1, amount:0 };
   _nextYearDismissed     = false;
