@@ -1775,7 +1775,7 @@ async function shareCalculator(){
   const shareData={
     title:'מחשבון קרן השתלמות לעצמאים | רועי רומנו מתכנן פיננסי',
     text:'בדקו כמה מומלץ להפקיד לקרן ההשתלמות שלכם ומה שווי הטבת המס שתקבלו כעצמאים',
-    url:'https://romanoroei.github.io/KerenHeshtalmut/?share=logo2'
+    url:'https://romanoroei.github.io/KerenHeshtalmut/'
   };
   if(navigator.share){
     try{await navigator.share(shareData);return;}catch(err){if(err&&err.name==='AbortError')return;}
