@@ -1,0 +1,6 @@
+{
+  "name": "keren-heshtalmut-calculators",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node --test --test-isolation=none consumer/tests/*.test.js" }
+}
