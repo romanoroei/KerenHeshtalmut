@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculateConsumerResult, futureValueOfMonthlyDeposits, normalizeMoney } from '../engine/calculator.js';
+import { calculateConsumerResult, futureValueOfMonthlyDeposits, monthsRemainingInTaxYear, normalizeMoney, totalDeposited } from '../engine/calculator.js';
 import { TAX_DATA_2026 } from '../data/tax-data.js';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '../messages/whatsapp.js';
 
@@ -25,6 +25,24 @@ test('תרחישי 4%, 7% ו-9%', () => {
   const rates = calculateConsumerResult({ income: 200000, deposited: 0 }).projections.map((x) => x.annualRate);
   assert.deepEqual(rates, [0.04, 0.07, 0.09]);
 });
+test('הפקדה חד־פעמית, הוראת קבע ושילוב מחושבים נכון', () => {
+  assert.equal(totalDeposited({ lumpSum: 5000 }), 5000);
+  assert.equal(totalDeposited({ monthlyDeposit: 1000, monthsDeposited: 6 }), 6000);
+  assert.equal(totalDeposited({ lumpSum: 5000, monthlyDeposit: 1000, monthsDeposited: 6 }), 11000);
+});
+test('חודשים שנותרו עד סוף שנת המס 2026', () => {
+  assert.equal(monthsRemainingInTaxYear(new Date('2026-07-15T12:00:00')), 6);
+  assert.equal(monthsRemainingInTaxYear(new Date('2025-07-15T12:00:00')), 12);
+  assert.equal(monthsRemainingInTaxYear(new Date('2027-01-01T12:00:00')), 0);
+});
+test('הטבת מס כוללת ונוספת מופרדות', () => {
+  const result = calculateConsumerResult({ income: 200000, deposited: 5000, today: new Date('2026-07-15') });
+  assert.ok(result.estimatedTotalTaxBenefit > result.estimatedAdditionalTaxBenefit);
+  assert.ok(result.estimatedAdditionalTaxBenefit >= 0);
+});
+test('תקופות תחזית 6, 10, 15 ו-20 שנים', () => {
+  for (const years of [6, 10, 15, 20]) assert.equal(calculateConsumerResult({ income: 200000, deposited: 0, projectionYears: years }).projections[0].years, years);
+});
 test('קלט ריק או לא תקין', () => {
   assert.ok(Number.isNaN(normalizeMoney('')));
   assert.throws(() => calculateConsumerResult({ income: '', deposited: 0 }), TypeError);
@@ -38,7 +56,8 @@ test('לכל נתון מס יש מקור, שנת מס, תאריך אימות ו�
 });
 test('הודעת WhatsApp כוללת את כל נתוני החובה ונשלחת למספר הנכון', () => {
   const result = calculateConsumerResult({ income: 200000, deposited: 10000 });
-  const message = buildWhatsAppMessage(result);
-  for (const label of ['הכנסה', 'הופקד', 'יתרה לניצול', 'הוראת קבע', 'הערכת הטבת המס']) assert.match(message, new RegExp(label));
+  const profile = { depositMethod:'monthly', completionPreference:'monthly', fundStatus:'liquid', goal:'tax', score:72 };
+  const message = buildWhatsAppMessage(result, profile);
+  for (const label of ['הכנסה', 'הפקדות', 'יתרה לניצול', 'דרך ההפקדה', 'העדפת תזרים', 'מצב הקרן', 'המטרה המרכזית', 'הוראת קבע', 'הערכת הטבת המס', 'ציון ניצול']) assert.match(message, new RegExp(label));
   assert.match(buildWhatsAppUrl(result), /^https:\/\/wa\.me\/972528089808\?text=/);
 });

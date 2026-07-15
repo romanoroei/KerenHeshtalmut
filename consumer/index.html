@@ -1,69 +1,11 @@
-<!doctype html>
-<html lang="he" dir="rtl">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="מחשבון פשוט לעצמאים לבדיקת הפקדה לקרן השתלמות בשנת 2026">
-  <title>מחשבון קרן השתלמות לעצמאים</title>
-  <link rel="stylesheet" href="./styles.css">
-</head>
-<body>
-  <header class="hero"><div class="shell">
-    <p class="eyebrow">בדיקה קצרה · 4 שלבים</p>
-    <h1>עצמאי? בדוק כמה כדאי לך להפקיד לקרן ההשתלמות השנה</h1>
-    <p>כמה שאלות פשוטות, ותוך דקה תקבל תמונת מצב ראשונית לשנת 2026.</p>
-  </div></header>
-  <main class="shell">
-    <form id="consumer-form" class="card" novalidate>
-      <progress id="progress" max="4" value="1" aria-label="התקדמות בשאלון"></progress>
-      <p class="progress-copy">ארבע שאלות קצרות, בלי דמי ניהול ובלי הנחות תשואה ידניות.</p>
-      <section class="step">
-        <fieldset><legend>מה ההכנסה השנתית החייבת המשוערת שלך?</legend>
-          <p class="hint">הערכה לפני הניכוי בגין ההפקדה לקרן.</p>
-          <label for="income">הכנסה שנתית בשקלים</label><input id="income" name="income" type="text" inputmode="numeric" autocomplete="off" required>
-        </fieldset><div class="actions"><button type="button" data-next>המשך</button></div>
-      </section>
-      <section class="step" hidden>
-        <fieldset><legend>כמה כבר הופקד השנה?</legend>
-          <p class="hint">אם עדיין לא הפקדת, אפשר לרשום 0.</p>
-          <label for="deposited">סכום שהופקד בשקלים</label><input id="deposited" name="deposited" type="text" inputmode="numeric" value="0" autocomplete="off" required>
-        </fieldset><div class="actions"><button type="button" class="secondary" data-back>חזרה</button><button type="button" data-next>המשך</button></div>
-      </section>
-      <section class="step" hidden>
-        <fieldset><legend>מה מצב קרן ההשתלמות שלך?</legend><div class="choices">
-          <label class="choice"><input type="radio" name="fundStatus" value="none" required> אין לי קרן</label>
-          <label class="choice"><input type="radio" name="fundStatus" value="locked"> יש לי קרן שעדיין אינה נזילה</label>
-          <label class="choice"><input type="radio" name="fundStatus" value="liquid"> יש לי קרן נזילה</label>
-          <label class="choice"><input type="radio" name="fundStatus" value="unknown"> לא בטוח/ה</label>
-        </div></fieldset><div class="actions"><button type="button" class="secondary" data-back>חזרה</button><button type="button" data-next>המשך</button></div>
-      </section>
-      <section class="step" hidden>
-        <fieldset><legend>מה המטרה המרכזית שלך?</legend><div class="choices">
-          <label class="choice"><input type="radio" name="goal" value="tax" required> לנצל הטבת מס אפשרית השנה</label>
-          <label class="choice"><input type="radio" name="goal" value="saving"> לבנות חיסכון לטווח בינוני</label>
-          <label class="choice"><input type="radio" name="goal" value="monthly"> לקבוע הפקדה חודשית מסודרת</label>
-          <label class="choice"><input type="radio" name="goal" value="check"> רק להבין איפה אני עומד/ת</label>
-        </div></fieldset><div class="actions"><button type="button" class="secondary" data-back>חזרה</button><button type="submit">הצג תוצאה</button></div>
-      </section>
-      <p id="form-error" class="error" role="alert"></p>
-    </form>
-
-    <section id="results" class="card" tabindex="-1" hidden aria-labelledby="results-title">
-      <h2 id="results-title">התמונה שלך לשנת 2026</h2>
-      <div class="result-grid">
-        <div class="metric"><span>יתרה לניצול התקרה השנה</span><strong id="remaining"></strong></div>
-        <div class="metric"><span>הערכת הטבות המס האפשריות</span><strong id="tax-benefit"></strong></div>
-        <div class="metric"><span>הוראת קבע מוצעת לשנה הבאה</span><strong id="monthly"></strong></div>
-      </div>
-      <h3>איך הוראת הקבע עשויה להיראות בעוד 6 שנים?</h3>
-      <ul id="scenario-list" class="scenarios"></ul>
-      <p class="notice"><strong>חשוב:</strong> תרחישי 4%, 7% ו־9% הם המחשה בלבד ואינם התחייבות לתשואה. הסכומים נומינליים, לפני דמי ניהול וללא התאמה לאינפלציה.</p>
-      <div class="cta"><strong id="dynamic-cta"></strong><p>רועי יוכל לעזור לבדוק את הנתונים וההתאמה האישית.</p><a id="whatsapp" class="button" target="_blank" rel="noopener">שליחת התוצאה לרועי ב־WhatsApp</a></div>
-      <div class="actions"><button id="restart" type="button" class="secondary">חישוב מחדש</button></div>
-      <p class="footer-links"><a href="../index.html">לחישוב מתקדם באתר המקצועי</a></p>
-      <p class="hint">החישוב הוא אומדן כללי ואינו ייעוץ מס, ייעוץ השקעות או שיווק פנסיוני. הנתונים לשנת המס 2026; מדרגות המס וההתאמה האישית דורשות אימות מקצועי.</p>
-    </section>
-  </main>
-  <script type="module" src="./ui/app.js"></script>
-</body>
-</html>
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>בדיקת קרן השתלמות אישית</title><link rel="stylesheet" href="./styles.css"></head><body>
+<header class="hero"><div class="shell"><p class="eyebrow">יועץ דיגיטלי קצר לקרן ההשתלמות</p><h1>עצמאי? בוא נבדוק כמה כדאי לך להפקיד לקרן ההשתלמות השנה</h1><p class="lead">תוך פחות מדקה תקבל תמונת מצב אישית: כמה נשאר לך להפקיד, מה הטבת המס האפשרית ואיך הכסף עשוי לצמוח.</p><ul class="benefits"><li>כמה נשאר לנצל השנה</li><li>הערכת הטבת המס האפשרית</li><li>הצעד הבא שכדאי לשקול</li></ul><div class="start-row"><button id="start">מתחילים בדיקה</button><span>ללא הרשמה וללא התחייבות</span></div></div></header>
+<main class="shell"><form id="consumer-form" class="card conversation" novalidate hidden><div class="progress-head"><strong id="step-copy">שלב 1 מתוך 5</strong><span>פחות מדקה לסיום</span></div><progress id="progress" max="5" value="1"></progress>
+<section class="step"><fieldset><legend>מה ההכנסה השנתית החייבת המשוערת שלך?</legend><p class="hint">הכוונה להכנסה לאחר הוצאות מוכרות ולפני ההפקדה לקרן. לא בטוח? אפשר להזין הערכה.</p><label for="income">הכנסה שנתית משוערת</label><div class="money-input"><input id="income" name="income" inputmode="numeric" required><span>₪</span></div><div class="quick"><button type="button" data-amount="100000">100,000 ₪</button><button type="button" data-amount="150000">150,000 ₪</button><button type="button" data-amount="200000">200,000 ₪</button><button type="button" data-amount="250000">250,000 ₪</button><button type="button" data-amount="300000">300,000 ₪</button></div><p class="soft-note">לפי ההכנסה שהזנת, ייתכן שקיימת עבורך הטבת מס על ההפקדה.</p></fieldset><div class="actions"><button type="button" data-next>ממשיכים</button></div></section>
+<section class="step" hidden><fieldset><legend>כבר הפקדת לקרן ההשתלמות השנה?</legend><p class="hint">נחשב יחד את כל מה שכבר הופקד מתחילת 2026.</p><div class="choices"><label><input type="radio" name="depositMethod" value="none" required> עדיין לא הפקדתי</label><label><input type="radio" name="depositMethod" value="lump"> ביצעתי הפקדה חד־פעמית</label><label><input type="radio" name="depositMethod" value="monthly"> אני מפקיד בהוראת קבע</label><label><input type="radio" name="depositMethod" value="both"> גם חד־פעמית וגם הוראת קבע</label></div><div id="lump-fields" hidden><label for="lumpSum">כמה כבר הפקדת השנה?</label><div class="money-input"><input id="lumpSum" name="lumpSum" inputmode="numeric" value="0"><span>₪</span></div></div><div id="monthly-fields" hidden><label for="monthlyDeposit">כמה מופקד בכל חודש?</label><div class="money-input"><input id="monthlyDeposit" name="monthlyDeposit" inputmode="numeric" value="0"><span>₪</span></div><label for="monthsDeposited">כמה חודשים כבר הופקדו השנה?</label><input id="monthsDeposited" name="monthsDeposited" type="number" min="0" max="12" value="0"></div></fieldset><div class="actions"><button type="button" class="secondary" data-back>חזרה</button><button type="button" data-next>ממשיכים</button></div></section>
+<section class="step" hidden><fieldset><legend>מה מצב קרן ההשתלמות שלך?</legend><p class="hint">אין צורך בתאריך מדויק. המידע משמש רק להתאמת הכיוון הראשוני.</p><div class="choices"><label><input required type="radio" name="fundStatus" value="none"> עדיין אין לי קרן</label><label><input type="radio" name="fundStatus" value="locked"> יש לי קרן שעדיין אינה נזילה</label><label><input type="radio" name="fundStatus" value="liquid"> יש לי קרן נזילה</label><label><input type="radio" name="fundStatus" value="unknown"> לא בטוח</label></div></fieldset><div class="actions"><button type="button" class="secondary" data-back>חזרה</button><button type="button" data-next>ממשיכים</button></div></section>
+<section class="step" hidden><fieldset><legend>איך יהיה לך נוח יותר להשלים את ההפקדה?</legend><p class="hint">אין תשובה נכונה — בחר את הדרך שמתאימה לתזרים שלך.</p><div class="choices"><label><input required type="radio" name="completionPreference" value="lump"> סכום חד־פעמי</label><label><input type="radio" name="completionPreference" value="monthly"> הפקדה חודשית</label><label><input type="radio" name="completionPreference" value="both"> שילוב של שניהם</label><label><input type="radio" name="completionPreference" value="unknown"> אני עדיין לא יודע</label></div></fieldset><div class="actions"><button type="button" class="secondary" data-back>חזרה</button><button type="button" data-next>ממשיכים</button></div></section>
+<section class="step" hidden><fieldset><legend>מה הכי חשוב לך כרגע?</legend><p class="hint">כך נוכל לסדר את התוצאה סביב המטרה שלך.</p><div class="choices"><label><input required type="radio" name="goal" value="tax"> לנצל את הטבת המס השנה</label><label><input type="radio" name="goal" value="saving"> להגדיל את החיסכון</label><label><input type="radio" name="goal" value="monthly"> לבנות הוראת קבע מסודרת</label><label><input type="radio" name="goal" value="check"> לבדוק אם מה שאני עושה היום נכון</label></div></fieldset><div class="actions"><button type="button" class="secondary" data-back>חזרה</button><button type="submit">בונים את התמונה שלי</button></div></section><p id="form-error" class="error" role="alert"></p></form>
+<section id="loading" class="card loading" hidden aria-live="polite"><div class="spinner"></div><h2>רועי מחשב את תמונת המצב שלך</h2><p id="loading-copy">בודק את ההפקדות שבוצעו</p></section>
+<section id="results" class="results" hidden tabindex="-1" aria-live="polite"><div class="result-hero card"><p class="eyebrow dark">התוצאה האישית שלך</p><h2>זו תמונת המצב שלך לשנת 2026</h2><p id="headline"></p><strong id="hero-remaining" class="hero-number"></strong><p id="headline-detail"></p></div><div class="result-grid"><article><span>יתרה לניצול השנה</span><strong id="remaining"></strong></article><article><span>הערכת הטבת המס האפשרית אם תשלים</span><strong id="tax-benefit"></strong><small id="total-tax-benefit"></small></article><article><span>הוראת קבע מוצעת לשנה הבאה</span><strong id="monthly"></strong></article></div><section class="card"><h3>מה כדאי לשקול עכשיו?</h3><p id="recommendation"></p><p class="disclaimer">זו אינה המלצה אישית או ייעוץ מס, אלא כיוון ראשוני לפי הנתונים שהזנת.</p></section><section class="card score-card"><div><h3>ציון ניצול קרן ההשתלמות</h3><p>הציון משקף רק את מידת ההיערכות וניצול התקרה השנה.</p></div><div class="score"><strong id="score"></strong><span>/100</span></div></section><section class="card"><div class="section-head"><h3>תרחישי צמיחה</h3><label for="projection-years">תקופה <select id="projection-years"><option value="6">6 שנים</option><option value="10" selected>10 שנים</option><option value="15">15 שנים</option><option value="20">20 שנים</option></select></label></div><ul id="scenario-list" class="scenarios"></ul><p class="notice">התרחישים הם המחשה בלבד, אינם התחייבות לתשואה, אינם כוללים שינוי עתידי בתקרות ומוצגים לפני דמי ניהול ובהנחה של תשואה קבועה. הסכומים נומינליים.</p></section><section class="cta"><h3 id="dynamic-cta"></h3><p>בדיקה קצרה יכולה לעזור לוודא שההפקדה, המסלול ודמי הניהול מתאימים למטרות שלך.</p><a id="whatsapp" class="button" target="_blank" rel="noopener">שליחת התוצאה לרועי ב־WhatsApp</a></section><details class="card"><summary>איך חישבנו את התוצאה?</summary><div id="calculation-details"></div></details><div class="actions"><button id="restart" class="secondary">מתחילים מחדש</button><a class="button secondary" href="../index.html">לחישוב מתקדם</a></div></section>
+</main><script type="module" src="./ui/app.js"></script></body></html>

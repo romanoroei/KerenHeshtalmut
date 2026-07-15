@@ -22,9 +22,26 @@ export function futureValueOfMonthlyDeposits(monthlyDeposit, annualRate, years =
   return monthlyDeposit * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
 }
 
+export function monthsRemainingInTaxYear(date = new Date(), taxYear = 2026) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) throw new TypeError('Invalid date');
+  if (date.getFullYear() < taxYear) return 12;
+  if (date.getFullYear() > taxYear) return 0;
+  return Math.max(0, 12 - date.getMonth());
+}
+
+export function totalDeposited(input) {
+  const lumpSum = normalizeMoney(input.lumpSum ?? 0);
+  const monthlyDeposit = normalizeMoney(input.monthlyDeposit ?? 0);
+  const monthsDeposited = normalizeMoney(input.monthsDeposited ?? 0);
+  if (![lumpSum, monthlyDeposit, monthsDeposited].every(Number.isFinite) || !Number.isInteger(monthsDeposited) || monthsDeposited > 12) {
+    throw new TypeError('Invalid deposit details');
+  }
+  return lumpSum + (monthlyDeposit * monthsDeposited);
+}
+
 export function calculateConsumerResult(input, data = TAX_DATA_2026) {
   const income = normalizeMoney(input.income);
-  const deposited = normalizeMoney(input.deposited);
+  const deposited = input.deposited === undefined ? totalDeposited(input) : normalizeMoney(input.deposited);
   if (!Number.isFinite(income) || income <= 0) throw new TypeError('Income must be greater than zero');
   if (!Number.isFinite(deposited)) throw new TypeError('Deposited amount must be zero or greater');
 
@@ -37,12 +54,18 @@ export function calculateConsumerResult(input, data = TAX_DATA_2026) {
   );
   const deductibleAlreadyUsed = Math.min(deposited, annualDeductible);
   const additionalDeductible = Math.min(remaining, Math.max(0, annualDeductible - deductibleAlreadyUsed));
-  const estimatedTaxBenefit = additionalDeductible * marginalTaxRate(income, data.taxBrackets.value);
+  const taxRate = marginalTaxRate(income, data.taxBrackets.value);
+  const totalDeductible = Math.min(deposited + remaining, annualDeductible);
+  const estimatedTotalTaxBenefit = totalDeductible * taxRate;
+  const estimatedAdditionalTaxBenefit = additionalDeductible * taxRate;
+  const monthsRemaining = monthsRemainingInTaxYear(input.today ?? new Date(), data.taxYear);
+  const suggestedMonthlyToYearEnd = remaining > 0 && monthsRemaining > 0 ? Math.ceil(remaining / monthsRemaining) : 0;
   const suggestedMonthly = Math.ceil(ceiling / 12);
+  const projectionYears = [6, 10, 15, 20].includes(Number(input.projectionYears)) ? Number(input.projectionYears) : 10;
   const projections = RETURN_SCENARIOS.map((scenario) => ({
     ...scenario,
-    years: 6,
-    nominalValue: futureValueOfMonthlyDeposits(suggestedMonthly, scenario.annualRate, 6),
+    years: projectionYears,
+    nominalValue: futureValueOfMonthlyDeposits(suggestedMonthly, scenario.annualRate, projectionYears),
   }));
 
   return {
@@ -52,7 +75,13 @@ export function calculateConsumerResult(input, data = TAX_DATA_2026) {
     ceiling,
     remaining,
     overCeiling: Math.max(0, deposited - ceiling),
-    estimatedTaxBenefit,
+    taxRate,
+    deductibleRate: data.deductibleRate.value,
+    estimatedTaxBenefit: estimatedAdditionalTaxBenefit,
+    estimatedTotalTaxBenefit,
+    estimatedAdditionalTaxBenefit,
+    monthsRemaining,
+    suggestedMonthlyToYearEnd,
     suggestedMonthly,
     projections,
   };

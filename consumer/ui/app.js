@@ -1,79 +1,22 @@
 import { calculateConsumerResult, normalizeMoney } from '../engine/calculator.js';
+import { calculateUtilizationScore } from '../engine/score.js';
+import { buildCta, buildRecommendation } from '../engine/recommendations.js';
 import { buildWhatsAppUrl } from '../messages/whatsapp.js';
+import { countUp } from './animations.js';
 
-const form = document.querySelector('#consumer-form');
-const steps = [...document.querySelectorAll('.step')];
-const progress = document.querySelector('#progress');
-const error = document.querySelector('#form-error');
-const resultSection = document.querySelector('#results');
-let currentStep = 0;
-
-const money = (value) => new Intl.NumberFormat('he-IL', {
-  style: 'currency', currency: 'ILS', maximumFractionDigits: 0,
-}).format(Math.round(value));
-
-function showStep(index) {
-  currentStep = Math.max(0, Math.min(index, steps.length - 1));
-  steps.forEach((step, i) => { step.hidden = i !== currentStep; });
-  progress.value = currentStep + 1;
-  progress.setAttribute('aria-valuetext', `שלב ${currentStep + 1} מתוך 4`);
-  error.textContent = '';
-  steps[currentStep].querySelector('input')?.focus();
-}
-
-function validateCurrentStep() {
-  const required = steps[currentStep].querySelectorAll('[required]');
-  for (const field of required) {
-    if (field.type === 'radio') {
-      if (!form.querySelector(`[name="${field.name}"]:checked`)) return false;
-    } else if (!Number.isFinite(normalizeMoney(field.value)) || (field.name === 'income' && normalizeMoney(field.value) <= 0)) return false;
-  }
-  return true;
-}
-
-form.addEventListener('click', (event) => {
-  const next = event.target.closest('[data-next]');
-  const back = event.target.closest('[data-back]');
-  if (back) showStep(currentStep - 1);
-  if (next) {
-    if (!validateCurrentStep()) {
-      error.textContent = 'כדי להמשיך, יש למלא תשובה תקינה.';
-      return;
-    }
-    showStep(currentStep + 1);
-  }
-});
-
-form.addEventListener('submit', (event) => {
-  event.preventDefault();
-  if (!validateCurrentStep()) return;
-  try {
-    const values = new FormData(form);
-    const result = calculateConsumerResult({ income: values.get('income'), deposited: values.get('deposited') });
-    document.querySelector('#remaining').textContent = money(result.remaining);
-    document.querySelector('#tax-benefit').textContent = money(result.estimatedTaxBenefit);
-    document.querySelector('#monthly').textContent = `${money(result.suggestedMonthly)} בחודש`;
-    document.querySelector('#scenario-list').innerHTML = result.projections.map((item) =>
-      `<li><span>${item.label} · ${Math.round(item.annualRate * 100)}%</span><strong>${money(item.nominalValue)}</strong></li>`).join('');
-    const cta = result.remaining === 0
-      ? 'ניצלת את התקרה השנה — אפשר לתכנן את השנה הבאה.'
-      : result.remaining < 3000
-        ? 'כמעט סיימת — אפשר לבדוק איך להשלים את היתרה.'
-        : 'יש עוד מקום לנצל השנה — אפשר לבדוק את הדרך המתאימה לך.';
-    document.querySelector('#dynamic-cta').textContent = cta;
-    document.querySelector('#whatsapp').href = buildWhatsAppUrl(result);
-    form.hidden = true;
-    resultSection.hidden = false;
-    resultSection.focus();
-  } catch {
-    error.textContent = 'לא הצלחנו לחשב. בדקו שהסכומים תקינים ונסו שוב.';
-  }
-});
-
-document.querySelector('#restart').addEventListener('click', () => {
-  resultSection.hidden = true;
-  form.hidden = false;
-  showStep(0);
-});
-
-showStep(0);
+const $ = (selector) => document.querySelector(selector);
+const form = $('#consumer-form'); const steps = [...document.querySelectorAll('.step')];
+let step = 0; let lastProfile; let lastResult;
+const money = value => new Intl.NumberFormat('he-IL',{style:'currency',currency:'ILS',maximumFractionDigits:0}).format(Math.round(value));
+function showStep(next){step=Math.max(0,Math.min(next,4));steps.forEach((el,i)=>el.hidden=i!==step);$('#progress').value=step+1;$('#step-copy').textContent=`שלב ${step+1} מתוך 5`;$('#form-error').textContent='';steps[step].querySelector('input')?.focus()}
+function valid(){const required=steps[step].querySelectorAll('[required]');for(const field of required){if(field.type==='radio'&&!form.querySelector(`[name="${field.name}"]:checked`))return false;if(field.type!=='radio'&&(!Number.isFinite(normalizeMoney(field.value))||(field.name==='income'&&normalizeMoney(field.value)<=0)))return false}return true}
+function depositFields(){const method=form.elements.depositMethod.value;$('#lump-fields').hidden=!['lump','both'].includes(method);$('#monthly-fields').hidden=!['monthly','both'].includes(method)}
+$('#start').addEventListener('click',()=>{document.querySelector('.hero').hidden=true;form.hidden=false;showStep(0)});
+form.addEventListener('change',e=>{if(e.target.name==='depositMethod')depositFields()});
+form.addEventListener('click',e=>{const amount=e.target.dataset.amount;if(amount){$('#income').value=Number(amount).toLocaleString('he-IL');return}if(e.target.closest('[data-back]'))showStep(step-1);if(e.target.closest('[data-next]')){if(!valid()){$('#form-error').textContent='כדי להמשיך, יש לבחור תשובה או להזין סכום תקין.';return}showStep(step+1)}});
+function collect(years=10){const data=new FormData(form);const method=data.get('depositMethod');return{input:{income:data.get('income'),lumpSum:['lump','both'].includes(method)?data.get('lumpSum'):0,monthlyDeposit:['monthly','both'].includes(method)?data.get('monthlyDeposit'):0,monthsDeposited:['monthly','both'].includes(method)?data.get('monthsDeposited'):0,projectionYears:years},profile:{depositMethod:method,fundStatus:data.get('fundStatus'),completionPreference:data.get('completionPreference'),goal:data.get('goal')}}}
+function renderScenarios(result){$('#scenario-list').innerHTML=result.projections.map(x=>`<li><span>${x.label} · ${x.annualRate*100}%</span><strong>${money(x.nominalValue)}</strong></li>`).join('')}
+function render(result,profile){lastResult=result;lastProfile=profile;profile.hasMonthlyPlan=['monthly','both'].includes(profile.depositMethod);profile.score=calculateUtilizationScore({deposited:result.deposited,ceiling:result.ceiling,hasMonthlyPlan:profile.hasMonthlyPlan,fundStatus:profile.fundStatus,completionPreference:profile.completionPreference});let headline='נראה שנשארו לך עוד',detail='שניתן לשקול להפקיד השנה עד לתקרה המוטבת.';if(result.overCeiling){headline='הפקדת מעל התקרה המוטבת השנה';detail='חלק מההפקדה לא צפוי ליהנות מהפטור על הרווחים.'}else if(result.remaining===0){headline='נראה שכבר ניצלת את מלוא התקרה המוטבת השנה.';detail='אפשר להתכונן להפקדות של השנה הבאה.'}$('#headline').textContent=headline;$('#headline-detail').textContent=detail;countUp($('#hero-remaining'),result.overCeiling||result.remaining,money);countUp($('#remaining'),result.remaining,money);countUp($('#tax-benefit'),result.estimatedAdditionalTaxBenefit,money);countUp($('#monthly'),result.suggestedMonthly,v=>`${money(v)} בחודש`);countUp($('#score'),profile.score,v=>Math.round(v));$('#total-tax-benefit').textContent=`סך הטבת המס המשוערת על ההפקדות המזכות השנה: ${money(result.estimatedTotalTaxBenefit)}`;$('#recommendation').textContent=buildRecommendation(result,profile);$('#dynamic-cta').textContent=buildCta(result,profile);$('#whatsapp').href=buildWhatsAppUrl(result,profile);renderScenarios(result);$('#calculation-details').innerHTML=`<p>תקרת הפקדה מוטבת ל־2026: ${money(result.ceiling)}</p><p>הכנסה שהוזנה: ${money(result.income)} · הפקדות: ${money(result.deposited)}</p><p>מדרגת מס משוערת: ${result.taxRate*100}% · שיעור ניכוי: ${result.deductibleRate*100}%</p><p>מקור: ספר הניכויים 2026 כפי שתועד באתר המקצועי. אימות: 15.07.2026. מדרגות המס ושיעור הניכוי הם אומדן הדורש אימות.</p>`}
+form.addEventListener('submit',e=>{e.preventDefault();if(!valid())return;try{const {input,profile}=collect();const result=calculateConsumerResult(input);form.hidden=true;$('#loading').hidden=false;const messages=['בודק את ההפקדות שבוצעו','מחשב את היתרה לניצול','בונה תרחישי צמיחה'];let i=0;const timer=setInterval(()=>{$('#loading-copy').textContent=messages[++i%messages.length]},250);setTimeout(()=>{clearInterval(timer);$('#loading').hidden=true;render(result,profile);$('#results').hidden=false;$('#results').focus()},matchMedia('(prefers-reduced-motion: reduce)').matches?0:850)}catch{$('#form-error').textContent='לא הצלחנו לחשב. בדקו שהסכומים תקינים ונסו שוב.'}});
+$('#projection-years').addEventListener('change',e=>{if(!lastProfile)return;const {input}=collect(Number(e.target.value));lastResult=calculateConsumerResult(input);renderScenarios(lastResult)});
+$('#restart').addEventListener('click',()=>location.reload());
