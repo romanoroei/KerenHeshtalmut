@@ -2,5 +2,11 @@
   "name": "keren-heshtalmut-calculators",
   "private": true,
   "type": "module",
-  "scripts": { "test": "node --test --test-isolation=none consumer/tests/*.test.js" }
+  "scripts": {
+    "build:consumer": "npx --yes esbuild consumer/ui/app.js --bundle --format=iife --target=es2018 --outfile=consumer/ui/app.bundle.js",
+    "test": "node --test --test-isolation=none consumer/tests/*.test.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.6"
+  }
 }

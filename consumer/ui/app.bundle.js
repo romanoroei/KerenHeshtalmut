@@ -208,118 +208,235 @@
   }
 
   // consumer/ui/app.js
-  var $ = (selector) => document.querySelector(selector);
+  var $ = (selector, root = document) => root.querySelector(selector);
+  var $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
   var form = $("#consumer-form");
-  var steps = [...document.querySelectorAll(".step")];
-  var step = 0;
+  var steps = $$(".step");
+  var money2 = (value) => new Intl.NumberFormat("he-IL", {
+    style: "currency",
+    currency: "ILS",
+    maximumFractionDigits: 0
+  }).format(Math.round(value));
+  var labels = {
+    none: "\u05E2\u05D3\u05D9\u05D9\u05DF \u05D0\u05D9\u05DF \u05E7\u05E8\u05DF",
+    locked: "\u05E7\u05E8\u05DF \u05DC\u05D0 \u05E0\u05D6\u05D9\u05DC\u05D4",
+    liquid: "\u05E7\u05E8\u05DF \u05E0\u05D6\u05D9\u05DC\u05D4",
+    unknown: "\u05DC\u05D0 \u05D1\u05D8\u05D5\u05D7"
+  };
+  var currentStep = 0;
   var lastProfile;
-  var lastResult;
-  var money2 = (value) => new Intl.NumberFormat("he-IL", { style: "currency", currency: "ILS", maximumFractionDigits: 0 }).format(Math.round(value));
-  function showStep(next) {
-    var _a;
-    step = Math.max(0, Math.min(next, 4));
-    steps.forEach((el, i) => el.hidden = i !== step);
-    $("#progress").value = step + 1;
-    $("#step-copy").textContent = `\u05E9\u05DC\u05D1 ${step + 1} \u05DE\u05EA\u05D5\u05DA 5`;
-    $("#form-error").textContent = "";
-    (_a = steps[step].querySelector("input")) == null ? void 0 : _a.focus();
+  function formatMoneyInput(input) {
+    const value = normalizeMoney(input.value);
+    if (Number.isFinite(value)) input.value = Math.round(value).toLocaleString("he-IL");
   }
-  function valid() {
-    const required = steps[step].querySelectorAll("[required]");
-    for (const field of required) {
-      if (field.type === "radio" && !form.querySelector(`[name="${field.name}"]:checked`)) return false;
-      if (field.type !== "radio" && (!Number.isFinite(normalizeMoney(field.value)) || field.name === "income" && normalizeMoney(field.value) <= 0)) return false;
+  function updateSelectedCards() {
+    $$(".choice-card").forEach((card) => card.classList.toggle("is-selected", $("input", card).checked));
+  }
+  function depositTotalFromForm() {
+    const method = form.elements.depositMethod.value;
+    const lump = ["lump", "both"].includes(method) ? normalizeMoney(form.elements.lumpSum.value) || 0 : 0;
+    const monthly = ["monthly", "both"].includes(method) ? normalizeMoney(form.elements.monthlyDeposit.value) || 0 : 0;
+    const months = ["monthly", "both"].includes(method) ? Number(form.elements.monthsDeposited.value) || 0 : 0;
+    return lump + monthly * months;
+  }
+  function updateSummary() {
+    const income = normalizeMoney(form.elements.income.value);
+    $("#summary-income").textContent = Number.isFinite(income) && income > 0 ? money2(income) : "\u05D8\u05E8\u05DD \u05D4\u05D5\u05D6\u05E0\u05D4";
+    const depositMethod = form.elements.depositMethod.value;
+    $("#summary-deposited").textContent = depositMethod ? money2(depositTotalFromForm()) : "\u05D8\u05E8\u05DD \u05D4\u05D5\u05D6\u05DF";
+    $("#summary-fund").textContent = labels[form.elements.fundStatus.value] || "\u05D8\u05E8\u05DD \u05E0\u05D1\u05D7\u05E8";
+    const preview = $("#deposit-preview");
+    if (depositMethod) {
+      preview.hidden = false;
+      $("span", preview).textContent = `\u05E2\u05D3 \u05DB\u05D4 \u05D4\u05D5\u05D6\u05E0\u05D5 \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05D1\u05E1\u05DA ${money2(depositTotalFromForm())}.`;
     }
-    return true;
   }
-  function depositFields() {
+  function updateDepositFields() {
     const method = form.elements.depositMethod.value;
     $("#lump-fields").hidden = !["lump", "both"].includes(method);
     $("#monthly-fields").hidden = !["monthly", "both"].includes(method);
+    updateSummary();
   }
-  $("#start").addEventListener("click", () => showStep(0));
-  form.addEventListener("change", (e) => {
-    if (e.target.name === "depositMethod") depositFields();
-  });
-  form.addEventListener("click", (e) => {
-    const amount = e.target.dataset.amount;
-    if (amount) {
-      $("#income").value = Number(amount).toLocaleString("he-IL");
+  function renderStep(index, animate = true) {
+    var _a;
+    currentStep = Math.max(0, Math.min(index, steps.length - 1));
+    steps.forEach((step, i) => {
+      step.hidden = i !== currentStep;
+      step.classList.remove("is-leaving");
+    });
+    $("#step-copy").textContent = `\u05E9\u05DC\u05D1 ${currentStep + 1} \u05DE\u05EA\u05D5\u05DA 5`;
+    $("#step-title").textContent = steps[currentStep].dataset.title;
+    $("#progress-fill").style.width = `${(currentStep + 1) * 20}%`;
+    $(".progress-track").setAttribute("aria-valuenow", String(currentStep + 1));
+    $("[data-back]").hidden = currentStep === 0;
+    $("[data-next]").hidden = currentStep === steps.length - 1;
+    $("#submit-check").hidden = currentStep !== steps.length - 1;
+    $("#form-error").textContent = "";
+    if (animate) steps[currentStep].classList.add("is-entering");
+    (_a = steps[currentStep].querySelector("input")) == null ? void 0 : _a.focus({ preventScroll: true });
+    if (innerWidth <= 640) form.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  }
+  function validateStep() {
+    const active = steps[currentStep];
+    const required = $$("[required]", active);
+    for (const field of required) {
+      if (field.type === "radio" && !form.querySelector(`[name="${field.name}"]:checked`)) {
+        $("#form-error").textContent = "\u05DB\u05D3\u05D9 \u05DC\u05D4\u05DE\u05E9\u05D9\u05DA, \u05D9\u05E9 \u05DC\u05D1\u05D7\u05D5\u05E8 \u05D0\u05D7\u05EA \u05DE\u05D4\u05D0\u05E4\u05E9\u05E8\u05D5\u05D9\u05D5\u05EA.";
+        return false;
+      }
+      if (field.type !== "radio") {
+        const value = normalizeMoney(field.value);
+        if (!Number.isFinite(value) || field.name === "income" && value <= 0) {
+          $("#form-error").textContent = "\u05D9\u05E9 \u05DC\u05D4\u05D6\u05D9\u05DF \u05E1\u05DB\u05D5\u05DD \u05EA\u05E7\u05D9\u05DF \u05D5\u05D2\u05D3\u05D5\u05DC \u05DE\u05D0\u05E4\u05E1.";
+          if (field.name === "income") $("#income-error").textContent = "\u05D4\u05E1\u05DB\u05D5\u05DD \u05E0\u05D3\u05E8\u05E9 \u05DB\u05D3\u05D9 \u05DC\u05D4\u05DE\u05E9\u05D9\u05DA.";
+          field.focus();
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+  function transitionTo(index) {
+    const current = steps[currentStep];
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      renderStep(index, false);
       return;
     }
-    if (e.target.closest("[data-back]")) showStep(step - 1);
-    if (e.target.closest("[data-next]")) {
-      if (!valid()) {
-        $("#form-error").textContent = "\u05DB\u05D3\u05D9 \u05DC\u05D4\u05DE\u05E9\u05D9\u05DA, \u05D9\u05E9 \u05DC\u05D1\u05D7\u05D5\u05E8 \u05EA\u05E9\u05D5\u05D1\u05D4 \u05D0\u05D5 \u05DC\u05D4\u05D6\u05D9\u05DF \u05E1\u05DB\u05D5\u05DD \u05EA\u05E7\u05D9\u05DF.";
-        return;
-      }
-      showStep(step + 1);
-    }
-  });
+    current.classList.add("is-leaving");
+    setTimeout(() => renderStep(index), 160);
+  }
   function collect(years = 10) {
     const data = new FormData(form);
     const method = data.get("depositMethod");
-    return { input: { income: data.get("income"), lumpSum: ["lump", "both"].includes(method) ? data.get("lumpSum") : 0, monthlyDeposit: ["monthly", "both"].includes(method) ? data.get("monthlyDeposit") : 0, monthsDeposited: ["monthly", "both"].includes(method) ? data.get("monthsDeposited") : 0, projectionYears: years }, profile: { depositMethod: method, fundStatus: data.get("fundStatus"), completionPreference: data.get("completionPreference"), goal: data.get("goal") } };
+    return {
+      input: {
+        income: data.get("income"),
+        lumpSum: ["lump", "both"].includes(method) ? data.get("lumpSum") : 0,
+        monthlyDeposit: ["monthly", "both"].includes(method) ? data.get("monthlyDeposit") : 0,
+        monthsDeposited: ["monthly", "both"].includes(method) ? data.get("monthsDeposited") : 0,
+        projectionYears: years
+      },
+      profile: {
+        depositMethod: method,
+        fundStatus: data.get("fundStatus"),
+        completionPreference: data.get("completionPreference"),
+        goal: data.get("goal")
+      }
+    };
   }
   function renderScenarios(result) {
-    $("#scenario-list").innerHTML = result.projections.map((x) => `<li><span>${x.label} \xB7 ${x.annualRate * 100}%</span><strong>${money2(x.nominalValue)}</strong></li>`).join("");
+    const accents = ["#2563eb", "#7c3aed", "#10b981"];
+    $("#scenario-list").innerHTML = result.projections.map((item, index) => `
+    <article class="scenario-card" style="--accent:${accents[index]};--bar:${55 + index * 20}%">
+      <span>${item.label}<b>${Math.round(item.annualRate * 100)}%</b></span>
+      <strong>${money2(item.nominalValue)}</strong>
+      <small>\u05DC\u05D0\u05D7\u05E8 ${item.years} \u05E9\u05E0\u05D9\u05DD \xB7 \u05E1\u05DB\u05D5\u05DD \u05E0\u05D5\u05DE\u05D9\u05E0\u05DC\u05D9</small>
+    </article>`).join("");
   }
-  function render(result, profile) {
-    lastResult = result;
+  function renderScore(result, profile) {
+    const score = calculateUtilizationScore({
+      deposited: result.deposited,
+      ceiling: result.ceiling,
+      hasMonthlyPlan: ["monthly", "both"].includes(profile.depositMethod),
+      fundStatus: profile.fundStatus,
+      completionPreference: profile.completionPreference
+    });
+    profile.score = score;
+    countUp($("#score"), score, (value) => Math.round(value));
+    $("#score-gauge").style.setProperty("--score-angle", `${score * 3.6}deg`);
+    $("#score-meaning").textContent = score >= 80 ? "\u05D4\u05D4\u05D9\u05E2\u05E8\u05DB\u05D5\u05EA \u05E9\u05DC\u05DA \u05DC\u05E9\u05E0\u05EA \u05D4\u05DE\u05E1 \u05DE\u05EA\u05E7\u05D3\u05DE\u05EA \u05DE\u05D0\u05D5\u05D3." : score >= 50 ? "\u05D9\u05E9 \u05D1\u05E1\u05D9\u05E1 \u05D8\u05D5\u05D1, \u05D5\u05E0\u05E9\u05D0\u05E8\u05D5 \u05DB\u05DE\u05D4 \u05E6\u05E2\u05D3\u05D9\u05DD \u05DC\u05D4\u05E9\u05DC\u05DE\u05D4." : "\u05D9\u05E9 \u05DE\u05E7\u05D5\u05DD \u05DC\u05D1\u05E0\u05D5\u05EA \u05EA\u05D5\u05DB\u05E0\u05D9\u05EA \u05D4\u05E4\u05E7\u05D3\u05D4 \u05DE\u05E1\u05D5\u05D3\u05E8\u05EA \u05D9\u05D5\u05EA\u05E8.";
+    const components = [
+      ["\u05E0\u05D9\u05E6\u05D5\u05DC \u05EA\u05E7\u05E8\u05D4", Math.min(result.deposited / result.ceiling, 1) > 0],
+      ["\u05EA\u05D5\u05DB\u05E0\u05D9\u05EA \u05D7\u05D5\u05D3\u05E9\u05D9\u05EA", ["monthly", "both"].includes(profile.depositMethod)],
+      ["\u05DE\u05E6\u05D1 \u05D4\u05E7\u05E8\u05DF \u05D9\u05D3\u05D5\u05E2", profile.fundStatus !== "unknown"],
+      ["\u05D3\u05E8\u05DA \u05D4\u05E9\u05DC\u05DE\u05D4 \u05E0\u05D1\u05D7\u05E8\u05D4", profile.completionPreference !== "unknown"]
+    ];
+    $("#score-components").innerHTML = components.map(([label, done]) => `<li><i class="fas fa-${done ? "circle-check" : "circle"}"></i>${label}</li>`).join("");
+  }
+  function renderResult(result, profile) {
     lastProfile = profile;
-    profile.hasMonthlyPlan = ["monthly", "both"].includes(profile.depositMethod);
-    profile.score = calculateUtilizationScore({ deposited: result.deposited, ceiling: result.ceiling, hasMonthlyPlan: profile.hasMonthlyPlan, fundStatus: profile.fundStatus, completionPreference: profile.completionPreference });
-    let headline = "\u05E0\u05E8\u05D0\u05D4 \u05E9\u05E0\u05E9\u05D0\u05E8\u05D5 \u05DC\u05DA \u05E2\u05D5\u05D3", detail = "\u05E9\u05E0\u05D9\u05EA\u05DF \u05DC\u05E9\u05E7\u05D5\u05DC \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 \u05D4\u05E9\u05E0\u05D4 \u05E2\u05D3 \u05DC\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA.";
-    if (result.overCeiling) {
-      headline = "\u05D4\u05E4\u05E7\u05D3\u05EA \u05DE\u05E2\u05DC \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA \u05D4\u05E9\u05E0\u05D4";
-      detail = "\u05D7\u05DC\u05E7 \u05DE\u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05DC\u05D0 \u05E6\u05E4\u05D5\u05D9 \u05DC\u05D9\u05D4\u05E0\u05D5\u05EA \u05DE\u05D4\u05E4\u05D8\u05D5\u05E8 \u05E2\u05DC \u05D4\u05E8\u05D5\u05D5\u05D7\u05D9\u05DD.";
+    const hero = $("#result-hero");
+    hero.classList.toggle("is-attention", result.overCeiling > 0);
+    let headline = "\u05E0\u05E9\u05D0\u05E8 \u05DC\u05DA \u05DE\u05E7\u05D5\u05DD \u05DC\u05E0\u05E6\u05DC \u05D4\u05E9\u05E0\u05D4";
+    let detail = "\u05D6\u05D4\u05D5 \u05D4\u05E1\u05DB\u05D5\u05DD \u05E9\u05E0\u05D9\u05EA\u05DF \u05DC\u05E9\u05E7\u05D5\u05DC \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 \u05E2\u05D3 \u05DC\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA \u05DC\u05E9\u05E0\u05EA 2026.";
+    let mainValue = result.remaining;
+    if (result.overCeiling > 0) {
+      headline = "\u05D7\u05DC\u05E7 \u05DE\u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05E9\u05DC\u05DA \u05E0\u05DE\u05E6\u05D0 \u05DE\u05E2\u05DC \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA";
+      detail = "\u05D4\u05E1\u05DB\u05D5\u05DD \u05E9\u05DE\u05E2\u05DC \u05D4\u05EA\u05E7\u05E8\u05D4 \u05DC\u05D0 \u05E6\u05E4\u05D5\u05D9 \u05DC\u05D9\u05D4\u05E0\u05D5\u05EA \u05DE\u05D4\u05E4\u05D8\u05D5\u05E8 \u05E2\u05DC \u05D4\u05E8\u05D5\u05D5\u05D7\u05D9\u05DD.";
+      mainValue = result.overCeiling;
     } else if (result.remaining === 0) {
-      headline = "\u05E0\u05E8\u05D0\u05D4 \u05E9\u05DB\u05D1\u05E8 \u05E0\u05D9\u05E6\u05DC\u05EA \u05D0\u05EA \u05DE\u05DC\u05D5\u05D0 \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA \u05D4\u05E9\u05E0\u05D4.";
-      detail = "\u05D0\u05E4\u05E9\u05E8 \u05DC\u05D4\u05EA\u05DB\u05D5\u05E0\u05DF \u05DC\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05DC \u05D4\u05E9\u05E0\u05D4 \u05D4\u05D1\u05D0\u05D4.";
+      headline = "\u05E0\u05D9\u05E6\u05DC\u05EA \u05D0\u05EA \u05DE\u05DC\u05D5\u05D0 \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA \u05DC\u05E9\u05E0\u05EA 2026";
+      detail = "\u05D0\u05E4\u05E9\u05E8 \u05DC\u05D4\u05EA\u05DE\u05E7\u05D3 \u05D1\u05D4\u05EA\u05D0\u05DE\u05EA \u05D4\u05DE\u05E1\u05DC\u05D5\u05DC \u05D5\u05DC\u05D4\u05D9\u05E2\u05E8\u05DA \u05DC\u05E9\u05E0\u05D4 \u05D4\u05D1\u05D0\u05D4.";
     }
     $("#headline").textContent = headline;
     $("#headline-detail").textContent = detail;
-    countUp($("#hero-remaining"), result.overCeiling || result.remaining, money2);
+    countUp($("#hero-remaining"), mainValue, money2);
     countUp($("#remaining"), result.remaining, money2);
     countUp($("#tax-benefit"), result.estimatedAdditionalTaxBenefit, money2);
-    countUp($("#monthly"), result.suggestedMonthly, (v) => `${money2(v)} \u05D1\u05D7\u05D5\u05D3\u05E9`);
-    countUp($("#score"), profile.score, (v) => Math.round(v));
-    $("#total-tax-benefit").textContent = `\u05E1\u05DA \u05D4\u05D8\u05D1\u05EA \u05D4\u05DE\u05E1 \u05D4\u05DE\u05E9\u05D5\u05E2\u05E8\u05EA \u05E2\u05DC \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05D4\u05DE\u05D6\u05DB\u05D5\u05EA \u05D4\u05E9\u05E0\u05D4: ${money2(result.estimatedTotalTaxBenefit)}`;
+    countUp($("#monthly"), result.suggestedMonthly, (value) => `${money2(value)} \u05D1\u05D7\u05D5\u05D3\u05E9`);
+    $("#total-tax-benefit").textContent = `\u05E1\u05DA \u05D4\u05D4\u05D8\u05D1\u05D4 \u05D4\u05DE\u05E9\u05D5\u05E2\u05E8\u05EA \u05E2\u05DC \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05D4\u05DE\u05D6\u05DB\u05D5\u05EA: ${money2(result.estimatedTotalTaxBenefit)}`;
     $("#recommendation").textContent = buildRecommendation(result, profile);
     $("#dynamic-cta").textContent = buildCta(result, profile);
-    $("#whatsapp").href = buildWhatsAppUrl(result, profile);
+    renderScore(result, profile);
     renderScenarios(result);
-    $("#calculation-details").innerHTML = `<p>\u05EA\u05E7\u05E8\u05EA \u05D4\u05E4\u05E7\u05D3\u05D4 \u05DE\u05D5\u05D8\u05D1\u05EA \u05DC\u05BE2026: ${money2(result.ceiling)}</p><p>\u05D4\u05DB\u05E0\u05E1\u05D4 \u05E9\u05D4\u05D5\u05D6\u05E0\u05D4: ${money2(result.income)} \xB7 \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA: ${money2(result.deposited)}</p><p>\u05DE\u05D3\u05E8\u05D2\u05EA \u05DE\u05E1 \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA: ${result.taxRate * 100}% \xB7 \u05E9\u05D9\u05E2\u05D5\u05E8 \u05E0\u05D9\u05DB\u05D5\u05D9: ${result.deductibleRate * 100}%</p><p>\u05DE\u05E7\u05D5\u05E8: \u05E1\u05E4\u05E8 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9\u05D9\u05DD 2026 \u05DB\u05E4\u05D9 \u05E9\u05EA\u05D5\u05E2\u05D3 \u05D1\u05D0\u05EA\u05E8 \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2\u05D9. \u05D0\u05D9\u05DE\u05D5\u05EA: 15.07.2026. \u05DE\u05D3\u05E8\u05D2\u05D5\u05EA \u05D4\u05DE\u05E1 \u05D5\u05E9\u05D9\u05E2\u05D5\u05E8 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9 \u05D4\u05DD \u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D3\u05D5\u05E8\u05E9 \u05D0\u05D9\u05DE\u05D5\u05EA.</p>`;
+    $("#whatsapp").href = buildWhatsAppUrl(result, profile);
+    $("#calculation-details").innerHTML = `<p><strong>\u05EA\u05E7\u05E8\u05EA 2026:</strong> ${money2(result.ceiling)} \xB7 <strong>\u05D4\u05DB\u05E0\u05E1\u05D4:</strong> ${money2(result.income)} \xB7 <strong>\u05D4\u05D5\u05E4\u05E7\u05D3:</strong> ${money2(result.deposited)}</p><p><strong>\u05DE\u05D3\u05E8\u05D2\u05EA \u05DE\u05E1 \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA:</strong> ${result.taxRate * 100}% \xB7 <strong>\u05E9\u05D9\u05E2\u05D5\u05E8 \u05E0\u05D9\u05DB\u05D5\u05D9:</strong> ${result.deductibleRate * 100}%</p><p>\u05DE\u05E7\u05D5\u05E8: \u05E1\u05E4\u05E8 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9\u05D9\u05DD 2026 \u05DB\u05E4\u05D9 \u05E9\u05EA\u05D5\u05E2\u05D3 \u05D1\u05D0\u05EA\u05E8 \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2\u05D9. \u05D0\u05D9\u05DE\u05D5\u05EA: 15.07.2026. \u05DE\u05D3\u05E8\u05D2\u05D5\u05EA \u05D4\u05DE\u05E1 \u05D5\u05E9\u05D9\u05E2\u05D5\u05E8 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9 \u05D4\u05DD \u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D3\u05D5\u05E8\u05E9 \u05D0\u05D9\u05DE\u05D5\u05EA.</p>`;
   }
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    if (!valid()) return;
+  $("#start").addEventListener("click", () => $("#check").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }));
+  form.addEventListener("click", (event) => {
+    var _a;
+    const amount = (_a = event.target.closest("[data-amount]")) == null ? void 0 : _a.dataset.amount;
+    if (amount) {
+      $("#income").value = Number(amount).toLocaleString("he-IL");
+      updateSummary();
+      return;
+    }
+    if (event.target.closest("[data-back]")) transitionTo(currentStep - 1);
+    if (event.target.closest("[data-next]") && validateStep()) transitionTo(currentStep + 1);
+  });
+  form.addEventListener("change", (event) => {
+    if (event.target.matches('input[type="radio"]')) updateSelectedCards();
+    if (event.target.name === "depositMethod") updateDepositFields();
+    updateSummary();
+  });
+  form.addEventListener("input", (event) => {
+    if (event.target.matches('[inputmode="numeric"], input[type="number"]')) updateSummary();
+  });
+  form.addEventListener("focusout", (event) => {
+    if (event.target.matches('[inputmode="numeric"]')) formatMoneyInput(event.target);
+  });
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!validateStep()) return;
     try {
       const { input, profile } = collect();
       const result = calculateConsumerResult(input);
-      form.hidden = true;
+      $(".wizard-layout").hidden = true;
+      $(".check-heading").hidden = true;
       $("#loading").hidden = false;
-      const messages = ["\u05D1\u05D5\u05D3\u05E7 \u05D0\u05EA \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05D1\u05D5\u05E6\u05E2\u05D5", "\u05DE\u05D7\u05E9\u05D1 \u05D0\u05EA \u05D4\u05D9\u05EA\u05E8\u05D4 \u05DC\u05E0\u05D9\u05E6\u05D5\u05DC", "\u05D1\u05D5\u05E0\u05D4 \u05EA\u05E8\u05D7\u05D9\u05E9\u05D9 \u05E6\u05DE\u05D9\u05D7\u05D4"];
-      let i = 0;
+      const loadingSteps = $$("#loading li");
+      let active = 0;
       const timer = setInterval(() => {
-        $("#loading-copy").textContent = messages[++i % messages.length];
-      }, 250);
+        loadingSteps.forEach((item, i) => item.classList.toggle("is-active", i === ++active));
+      }, 260);
       setTimeout(() => {
         clearInterval(timer);
         $("#loading").hidden = true;
-        render(result, profile);
+        renderResult(result, profile);
         $("#results").hidden = false;
         $("#results").focus();
       }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 850);
-    } catch (e2) {
+    } catch (e) {
       $("#form-error").textContent = "\u05DC\u05D0 \u05D4\u05E6\u05DC\u05D7\u05E0\u05D5 \u05DC\u05D7\u05E9\u05D1. \u05D1\u05D3\u05E7\u05D5 \u05E9\u05D4\u05E1\u05DB\u05D5\u05DE\u05D9\u05DD \u05EA\u05E7\u05D9\u05E0\u05D9\u05DD \u05D5\u05E0\u05E1\u05D5 \u05E9\u05D5\u05D1.";
     }
   });
-  $("#projection-years").addEventListener("change", (e) => {
+  $$("[data-years]").forEach((button) => button.addEventListener("click", () => {
+    $$("[data-years]").forEach((item) => item.classList.toggle("is-active", item === button));
     if (!lastProfile) return;
-    const { input } = collect(Number(e.target.value));
-    lastResult = calculateConsumerResult(input);
-    renderScenarios(lastResult);
-  });
+    const { input } = collect(Number(button.dataset.years));
+    renderScenarios(calculateConsumerResult(input));
+  }));
   $("#restart").addEventListener("click", () => location.reload());
+  renderStep(0, false);
 })();
