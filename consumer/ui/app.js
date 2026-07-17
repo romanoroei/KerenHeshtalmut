@@ -19,6 +19,7 @@ let lastProfile;
 let advanceTimer;
 let isTransitioning = false;
 let isSubmitting = false;
+const stepHistory = [0];
 
 function scheduleAdvance(action, expectedStep = currentStep, delay = 220) {
   clearTimeout(advanceTimer);
@@ -69,11 +70,6 @@ function updateDepositFields() {
   const method = form.elements.depositMethod.value;
   $('#lump-fields').hidden = !['lump', 'both'].includes(method);
   $('#monthly-fields').hidden = !['monthly', 'both'].includes(method);
-  const noFundOption = form.querySelector('[name="fundStatus"][value="none"]')?.closest('.choice-card');
-  if (noFundOption) {
-    noFundOption.hidden = Boolean(method && method !== 'none');
-    if (noFundOption.hidden && $('input', noFundOption).checked) $('input', noFundOption).checked = false;
-  }
   updateSummary();
 }
 
@@ -94,13 +90,13 @@ function renderStep(index, animate = true) {
   isTransitioning = false;
   currentStep = Math.max(0, Math.min(index, steps.length - 1));
   steps.forEach((step, i) => { step.hidden = i !== currentStep; step.classList.remove('is-leaving'); });
-  $('#step-copy').textContent = `שלב ${currentStep + 1} מתוך 5`;
+  $('#step-copy').textContent = `שלב ${currentStep + 1} מתוך 4`;
   $('#step-title').textContent = steps[currentStep].dataset.title;
-  $('#progress-fill').style.width = `${(currentStep + 1) * 20}%`;
+  $('#progress-fill').style.width = `${(currentStep + 1) * 25}%`;
   $('.progress-track').setAttribute('aria-valuenow', String(currentStep + 1));
-  $('[data-back]').hidden = currentStep === 0;
-  $('[data-next]').hidden = currentStep !== 0;
-  $('#submit-check').hidden = true;
+  $('[data-back]').hidden = stepHistory.length === 1;
+  $('[data-next]').hidden = ![0, 2].includes(currentStep);
+  $('#submit-check').hidden = currentStep !== 3;
   $('#form-error').textContent = '';
   if (animate) steps[currentStep].classList.add('is-entering');
   steps[currentStep].querySelector('input')?.focus({ preventScroll: true });
@@ -109,6 +105,14 @@ function renderStep(index, animate = true) {
 
 function validateStep() {
   const active = steps[currentStep];
+  if (currentStep === 2 && !depositDetailsComplete()) {
+    $('#form-error').textContent = 'יש להשלים את פרטי ההפקדה בסכום גדול מאפס.';
+    return false;
+  }
+  if (currentStep === 3 && !form.querySelector('[name="goal"]:checked')) {
+    $('#form-error').textContent = 'כדי להציג תוצאה, יש לבחור לפחות מטרה אחת.';
+    return false;
+  }
   const required = $$('[required]', active);
   for (const field of required) {
     if (field.type === 'radio' && !form.querySelector(`[name="${field.name}"]:checked`)) {
@@ -128,9 +132,10 @@ function validateStep() {
   return true;
 }
 
-function transitionTo(index) {
+function transitionTo(index, recordHistory = true) {
   if (isTransitioning || index === currentStep || index < 0 || index >= steps.length) return;
   isTransitioning = true;
+  if (recordHistory) stepHistory.push(index);
   const current = steps[currentStep];
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduced) { renderStep(index, false); return; }
@@ -152,8 +157,9 @@ function collect(years = 10) {
     profile: {
       depositMethod: method,
       fundStatus: data.get('fundStatus'),
-      completionPreference: data.get('completionPreference'),
-      goal: data.get('goal'),
+      completionPreference: ['monthly', 'both'].includes(method) ? 'monthly' : method === 'lump' ? 'lump' : 'unknown',
+      goals: data.getAll('goal'),
+      goal: data.getAll('goal').join(', '),
     },
   };
 }
@@ -182,9 +188,22 @@ function renderScore(result, profile) {
     ['ניצול תקרה', Math.min(result.deposited / result.ceiling, 1) > 0],
     ['תוכנית חודשית', ['monthly', 'both'].includes(profile.depositMethod)],
     ['מצב הקרן ידוע', profile.fundStatus !== 'unknown'],
-    ['דרך השלמה נבחרה', profile.completionPreference !== 'unknown'],
+    ['הוגדרו מטרות', profile.goals.length > 0],
   ];
   $('#score-components').innerHTML = components.map(([label, done]) => `<li><i class="fas fa-${done ? 'circle-check' : 'circle'}"></i>${label}</li>`).join('');
+}
+
+function renderRecommendationSteps(result, profile) {
+  const stepsForUser = [buildRecommendation(result, profile)];
+  if (profile.fundStatus === 'none') {
+    stepsForUser.push('להשוות בין מסלולי השקעה ודמי ניהול לפני פתיחת הקרן.');
+    stepsForUser.push(`לאחר פתיחת הקרן, לבחון הפקדה שנתית עד ${money(result.ceiling)} בהתאם להכנסה ולתזרים.`);
+  } else {
+    if (result.remaining > 0) stepsForUser.push(`לבחור כיצד לנצל את היתרה של ${money(result.remaining)} עד סוף שנת המס.`);
+    stepsForUser.push(`להיערך לשנה הבאה עם הוראת קבע של כ־${money(result.suggestedMonthly)} בחודש, ולעדכן אותה כשהתקרה משתנה.`);
+    stepsForUser.push('לבדוק אחת לשנה שהמסלול ודמי הניהול עדיין מתאימים למטרות שבחרת.');
+  }
+  $('#recommendation-steps').innerHTML = stepsForUser.map((step, index) => `<li><span>${index + 1}</span><p>${step}</p></li>`).join('');
 }
 
 function renderResult(result, profile) {
@@ -214,9 +233,9 @@ function renderResult(result, profile) {
   countUp($('#income-tax-benefit'), result.estimatedTotalTaxBenefit, money);
   countUp($('#insurance-benefit'), result.estimatedNationalInsuranceBenefitTotal, money);
   countUp($('#capital-gains-benefit'), result.estimatedCapitalGainsExemptionValueTotal, money);
-  $('#recommendation').textContent = buildRecommendation(result, profile);
   $('#dynamic-cta').textContent = buildCta(result, profile);
   renderScore(result, profile);
+  renderRecommendationSteps(result, profile);
   renderScenarios(result);
   $('.growth-notice').textContent = `החישוב מניח הפקדה חודשית קבועה של ${money(result.suggestedMonthly)} (תקרת 2026 חלקי 12), ללא יתרה התחלתית וללא הפקדה חד־פעמית, ולפני דמי ניהול. הוא אינו מבוסס על ההפקדות שהזנת. המחשה בלבד, ללא התחייבות לתשואה; הסכומים נומינליים ובהנחת תשואה קבועה.`;
   $('#whatsapp').href = buildWhatsAppUrl(result, profile);
@@ -225,35 +244,34 @@ function renderResult(result, profile) {
 
 form.addEventListener('click', (event) => {
   const amount = event.target.closest('[data-amount]')?.dataset.amount;
-  if (amount) { $('#income').value = Number(amount).toLocaleString('he-IL'); updateSummary(); scheduleAdvance(() => transitionTo(1)); return; }
-  if (event.target.closest('[data-back]')) transitionTo(currentStep - 1);
-  if (event.target.closest('[data-next]') && validateStep()) transitionTo(currentStep + 1);
+  if (amount) { $('#income').value = Number(amount).toLocaleString('he-IL'); updateSummary(); return; }
+  if (event.target.closest('[data-back]')) {
+    clearTimeout(advanceTimer);
+    if (stepHistory.length > 1) {
+      stepHistory.pop();
+      transitionTo(stepHistory[stepHistory.length - 1], false);
+    }
+    return;
+  }
+  if (event.target.closest('[data-next]') && validateStep()) transitionTo(currentStep === 0 ? 1 : 3);
 });
 
 form.addEventListener('change', (event) => {
-  if (event.target.matches('input[type="radio"]')) updateSelectedCards();
+  if (event.target.matches('input[type="radio"], input[type="checkbox"]')) updateSelectedCards();
   if (event.target.name === 'depositMethod') updateDepositFields();
   updateSummary();
-  if (!event.target.matches('input[type="radio"]')) {
-    if (currentStep === 1 && depositDetailsComplete()) scheduleAdvance(() => transitionTo(2));
-    return;
+  if (event.target.name === 'fundStatus') {
+    const destination = event.target.value === 'none' ? 3 : 2;
+    scheduleAdvance(() => transitionTo(destination));
   }
-  if (currentStep === 1) {
-    if (depositDetailsComplete()) scheduleAdvance(() => transitionTo(2));
-    return;
-  }
-  if (currentStep < steps.length - 1) scheduleAdvance(() => transitionTo(currentStep + 1));
-  else scheduleAdvance(() => form.requestSubmit());
 });
 
 form.addEventListener('input', (event) => {
   if (event.target.matches('[inputmode="numeric"], input[type="number"]')) updateSummary();
-  if (currentStep === 1 && depositDetailsComplete()) scheduleAdvance(() => transitionTo(2), currentStep, 650);
 });
 
 form.addEventListener('focusout', (event) => {
   if (event.target.matches('[inputmode="numeric"]')) formatMoneyInput(event.target);
-  if (currentStep === 1 && depositDetailsComplete()) scheduleAdvance(() => transitionTo(2));
 });
 
 form.addEventListener('submit', (event) => {

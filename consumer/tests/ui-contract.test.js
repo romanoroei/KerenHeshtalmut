@@ -27,3 +27,12 @@ test('האתר אינו יכול לסגור את חלון הדפדפן ומגן 
   assert.match(source, /if \(isSubmitting\) return/);
   assert.match(source, /if \(isTransitioning/);
 });
+
+test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחירת מטרות מרובה', async () => {
+  const html = await readFile(new URL('../check.html', import.meta.url), 'utf8');
+  assert.match(html, /שלב 1 מתוך 4/);
+  assert.match(html, /האם יש לך קרן השתלמות/);
+  assert.match(html, /כמה הפקדת לקרן שלך השנה/);
+  assert.equal((html.match(/type="checkbox" name="goal"/g) || []).length, 4);
+  assert.match(html, /id="recommendation-steps"/);
+});

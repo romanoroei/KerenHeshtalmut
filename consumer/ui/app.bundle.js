@@ -295,6 +295,7 @@
   var advanceTimer;
   var isTransitioning = false;
   var isSubmitting = false;
+  var stepHistory = [0];
   function scheduleAdvance(action, expectedStep = currentStep, delay = 220) {
     clearTimeout(advanceTimer);
     advanceTimer = setTimeout(() => {
@@ -329,15 +330,9 @@
     }
   }
   function updateDepositFields() {
-    var _a;
     const method = form.elements.depositMethod.value;
     $("#lump-fields").hidden = !["lump", "both"].includes(method);
     $("#monthly-fields").hidden = !["monthly", "both"].includes(method);
-    const noFundOption = (_a = form.querySelector('[name="fundStatus"][value="none"]')) == null ? void 0 : _a.closest(".choice-card");
-    if (noFundOption) {
-      noFundOption.hidden = Boolean(method && method !== "none");
-      if (noFundOption.hidden && $("input", noFundOption).checked) $("input", noFundOption).checked = false;
-    }
     updateSummary();
   }
   function depositDetailsComplete() {
@@ -360,13 +355,13 @@
       step.hidden = i !== currentStep;
       step.classList.remove("is-leaving");
     });
-    $("#step-copy").textContent = `\u05E9\u05DC\u05D1 ${currentStep + 1} \u05DE\u05EA\u05D5\u05DA 5`;
+    $("#step-copy").textContent = `\u05E9\u05DC\u05D1 ${currentStep + 1} \u05DE\u05EA\u05D5\u05DA 4`;
     $("#step-title").textContent = steps[currentStep].dataset.title;
-    $("#progress-fill").style.width = `${(currentStep + 1) * 20}%`;
+    $("#progress-fill").style.width = `${(currentStep + 1) * 25}%`;
     $(".progress-track").setAttribute("aria-valuenow", String(currentStep + 1));
-    $("[data-back]").hidden = currentStep === 0;
-    $("[data-next]").hidden = currentStep !== 0;
-    $("#submit-check").hidden = true;
+    $("[data-back]").hidden = stepHistory.length === 1;
+    $("[data-next]").hidden = ![0, 2].includes(currentStep);
+    $("#submit-check").hidden = currentStep !== 3;
     $("#form-error").textContent = "";
     if (animate) steps[currentStep].classList.add("is-entering");
     (_a = steps[currentStep].querySelector("input")) == null ? void 0 : _a.focus({ preventScroll: true });
@@ -374,6 +369,14 @@
   }
   function validateStep() {
     const active = steps[currentStep];
+    if (currentStep === 2 && !depositDetailsComplete()) {
+      $("#form-error").textContent = "\u05D9\u05E9 \u05DC\u05D4\u05E9\u05DC\u05D9\u05DD \u05D0\u05EA \u05E4\u05E8\u05D8\u05D9 \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D1\u05E1\u05DB\u05D5\u05DD \u05D2\u05D3\u05D5\u05DC \u05DE\u05D0\u05E4\u05E1.";
+      return false;
+    }
+    if (currentStep === 3 && !form.querySelector('[name="goal"]:checked')) {
+      $("#form-error").textContent = "\u05DB\u05D3\u05D9 \u05DC\u05D4\u05E6\u05D9\u05D2 \u05EA\u05D5\u05E6\u05D0\u05D4, \u05D9\u05E9 \u05DC\u05D1\u05D7\u05D5\u05E8 \u05DC\u05E4\u05D7\u05D5\u05EA \u05DE\u05D8\u05E8\u05D4 \u05D0\u05D7\u05EA.";
+      return false;
+    }
     const required = $$("[required]", active);
     for (const field of required) {
       if (field.type === "radio" && !form.querySelector(`[name="${field.name}"]:checked`)) {
@@ -392,9 +395,10 @@
     }
     return true;
   }
-  function transitionTo(index) {
+  function transitionTo(index, recordHistory = true) {
     if (isTransitioning || index === currentStep || index < 0 || index >= steps.length) return;
     isTransitioning = true;
+    if (recordHistory) stepHistory.push(index);
     const current = steps[currentStep];
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced) {
@@ -418,8 +422,9 @@
       profile: {
         depositMethod: method,
         fundStatus: data.get("fundStatus"),
-        completionPreference: data.get("completionPreference"),
-        goal: data.get("goal")
+        completionPreference: ["monthly", "both"].includes(method) ? "monthly" : method === "lump" ? "lump" : "unknown",
+        goals: data.getAll("goal"),
+        goal: data.getAll("goal").join(", ")
       }
     };
   }
@@ -448,9 +453,21 @@
       ["\u05E0\u05D9\u05E6\u05D5\u05DC \u05EA\u05E7\u05E8\u05D4", Math.min(result.deposited / result.ceiling, 1) > 0],
       ["\u05EA\u05D5\u05DB\u05E0\u05D9\u05EA \u05D7\u05D5\u05D3\u05E9\u05D9\u05EA", ["monthly", "both"].includes(profile.depositMethod)],
       ["\u05DE\u05E6\u05D1 \u05D4\u05E7\u05E8\u05DF \u05D9\u05D3\u05D5\u05E2", profile.fundStatus !== "unknown"],
-      ["\u05D3\u05E8\u05DA \u05D4\u05E9\u05DC\u05DE\u05D4 \u05E0\u05D1\u05D7\u05E8\u05D4", profile.completionPreference !== "unknown"]
+      ["\u05D4\u05D5\u05D2\u05D3\u05E8\u05D5 \u05DE\u05D8\u05E8\u05D5\u05EA", profile.goals.length > 0]
     ];
     $("#score-components").innerHTML = components.map(([label, done]) => `<li><i class="fas fa-${done ? "circle-check" : "circle"}"></i>${label}</li>`).join("");
+  }
+  function renderRecommendationSteps(result, profile) {
+    const stepsForUser = [buildRecommendation(result, profile)];
+    if (profile.fundStatus === "none") {
+      stepsForUser.push("\u05DC\u05D4\u05E9\u05D5\u05D5\u05EA \u05D1\u05D9\u05DF \u05DE\u05E1\u05DC\u05D5\u05DC\u05D9 \u05D4\u05E9\u05E7\u05E2\u05D4 \u05D5\u05D3\u05DE\u05D9 \u05E0\u05D9\u05D4\u05D5\u05DC \u05DC\u05E4\u05E0\u05D9 \u05E4\u05EA\u05D9\u05D7\u05EA \u05D4\u05E7\u05E8\u05DF.");
+      stepsForUser.push(`\u05DC\u05D0\u05D7\u05E8 \u05E4\u05EA\u05D9\u05D7\u05EA \u05D4\u05E7\u05E8\u05DF, \u05DC\u05D1\u05D7\u05D5\u05DF \u05D4\u05E4\u05E7\u05D3\u05D4 \u05E9\u05E0\u05EA\u05D9\u05EA \u05E2\u05D3 ${money2(result.ceiling)} \u05D1\u05D4\u05EA\u05D0\u05DD \u05DC\u05D4\u05DB\u05E0\u05E1\u05D4 \u05D5\u05DC\u05EA\u05D6\u05E8\u05D9\u05DD.`);
+    } else {
+      if (result.remaining > 0) stepsForUser.push(`\u05DC\u05D1\u05D7\u05D5\u05E8 \u05DB\u05D9\u05E6\u05D3 \u05DC\u05E0\u05E6\u05DC \u05D0\u05EA \u05D4\u05D9\u05EA\u05E8\u05D4 \u05E9\u05DC ${money2(result.remaining)} \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05E9\u05E0\u05EA \u05D4\u05DE\u05E1.`);
+      stepsForUser.push(`\u05DC\u05D4\u05D9\u05E2\u05E8\u05DA \u05DC\u05E9\u05E0\u05D4 \u05D4\u05D1\u05D0\u05D4 \u05E2\u05DD \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2 \u05E9\u05DC \u05DB\u05BE${money2(result.suggestedMonthly)} \u05D1\u05D7\u05D5\u05D3\u05E9, \u05D5\u05DC\u05E2\u05D3\u05DB\u05DF \u05D0\u05D5\u05EA\u05D4 \u05DB\u05E9\u05D4\u05EA\u05E7\u05E8\u05D4 \u05DE\u05E9\u05EA\u05E0\u05D4.`);
+      stepsForUser.push("\u05DC\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D7\u05EA \u05DC\u05E9\u05E0\u05D4 \u05E9\u05D4\u05DE\u05E1\u05DC\u05D5\u05DC \u05D5\u05D3\u05DE\u05D9 \u05D4\u05E0\u05D9\u05D4\u05D5\u05DC \u05E2\u05D3\u05D9\u05D9\u05DF \u05DE\u05EA\u05D0\u05D9\u05DE\u05D9\u05DD \u05DC\u05DE\u05D8\u05E8\u05D5\u05EA \u05E9\u05D1\u05D7\u05E8\u05EA.");
+    }
+    $("#recommendation-steps").innerHTML = stepsForUser.map((step, index) => `<li><span>${index + 1}</span><p>${step}</p></li>`).join("");
   }
   function renderResult(result, profile) {
     lastProfile = profile;
@@ -479,9 +496,9 @@
     countUp($("#income-tax-benefit"), result.estimatedTotalTaxBenefit, money2);
     countUp($("#insurance-benefit"), result.estimatedNationalInsuranceBenefitTotal, money2);
     countUp($("#capital-gains-benefit"), result.estimatedCapitalGainsExemptionValueTotal, money2);
-    $("#recommendation").textContent = buildRecommendation(result, profile);
     $("#dynamic-cta").textContent = buildCta(result, profile);
     renderScore(result, profile);
+    renderRecommendationSteps(result, profile);
     renderScenarios(result);
     $(".growth-notice").textContent = `\u05D4\u05D7\u05D9\u05E9\u05D5\u05D1 \u05DE\u05E0\u05D9\u05D7 \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D5\u05D3\u05E9\u05D9\u05EA \u05E7\u05D1\u05D5\u05E2\u05D4 \u05E9\u05DC ${money2(result.suggestedMonthly)} (\u05EA\u05E7\u05E8\u05EA 2026 \u05D7\u05DC\u05E7\u05D9 12), \u05DC\u05DC\u05D0 \u05D9\u05EA\u05E8\u05D4 \u05D4\u05EA\u05D7\u05DC\u05EA\u05D9\u05EA \u05D5\u05DC\u05DC\u05D0 \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9\u05EA, \u05D5\u05DC\u05E4\u05E0\u05D9 \u05D3\u05DE\u05D9 \u05E0\u05D9\u05D4\u05D5\u05DC. \u05D4\u05D5\u05D0 \u05D0\u05D9\u05E0\u05D5 \u05DE\u05D1\u05D5\u05E1\u05E1 \u05E2\u05DC \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05D4\u05D6\u05E0\u05EA. \u05D4\u05DE\u05D7\u05E9\u05D4 \u05D1\u05DC\u05D1\u05D3, \u05DC\u05DC\u05D0 \u05D4\u05EA\u05D7\u05D9\u05D9\u05D1\u05D5\u05EA \u05DC\u05EA\u05E9\u05D5\u05D0\u05D4; \u05D4\u05E1\u05DB\u05D5\u05DE\u05D9\u05DD \u05E0\u05D5\u05DE\u05D9\u05E0\u05DC\u05D9\u05D9\u05DD \u05D5\u05D1\u05D4\u05E0\u05D7\u05EA \u05EA\u05E9\u05D5\u05D0\u05D4 \u05E7\u05D1\u05D5\u05E2\u05D4.`;
     $("#whatsapp").href = buildWhatsAppUrl(result, profile);
@@ -493,34 +510,32 @@
     if (amount) {
       $("#income").value = Number(amount).toLocaleString("he-IL");
       updateSummary();
-      scheduleAdvance(() => transitionTo(1));
       return;
     }
-    if (event.target.closest("[data-back]")) transitionTo(currentStep - 1);
-    if (event.target.closest("[data-next]") && validateStep()) transitionTo(currentStep + 1);
+    if (event.target.closest("[data-back]")) {
+      clearTimeout(advanceTimer);
+      if (stepHistory.length > 1) {
+        stepHistory.pop();
+        transitionTo(stepHistory[stepHistory.length - 1], false);
+      }
+      return;
+    }
+    if (event.target.closest("[data-next]") && validateStep()) transitionTo(currentStep === 0 ? 1 : 3);
   });
   form.addEventListener("change", (event) => {
-    if (event.target.matches('input[type="radio"]')) updateSelectedCards();
+    if (event.target.matches('input[type="radio"], input[type="checkbox"]')) updateSelectedCards();
     if (event.target.name === "depositMethod") updateDepositFields();
     updateSummary();
-    if (!event.target.matches('input[type="radio"]')) {
-      if (currentStep === 1 && depositDetailsComplete()) scheduleAdvance(() => transitionTo(2));
-      return;
+    if (event.target.name === "fundStatus") {
+      const destination = event.target.value === "none" ? 3 : 2;
+      scheduleAdvance(() => transitionTo(destination));
     }
-    if (currentStep === 1) {
-      if (depositDetailsComplete()) scheduleAdvance(() => transitionTo(2));
-      return;
-    }
-    if (currentStep < steps.length - 1) scheduleAdvance(() => transitionTo(currentStep + 1));
-    else scheduleAdvance(() => form.requestSubmit());
   });
   form.addEventListener("input", (event) => {
     if (event.target.matches('[inputmode="numeric"], input[type="number"]')) updateSummary();
-    if (currentStep === 1 && depositDetailsComplete()) scheduleAdvance(() => transitionTo(2), currentStep, 650);
   });
   form.addEventListener("focusout", (event) => {
     if (event.target.matches('[inputmode="numeric"]')) formatMoneyInput(event.target);
-    if (currentStep === 1 && depositDetailsComplete()) scheduleAdvance(() => transitionTo(2));
   });
   form.addEventListener("submit", (event) => {
     event.preventDefault();

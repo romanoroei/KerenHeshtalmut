@@ -24,8 +24,8 @@
       <div class="wizard-layout">
         <form id="consumer-form" class="wizard" novalidate>
           <div class="wizard-progress">
-            <div class="progress-copy"><strong id="step-copy">שלב 1 מתוך 5</strong><span id="step-title">הכנסה משוערת</span></div>
-            <div class="progress-track" role="progressbar" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1"><span id="progress-fill"></span></div>
+            <div class="progress-copy"><strong id="step-copy">שלב 1 מתוך 4</strong><span id="step-title">הכנסה משוערת</span></div>
+            <div class="progress-track" role="progressbar" aria-valuemin="1" aria-valuemax="4" aria-valuenow="1"><span id="progress-fill"></span></div>
           </div>
 
           <div class="question-stage">
@@ -45,11 +45,24 @@
               <div class="info-hint"><i class="fas fa-circle-info"></i><span>לפי ההכנסה שהזנת, ייתכן שקיימת עבורך אפשרות להוצאה מוכרת בגין ההפקדה.</span></div>
             </section>
 
+            <section class="step" data-title="האם קיימת קרן?" hidden>
+              <div class="question-icon question-icon--purple"><i class="fas fa-landmark"></i></div>
+              <p class="question-number">השאלה השנייה</p>
+              <h3>האם יש לך קרן השתלמות?</h3>
+              <p class="question-help">הבחירה תקבע אילו שאלות רלוונטיות עבורך בהמשך.</p>
+              <div class="choice-grid">
+                <label class="choice-card"><input type="radio" name="fundStatus" value="none" required><span class="choice-icon"><i class="fas fa-plus"></i></span><span class="choice-copy"><strong>עדיין אין לי קרן</strong><small>נדלג ישירות למטרות שלך</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label>
+                <label class="choice-card"><input type="radio" name="fundStatus" value="locked"><span class="choice-icon"><i class="fas fa-lock"></i></span><span class="choice-copy"><strong>כן, והיא עדיין לא נזילה</strong></span><span class="choice-check"><i class="fas fa-check"></i></span></label>
+                <label class="choice-card"><input type="radio" name="fundStatus" value="liquid"><span class="choice-icon"><i class="fas fa-lock-open"></i></span><span class="choice-copy"><strong>כן, והיא נזילה</strong></span><span class="choice-check"><i class="fas fa-check"></i></span></label>
+                <label class="choice-card"><input type="radio" name="fundStatus" value="unknown"><span class="choice-icon"><i class="fas fa-question"></i></span><span class="choice-copy"><strong>כן, אבל לא בטוח אם היא נזילה</strong></span><span class="choice-check"><i class="fas fa-check"></i></span></label>
+              </div>
+            </section>
+
             <section class="step" data-title="הפקדות השנה" hidden>
               <div class="question-icon question-icon--green"><i class="fas fa-wallet"></i></div>
               <p class="question-number">הפקדות בשנת 2026</p>
-              <h3>כבר הפקדת לקרן ההשתלמות השנה?</h3>
-              <p class="question-help">בחר את האפשרות שמתארת בצורה הטובה ביותר את ההפקדות שבוצעו עד היום.</p>
+              <h3>כמה הפקדת לקרן שלך השנה?</h3>
+              <p class="question-help">בחר את אופן ההפקדה. אם נדרש סכום, מלא אותו ולחץ על “ממשיכים”.</p>
               <div class="choice-grid">
                 <label class="choice-card"><input type="radio" name="depositMethod" value="none" required><span class="choice-icon"><i class="fas fa-wallet"></i></span><span class="choice-copy"><strong>עדיין לא הפקדתי</strong></span><span class="choice-check"><i class="fas fa-check"></i></span></label>
                 <label class="choice-card"><input type="radio" name="depositMethod" value="lump"><span class="choice-icon"><i class="fas fa-coins"></i></span><span class="choice-copy"><strong>הפקדתי סכום אחד או יותר</strong></span><span class="choice-check"><i class="fas fa-check"></i></span></label>
@@ -61,22 +74,10 @@
               <div class="deposit-preview" id="deposit-preview" hidden><i class="fas fa-calculator"></i><span></span></div>
             </section>
 
-            <section class="step" data-title="מצב הקרן" hidden>
-              <div class="question-icon question-icon--purple"><i class="fas fa-landmark"></i></div>
-              <p class="question-number">מכירים את הקרן</p><h3>מה מצב קרן ההשתלמות שלך?</h3><p class="question-help">אין צורך בתאריך מדויק. המידע משמש רק להתאמת הכיוון הראשוני.</p>
-              <div class="choice-grid"><label class="choice-card"><input type="radio" name="fundStatus" value="none" required><span class="choice-icon"><i class="fas fa-plus"></i></span><span class="choice-copy"><strong>עדיין אין לי קרן</strong><small>צריך לבדוק פתיחה והתאמה</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label><label class="choice-card"><input type="radio" name="fundStatus" value="locked"><span class="choice-icon"><i class="fas fa-lock"></i></span><span class="choice-copy"><strong>קרן לא נזילה</strong><small>הקרן עדיין בתקופת החיסכון</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label><label class="choice-card"><input type="radio" name="fundStatus" value="liquid"><span class="choice-icon"><i class="fas fa-lock-open"></i></span><span class="choice-copy"><strong>קרן נזילה</strong><small>הכספים זמינים למשיכה</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label><label class="choice-card"><input type="radio" name="fundStatus" value="unknown"><span class="choice-icon"><i class="fas fa-question"></i></span><span class="choice-copy"><strong>לא בטוח</strong><small>אפשר לבדוק זאת בהמשך</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label></div>
-            </section>
-
-            <section class="step" data-title="דרך ההשלמה" hidden>
-              <div class="question-icon question-icon--gold"><i class="fas fa-route"></i></div>
-              <p class="question-number">מתאימים לתזרים</p><h3>איך יהיה לך נוח יותר להשלים את ההפקדה?</h3><p class="question-help">אין תשובה נכונה — בחר את הדרך שמתאימה לתזרים שלך.</p>
-              <div class="choice-grid"><label class="choice-card"><input type="radio" name="completionPreference" value="lump" required><span class="choice-icon"><i class="fas fa-money-bill-wave"></i></span><span class="choice-copy"><strong>סכום חד־פעמי</strong><small>השלמה בפעולה אחת</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label><label class="choice-card"><input type="radio" name="completionPreference" value="monthly"><span class="choice-icon"><i class="fas fa-arrows-rotate"></i></span><span class="choice-copy"><strong>הפקדה חודשית</strong><small>פיזור עד סוף השנה</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label><label class="choice-card"><input type="radio" name="completionPreference" value="both"><span class="choice-icon"><i class="fas fa-layer-group"></i></span><span class="choice-copy"><strong>שילוב של שניהם</strong><small>חלק עכשיו וחלק בהמשך</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label><label class="choice-card"><input type="radio" name="completionPreference" value="unknown"><span class="choice-icon"><i class="fas fa-question"></i></span><span class="choice-copy"><strong>אני עדיין לא יודע</strong><small>נציג כיוון גמיש</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label></div>
-            </section>
-
             <section class="step" data-title="המטרה שלך" hidden>
               <div class="question-icon question-icon--teal"><i class="fas fa-bullseye"></i></div>
-              <p class="question-number">כמעט סיימנו</p><h3>מה הכי חשוב לך כרגע?</h3><p class="question-help">כך נוכל לסדר את התוצאה סביב המטרה שלך.</p>
-              <div class="choice-grid"><label class="choice-card"><input type="radio" name="goal" value="tax" required><span class="choice-icon"><i class="fas fa-receipt"></i></span><span class="choice-copy"><strong>לנצל את הטבת המס</strong><small>להתמקד בשנת 2026</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label><label class="choice-card"><input type="radio" name="goal" value="saving"><span class="choice-icon"><i class="fas fa-chart-line"></i></span><span class="choice-copy"><strong>להגדיל את החיסכון</strong><small>להסתכל לטווח ארוך</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label><label class="choice-card"><input type="radio" name="goal" value="monthly"><span class="choice-icon"><i class="fas fa-calendar-days"></i></span><span class="choice-copy"><strong>לבנות הוראת קבע</strong><small>ליצור הרגל מסודר</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label><label class="choice-card"><input type="radio" name="goal" value="check"><span class="choice-icon"><i class="fas fa-magnifying-glass"></i></span><span class="choice-copy"><strong>לבדוק אם אני בדרך הנכונה</strong><small>לקבל תמונת מצב</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label></div>
+              <p class="question-number">השאלה האחרונה</p><h3>מה הכי חשוב לך כרגע?</h3><p class="question-help">אפשר לבחור יותר מתשובה אחת, ולאחר מכן ללחוץ על הכפתור להצגת התוצאה.</p>
+              <div class="choice-grid"><label class="choice-card"><input type="checkbox" name="goal" value="tax"><span class="choice-icon"><i class="fas fa-receipt"></i></span><span class="choice-copy"><strong>לנצל את הטבת המס</strong><small>להתמקד בשנת 2026</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label><label class="choice-card"><input type="checkbox" name="goal" value="saving"><span class="choice-icon"><i class="fas fa-chart-line"></i></span><span class="choice-copy"><strong>להגדיל את החיסכון</strong><small>להסתכל לטווח ארוך</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label><label class="choice-card"><input type="checkbox" name="goal" value="monthly"><span class="choice-icon"><i class="fas fa-calendar-days"></i></span><span class="choice-copy"><strong>לבנות הוראת קבע</strong><small>ליצור הרגל מסודר</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label><label class="choice-card"><input type="checkbox" name="goal" value="check"><span class="choice-icon"><i class="fas fa-magnifying-glass"></i></span><span class="choice-copy"><strong>לבדוק אם אני בדרך הנכונה</strong><small>לקבל תמונת מצב</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label></div>
             </section>
           </div>
 
@@ -102,8 +103,8 @@
           </div>
           <p class="benefit-warning"><i class="fas fa-circle-info"></i> האומדן הכולל מחבר רכיבים במועדים שונים: מס הכנסה וביטוח לאומי/בריאות עשויים להשפיע כיום, ואילו הפטור ממס רווחי הון הוא שווי עתידי משוער.</p>
         </section>
-        <section class="recommendation-card"><div class="recommendation-icon"><i class="fas fa-compass"></i></div><div><span class="section-kicker">הכיוון הראשוני שלך</span><h3>מה כדאי לשקול עכשיו?</h3><p id="recommendation"></p><p class="recommendation-disclaimer"><i class="fas fa-circle-info"></i> זו אינה המלצה אישית או ייעוץ מס, אלא כיוון ראשוני לפי הנתונים שהזנת.</p></div></section>
-        <section class="support-grid"><article class="score-card"><div class="score-gauge" id="score-gauge"><strong id="score"></strong><span>/100</span></div><div><h3>ציון ניצול קרן ההשתלמות</h3><p id="score-meaning"></p><ul id="score-components"></ul><small>הציון מודד היערכות והפקדה בלבד — לא את איכות הקרן.</small></div></article><article class="growth-card"><div class="section-header"><div><span class="section-kicker">מבט קדימה</span><h3>תרחישי צמיחה</h3></div><div class="year-segments" aria-label="בחירת תקופה"><button type="button" data-years="6">6</button><button type="button" data-years="10" class="is-active">10</button><button type="button" data-years="15">15</button><button type="button" data-years="20">20</button><span>שנים</span></div></div><div id="scenario-list" class="scenario-grid"></div><p class="growth-notice">המחשה בלבד, ללא התחייבות לתשואה. הסכומים נומינליים, לפני דמי ניהול ובהנחת תשואה קבועה; תקרות עתידיות עשויות להשתנות.</p></article></section>
+        <section class="action-plan-card"><div class="action-plan-heading"><span class="section-kicker">התוכנית הראשונית שלך</span><h3>מה כדאי לעשות מכאן?</h3><p>הצעדים מסודרים לפי תמונת המצב וציון הניצול שלך.</p></div><div class="action-plan-grid"><div class="score-summary"><div class="score-gauge" id="score-gauge"><strong id="score"></strong><span>/100</span></div><h4>ציון ניצול קרן ההשתלמות</h4><p id="score-meaning"></p><ul id="score-components"></ul><small>הציון מודד היערכות והפקדה בלבד — לא את איכות הקרן.</small></div><ol id="recommendation-steps" class="recommendation-steps"></ol></div><p class="recommendation-disclaimer"><i class="fas fa-circle-info"></i> זו אינה המלצה אישית או ייעוץ מס, אלא סדר פעולות ראשוני לפי הנתונים שהזנת.</p></section>
+        <section class="support-grid"><article class="growth-card"><div class="section-header"><div><span class="section-kicker">מבט קדימה</span><h3>תרחישי צמיחה</h3></div><div class="year-segments" aria-label="בחירת תקופה"><button type="button" data-years="6">6</button><button type="button" data-years="10" class="is-active">10</button><button type="button" data-years="15">15</button><button type="button" data-years="20">20</button><span>שנים</span></div></div><div id="scenario-list" class="scenario-grid"></div><p class="growth-notice">המחשה בלבד, ללא התחייבות לתשואה. הסכומים נומינליים, לפני דמי ניהול ובהנחת תשואה קבועה; תקרות עתידיות עשויות להשתנות.</p></article></section>
         <section class="whatsapp-card"><div class="advisor-mini"><img src="../roei-romano.png" alt="רועי רומנו"><span><strong>רועי רומנו</strong><small>מתכנן פיננסי וסוכן פנסיוני</small></span></div><div class="whatsapp-copy"><h3 id="dynamic-cta"></h3><p>בדיקה קצרה יכולה לעזור לוודא שההפקדה, המסלול ודמי הניהול מתאימים למטרות שלך.</p><span class="trust-line"><i class="fas fa-lock"></i> הפנייה מגיעה ישירות לרועי</span></div><a id="whatsapp" class="btn btn-whatsapp" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> שליחת התוצאה ב־WhatsApp</a></section>
         <details class="calculation-details"><summary><i class="fas fa-calculator"></i> איך חישבנו את התוצאה?<i class="fas fa-chevron-down"></i></summary><div id="calculation-details"></div></details>
         <div class="result-actions"><button id="restart" type="button" class="btn btn-back"><i class="fas fa-rotate-right"></i> מתחילים מחדש</button><a class="btn btn-outline" href="../index.html">למחשבון המקצועי <i class="fas fa-arrow-left"></i></a></div>

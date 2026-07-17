@@ -15,17 +15,18 @@ const report = [];
 async function completeFlow(page) {
   await page.goto(checkUrl, { waitUntil: 'networkidle' });
   await page.locator('[data-amount="200000"]').click();
+  await page.locator('[data-next]').click();
+  await page.waitForTimeout(300);
+  await page.locator('input[name="fundStatus"][value="locked"]').check({ force: true });
   await page.waitForTimeout(400);
   await page.locator('input[name="depositMethod"][value="monthly"]').check({ force: true });
   await page.locator('#monthlyDeposit').fill('500');
   await page.locator('#monthsDeposited').fill('7');
-  await page.locator('#monthsDeposited').blur();
-  await page.waitForTimeout(400);
-  await page.locator('input[name="fundStatus"][value="locked"]').check({ force: true });
-  await page.waitForTimeout(400);
-  await page.locator('input[name="completionPreference"][value="monthly"]').check({ force: true });
-  await page.waitForTimeout(400);
+  await page.locator('[data-next]').click();
+  await page.waitForTimeout(300);
   await page.locator('input[name="goal"][value="tax"]').check({ force: true });
+  await page.locator('input[name="goal"][value="saving"]').check({ force: true });
+  await page.locator('#submit-check').click();
   await page.locator('#results:not([hidden])').waitFor({ timeout: 5000 });
   await page.waitForTimeout(900);
 }
@@ -40,6 +41,9 @@ for (const viewport of [{ name: 'mobile', width: 390, height: 844 }, { name: 'ta
   if (viewport.name !== 'tablet') await page.locator('.landing-hero').screenshot({ path: fileURLToPath(new URL(`${viewport.name}-hero.png`, outputDir)) });
   await page.goto(checkUrl, { waitUntil: 'networkidle' });
   await page.locator('[data-amount="200000"]').click();
+  await page.locator('[data-next]').click();
+  await page.waitForTimeout(300);
+  await page.locator('input[name="fundStatus"][value="liquid"]').check({ force: true });
   await page.waitForTimeout(400);
   await page.locator('input[name="depositMethod"][value="lump"]').check({ force: true });
   await page.locator('#lumpSum').fill('12000');
