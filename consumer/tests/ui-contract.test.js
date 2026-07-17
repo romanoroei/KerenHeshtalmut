@@ -38,4 +38,12 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   assert.match(html, /id="existingBalance"/);
   assert.match(html, /class="deposit-mini"/);
   assert.doesNotMatch(html, /הפקדה חודשית להמחשה/);
+  assert.match(html, /id="growth-detail"/);
+  assert.ok(html.indexOf('class="whatsapp-card"') < html.indexOf('class="support-grid"'));
+});
+
+test('מסך הפתיחה אינו מציג תגית צפה ליד תמונת היועץ', async () => {
+  const landing = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+  assert.doesNotMatch(landing, /landing-result-chip/);
+  assert.match(landing, /landing-assurance/);
 });

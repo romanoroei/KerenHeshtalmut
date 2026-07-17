@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculateConsumerResult, capitalGainsExemptionValue, futureValueOfMonthlyDeposits, monthsRemainingInTaxYear, nationalInsuranceDue, normalizeMoney, projectedAnnualDeposits, totalDeposited } from '../engine/calculator.js';
+import { buildGrowthSchedule, calculateConsumerResult, capitalGainsExemptionValue, futureValueOfMonthlyDeposits, monthsRemainingInTaxYear, nationalInsuranceDue, normalizeMoney, projectedAnnualDeposits, totalDeposited } from '../engine/calculator.js';
 import { TAX_DATA_2026 } from '../data/tax-data.js';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '../messages/whatsapp.js';
 
@@ -33,6 +33,15 @@ test('תרחישי הצמיחה כוללים את הצבירה הקיימת', ()
     const expectedExistingValue = 100000 * Math.pow(1 + scenario.annualRate, 10);
     assert.ok(Math.abs((scenario.nominalValue - withoutBalance.projections[index].nominalValue) - expectedExistingValue) < 0.01);
   });
+});
+
+test('טבלת הצמיחה מפרידה צבירה, הפקדות ורווחים לכל שנה', () => {
+  const schedule = buildGrowthSchedule(100000, 1000, 0.07, 10);
+  assert.equal(schedule.length, 11);
+  assert.deepEqual(schedule[0], { year: 0, openingBalance: 100000, contributions: 0, estimatedGrowth: 0, nominalValue: 100000 });
+  assert.equal(schedule[10].contributions, 120000);
+  assert.ok(schedule[10].estimatedGrowth > 0);
+  assert.ok(schedule[10].nominalValue > 220000);
 });
 test('הפקדה חד־פעמית, הוראת קבע ושילוב מחושבים נכון', () => {
   assert.equal(totalDeposited({ lumpSum: 5000 }), 5000);

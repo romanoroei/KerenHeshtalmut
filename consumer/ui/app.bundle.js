@@ -102,6 +102,22 @@
     const monthlyRate = Math.pow(1 + annualRate, 1 / 12) - 1;
     return monthlyDeposit * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
   }
+  function buildGrowthSchedule(existingBalance, monthlyDeposit, annualRate, years) {
+    if (![existingBalance, monthlyDeposit, annualRate, years].every(Number.isFinite) || existingBalance < 0 || monthlyDeposit < 0 || annualRate < 0 || years < 1) {
+      throw new TypeError("Invalid growth schedule input");
+    }
+    return Array.from({ length: Math.round(years) + 1 }, (_, year) => {
+      const contributions = monthlyDeposit * 12 * year;
+      const nominalValue = existingBalance * Math.pow(1 + annualRate, year) + futureValueOfMonthlyDeposits(monthlyDeposit, annualRate, year);
+      return {
+        year,
+        openingBalance: existingBalance,
+        contributions,
+        estimatedGrowth: Math.max(0, nominalValue - existingBalance - contributions),
+        nominalValue
+      };
+    });
+  }
   function monthsRemainingInTaxYear(date = /* @__PURE__ */ new Date(), taxYear = 2026) {
     if (!(date instanceof Date) || Number.isNaN(date.getTime())) throw new TypeError("Invalid date");
     if (date.getFullYear() < taxYear) return 12;
@@ -168,11 +184,10 @@
     const suggestedMonthlyToYearEnd = remaining > 0 && monthsRemaining > 0 ? Math.ceil(remaining / monthsRemaining) : 0;
     const suggestedMonthly = Math.ceil(ceiling / 12);
     const projectionYears = [6, 10, 15, 20].includes(Number(input.projectionYears)) ? Number(input.projectionYears) : 10;
-    const projections = RETURN_SCENARIOS.map((scenario) => ({
-      ...scenario,
-      years: projectionYears,
-      nominalValue: existingBalance * Math.pow(1 + scenario.annualRate, projectionYears) + futureValueOfMonthlyDeposits(suggestedMonthly, scenario.annualRate, projectionYears)
-    }));
+    const projections = RETURN_SCENARIOS.map((scenario) => {
+      const schedule = buildGrowthSchedule(existingBalance, suggestedMonthly, scenario.annualRate, projectionYears);
+      return { ...scenario, years: projectionYears, nominalValue: schedule[schedule.length - 1].nominalValue };
+    });
     return {
       taxYear: data.taxYear,
       income,
@@ -295,6 +310,7 @@
   };
   var currentStep = 0;
   var lastProfile;
+  var lastResult;
   var advanceTimer;
   var isTransitioning = false;
   var isSubmitting = false;
@@ -436,13 +452,30 @@
     };
   }
   function renderScenarios(result) {
+    lastResult = result;
     const accents = ["#2563eb", "#7c3aed", "#10b981"];
     $("#scenario-list").innerHTML = result.projections.map((item, index) => `
-    <article class="scenario-card" style="--accent:${accents[index]};--bar:${55 + index * 20}%">
+    <button type="button" class="scenario-card" data-scenario-index="${index}" style="--accent:${accents[index]};--bar:${55 + index * 20}%" aria-expanded="false">
       <span>${item.label}<b>${Math.round(item.annualRate * 100)}%</b></span>
       <strong>${money2(item.nominalValue)}</strong>
-      <small>\u05DC\u05D0\u05D7\u05E8 ${item.years} \u05E9\u05E0\u05D9\u05DD \xB7 \u05E1\u05DB\u05D5\u05DD \u05E0\u05D5\u05DE\u05D9\u05E0\u05DC\u05D9</small>
-    </article>`).join("");
+      <small>\u05DC\u05D0\u05D7\u05E8 ${item.years} \u05E9\u05E0\u05D9\u05DD \xB7 \u05DC\u05D7\u05E6\u05D5 \u05DC\u05D2\u05E8\u05E3 \u05D5\u05D8\u05D1\u05DC\u05D4</small>
+    </button>`).join("");
+    $("#growth-detail").hidden = true;
+  }
+  function renderGrowthDetail(result, scenarioIndex) {
+    const scenario = result.projections[scenarioIndex];
+    const schedule = buildGrowthSchedule(result.existingBalance, result.suggestedMonthly, scenario.annualRate, scenario.years);
+    const maxValue = Math.max(...schedule.map((row) => row.nominalValue), 1);
+    $$("#scenario-list .scenario-card").forEach((card, index) => {
+      const selected = index === scenarioIndex;
+      card.classList.toggle("is-selected", selected);
+      card.setAttribute("aria-expanded", String(selected));
+    });
+    $("#growth-detail-title").textContent = `${scenario.label} \xB7 ${Math.round(scenario.annualRate * 100)}% \u05DC\u05E9\u05E0\u05D4`;
+    $("#growth-bars").innerHTML = schedule.map((row) => `<div class="growth-bar-item"><span style="height:${Math.max(3, row.nominalValue / maxValue * 100)}%"></span><small>${row.year}</small></div>`).join("");
+    $("#growth-table-body").innerHTML = schedule.map((row) => `<tr><th scope="row">${row.year === 0 ? "\u05D4\u05D9\u05D5\u05DD" : `\u05E9\u05E0\u05D4 ${row.year}`}</th><td>${money2(row.openingBalance)}</td><td>${money2(row.contributions)}</td><td>${money2(row.estimatedGrowth)}</td><td><strong>${money2(row.nominalValue)}</strong></td></tr>`).join("");
+    $("#growth-detail").hidden = false;
+    $("#growth-detail").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
   }
   function renderScore(result, profile) {
     const score = calculateUtilizationScore({
@@ -530,7 +563,15 @@
   });
   form.addEventListener("change", (event) => {
     if (event.target.matches('input[type="radio"], input[type="checkbox"]')) updateSelectedCards();
-    if (event.target.name === "depositMethod") updateDepositFields();
+    if (event.target.name === "depositMethod") {
+      updateDepositFields();
+      requestAnimationFrame(() => {
+        var _a;
+        const target = ["lump", "both"].includes(event.target.value) ? $("#lumpSum") : ["monthly"].includes(event.target.value) ? $("#monthlyDeposit") : $("#existingBalance");
+        target == null ? void 0 : target.focus({ preventScroll: true });
+        (_a = target == null ? void 0 : target.closest(".conditional-fields")) == null ? void 0 : _a.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
+      });
+    }
     updateSummary();
     if (event.target.name === "fundStatus") {
       const destination = event.target.value === "none" ? 3 : 2;
@@ -578,6 +619,11 @@
     const { input } = collect(Number(button.dataset.years));
     renderScenarios(calculateConsumerResult(input));
   }));
+  $("#scenario-list").addEventListener("click", (event) => {
+    const card = event.target.closest("[data-scenario-index]");
+    if (!card || !lastResult) return;
+    renderGrowthDetail(lastResult, Number(card.dataset.scenarioIndex));
+  });
   $("#restart").addEventListener("click", () => location.reload());
   renderStep(0, false);
 })();

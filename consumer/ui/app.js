@@ -1,4 +1,4 @@
-import { calculateConsumerResult, normalizeMoney } from '../engine/calculator.js';
+import { buildGrowthSchedule, calculateConsumerResult, normalizeMoney } from '../engine/calculator.js';
 import { calculateUtilizationScore } from '../engine/score.js';
 import { buildCta, buildRecommendation } from '../engine/recommendations.js';
 import { buildWhatsAppUrl } from '../messages/whatsapp.js';
@@ -16,6 +16,7 @@ const labels = {
 };
 let currentStep = 0;
 let lastProfile;
+let lastResult;
 let advanceTimer;
 let isTransitioning = false;
 let isSubmitting = false;
@@ -169,13 +170,31 @@ function collect(years = 10) {
 }
 
 function renderScenarios(result) {
+  lastResult = result;
   const accents = ['#2563eb', '#7c3aed', '#10b981'];
   $('#scenario-list').innerHTML = result.projections.map((item, index) => `
-    <article class="scenario-card" style="--accent:${accents[index]};--bar:${55 + index * 20}%">
+    <button type="button" class="scenario-card" data-scenario-index="${index}" style="--accent:${accents[index]};--bar:${55 + index * 20}%" aria-expanded="false">
       <span>${item.label}<b>${Math.round(item.annualRate * 100)}%</b></span>
       <strong>${money(item.nominalValue)}</strong>
-      <small>לאחר ${item.years} שנים · סכום נומינלי</small>
-    </article>`).join('');
+      <small>לאחר ${item.years} שנים · לחצו לגרף וטבלה</small>
+    </button>`).join('');
+  $('#growth-detail').hidden = true;
+}
+
+function renderGrowthDetail(result, scenarioIndex) {
+  const scenario = result.projections[scenarioIndex];
+  const schedule = buildGrowthSchedule(result.existingBalance, result.suggestedMonthly, scenario.annualRate, scenario.years);
+  const maxValue = Math.max(...schedule.map((row) => row.nominalValue), 1);
+  $$('#scenario-list .scenario-card').forEach((card, index) => {
+    const selected = index === scenarioIndex;
+    card.classList.toggle('is-selected', selected);
+    card.setAttribute('aria-expanded', String(selected));
+  });
+  $('#growth-detail-title').textContent = `${scenario.label} · ${Math.round(scenario.annualRate * 100)}% לשנה`;
+  $('#growth-bars').innerHTML = schedule.map((row) => `<div class="growth-bar-item"><span style="height:${Math.max(3, row.nominalValue / maxValue * 100)}%"></span><small>${row.year}</small></div>`).join('');
+  $('#growth-table-body').innerHTML = schedule.map((row) => `<tr><th scope="row">${row.year === 0 ? 'היום' : `שנה ${row.year}`}</th><td>${money(row.openingBalance)}</td><td>${money(row.contributions)}</td><td>${money(row.estimatedGrowth)}</td><td><strong>${money(row.nominalValue)}</strong></td></tr>`).join('');
+  $('#growth-detail').hidden = false;
+  $('#growth-detail').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
 }
 
 function renderScore(result, profile) {
@@ -260,7 +279,15 @@ form.addEventListener('click', (event) => {
 
 form.addEventListener('change', (event) => {
   if (event.target.matches('input[type="radio"], input[type="checkbox"]')) updateSelectedCards();
-  if (event.target.name === 'depositMethod') updateDepositFields();
+  if (event.target.name === 'depositMethod') {
+    updateDepositFields();
+    requestAnimationFrame(() => {
+      const target = ['lump', 'both'].includes(event.target.value) ? $('#lumpSum')
+        : ['monthly'].includes(event.target.value) ? $('#monthlyDeposit') : $('#existingBalance');
+      target?.focus({ preventScroll: true });
+      target?.closest('.conditional-fields')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+    });
+  }
   updateSummary();
   if (event.target.name === 'fundStatus') {
     const destination = event.target.value === 'none' ? 3 : 2;
@@ -310,6 +337,12 @@ $$('[data-years]').forEach((button) => button.addEventListener('click', () => {
   const { input } = collect(Number(button.dataset.years));
   renderScenarios(calculateConsumerResult(input));
 }));
+
+$('#scenario-list').addEventListener('click', (event) => {
+  const card = event.target.closest('[data-scenario-index]');
+  if (!card || !lastResult) return;
+  renderGrowthDetail(lastResult, Number(card.dataset.scenarioIndex));
+});
 
 $('#restart').addEventListener('click', () => location.reload());
 renderStep(0, false);

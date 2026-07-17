@@ -38,6 +38,25 @@ export function futureValueOfMonthlyDeposits(monthlyDeposit, annualRate, years =
   return monthlyDeposit * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
 }
 
+export function buildGrowthSchedule(existingBalance, monthlyDeposit, annualRate, years) {
+  if (![existingBalance, monthlyDeposit, annualRate, years].every(Number.isFinite)
+    || existingBalance < 0 || monthlyDeposit < 0 || annualRate < 0 || years < 1) {
+    throw new TypeError('Invalid growth schedule input');
+  }
+  return Array.from({ length: Math.round(years) + 1 }, (_, year) => {
+    const contributions = monthlyDeposit * 12 * year;
+    const nominalValue = (existingBalance * Math.pow(1 + annualRate, year))
+      + futureValueOfMonthlyDeposits(monthlyDeposit, annualRate, year);
+    return {
+      year,
+      openingBalance: existingBalance,
+      contributions,
+      estimatedGrowth: Math.max(0, nominalValue - existingBalance - contributions),
+      nominalValue,
+    };
+  });
+}
+
 export function monthsRemainingInTaxYear(date = new Date(), taxYear = 2026) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) throw new TypeError('Invalid date');
   if (date.getFullYear() < taxYear) return 12;
@@ -105,12 +124,10 @@ export function calculateConsumerResult(input, data = TAX_DATA_2026) {
   const suggestedMonthlyToYearEnd = remaining > 0 && monthsRemaining > 0 ? Math.ceil(remaining / monthsRemaining) : 0;
   const suggestedMonthly = Math.ceil(ceiling / 12);
   const projectionYears = [6, 10, 15, 20].includes(Number(input.projectionYears)) ? Number(input.projectionYears) : 10;
-  const projections = RETURN_SCENARIOS.map((scenario) => ({
-    ...scenario,
-    years: projectionYears,
-    nominalValue: (existingBalance * Math.pow(1 + scenario.annualRate, projectionYears))
-      + futureValueOfMonthlyDeposits(suggestedMonthly, scenario.annualRate, projectionYears),
-  }));
+  const projections = RETURN_SCENARIOS.map((scenario) => {
+    const schedule = buildGrowthSchedule(existingBalance, suggestedMonthly, scenario.annualRate, projectionYears);
+    return { ...scenario, years: projectionYears, nominalValue: schedule[schedule.length - 1].nominalValue };
+  });
 
   return {
     taxYear: data.taxYear,
