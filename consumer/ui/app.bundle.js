@@ -292,6 +292,16 @@
   };
   var currentStep = 0;
   var lastProfile;
+  var advanceTimer;
+  var isTransitioning = false;
+  var isSubmitting = false;
+  function scheduleAdvance(action, expectedStep = currentStep, delay = 220) {
+    clearTimeout(advanceTimer);
+    advanceTimer = setTimeout(() => {
+      if (currentStep !== expectedStep || isTransitioning || isSubmitting) return;
+      action();
+    }, delay);
+  }
   function formatMoneyInput(input) {
     const value = normalizeMoney(input.value);
     if (Number.isFinite(value)) input.value = Math.round(value).toLocaleString("he-IL");
@@ -343,6 +353,8 @@
   }
   function renderStep(index, animate = true) {
     var _a;
+    clearTimeout(advanceTimer);
+    isTransitioning = false;
     currentStep = Math.max(0, Math.min(index, steps.length - 1));
     steps.forEach((step, i) => {
       step.hidden = i !== currentStep;
@@ -381,6 +393,8 @@
     return true;
   }
   function transitionTo(index) {
+    if (isTransitioning || index === currentStep || index < 0 || index >= steps.length) return;
+    isTransitioning = true;
     const current = steps[currentStep];
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced) {
@@ -479,7 +493,7 @@
     if (amount) {
       $("#income").value = Number(amount).toLocaleString("he-IL");
       updateSummary();
-      setTimeout(() => transitionTo(1), 180);
+      scheduleAdvance(() => transitionTo(1));
       return;
     }
     if (event.target.closest("[data-back]")) transitionTo(currentStep - 1);
@@ -490,26 +504,30 @@
     if (event.target.name === "depositMethod") updateDepositFields();
     updateSummary();
     if (!event.target.matches('input[type="radio"]')) {
-      if (currentStep === 1 && depositDetailsComplete()) setTimeout(() => transitionTo(2), 180);
+      if (currentStep === 1 && depositDetailsComplete()) scheduleAdvance(() => transitionTo(2));
       return;
     }
     if (currentStep === 1) {
-      if (depositDetailsComplete()) setTimeout(() => transitionTo(2), 180);
+      if (depositDetailsComplete()) scheduleAdvance(() => transitionTo(2));
       return;
     }
-    if (currentStep < steps.length - 1) setTimeout(() => transitionTo(currentStep + 1), 180);
-    else setTimeout(() => form.requestSubmit(), 180);
+    if (currentStep < steps.length - 1) scheduleAdvance(() => transitionTo(currentStep + 1));
+    else scheduleAdvance(() => form.requestSubmit());
   });
   form.addEventListener("input", (event) => {
     if (event.target.matches('[inputmode="numeric"], input[type="number"]')) updateSummary();
+    if (currentStep === 1 && depositDetailsComplete()) scheduleAdvance(() => transitionTo(2), currentStep, 650);
   });
   form.addEventListener("focusout", (event) => {
     if (event.target.matches('[inputmode="numeric"]')) formatMoneyInput(event.target);
-    if (currentStep === 1 && depositDetailsComplete()) setTimeout(() => transitionTo(2), 180);
+    if (currentStep === 1 && depositDetailsComplete()) scheduleAdvance(() => transitionTo(2));
   });
   form.addEventListener("submit", (event) => {
     event.preventDefault();
+    if (isSubmitting) return;
     if (!validateStep()) return;
+    isSubmitting = true;
+    clearTimeout(advanceTimer);
     try {
       const { input, profile } = collect();
       const result = calculateConsumerResult(input);
@@ -529,6 +547,7 @@
         $("#results").focus();
       }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 850);
     } catch (e) {
+      isSubmitting = false;
       $("#form-error").textContent = "\u05DC\u05D0 \u05D4\u05E6\u05DC\u05D7\u05E0\u05D5 \u05DC\u05D7\u05E9\u05D1. \u05D1\u05D3\u05E7\u05D5 \u05E9\u05D4\u05E1\u05DB\u05D5\u05DE\u05D9\u05DD \u05EA\u05E7\u05D9\u05E0\u05D9\u05DD \u05D5\u05E0\u05E1\u05D5 \u05E9\u05D5\u05D1.";
     }
   });

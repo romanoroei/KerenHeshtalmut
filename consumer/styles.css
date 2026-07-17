@@ -123,16 +123,20 @@ button, a { -webkit-tap-highlight-color: transparent; }
 
 /* Compact consumer landing */
 .landing-page { min-height: 100vh; background: linear-gradient(135deg,#1e3a8a 0%,#2563eb 58%,#38bdf8 100%); }
-.landing-hero { position: relative; min-height: 540px; overflow: hidden; color: #fff; }
-.landing-layout { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 260px; align-items: center; gap: 42px; min-height: 540px; padding-block: 48px; }
+.landing-hero { position: relative; min-height: 100vh; overflow: hidden; color: #fff; }
+.landing-layout { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0,1.25fr) minmax(280px,.75fr); align-items: center; gap: 70px; min-height: 100vh; padding-block: 56px; }
 .landing-copy { max-width: 690px; }.landing-copy h1 { margin: 16px 0 12px; font-size: clamp(38px,5vw,62px); line-height: 1.06; font-weight: 900; }
 .landing-copy p { max-width: 580px; margin: 0 0 26px; color: #e0f2fe; font-size: 18px; font-weight: 600; }
 .btn-landing { display: inline-flex; background: #fff; color: var(--blue-dark); box-shadow: var(--shadow-lg); }
-.landing-portrait { align-self: end; display: flex; justify-content: center; }.landing-portrait img { display: block; width: 100%; max-width: 225px; max-height: 310px; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 16px 18px rgba(15,23,42,.28)); }
+.landing-copy > small { display: inline-block; margin-inline-start: 14px; color: #dbeafe; font-weight: 600; }
+.landing-proof { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; max-width: 650px; margin-top: 30px; padding: 14px; border: 1px solid rgba(255,255,255,.22); border-radius: 16px; background: rgba(15,23,42,.14); backdrop-filter: blur(8px); }
+.landing-proof span { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; color: #eff6ff; font-size: 13px; }.landing-proof i { color: #a7f3d0; }
+.landing-portrait { position: relative; align-self: center; display: flex; min-height: 390px; align-items: flex-end; justify-content: center; padding-bottom: 52px; }.landing-portrait img { display: block; width: 100%; max-width: 285px; max-height: 370px; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 18px 22px rgba(15,23,42,.3)); }
+.landing-portrait div { position: absolute; z-index: 2; right: 50%; bottom: 18px; width: 245px; padding: 12px 18px; transform: translateX(50%); border-radius: 14px; text-align: center; background: rgba(15,23,42,.86); box-shadow: 0 14px 32px rgba(15,23,42,.28); backdrop-filter: blur(8px); }.landing-portrait strong,.landing-portrait span { display: block; }.landing-portrait strong { font-size: 16px; }.landing-portrait span { margin-top: 2px; color: #dbeafe; font-size: 11px; }
 .check-page .main-content { padding-top: 32px; }
 .annual-deposit-summary { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; margin: 16px 0 26px; }.annual-deposit-summary article { padding: 18px; border: 1px solid var(--border); border-radius: 14px; background: #fff; box-shadow: var(--shadow); }
 .annual-deposit-summary span,.annual-deposit-summary small { display: block; color: var(--muted); font-size: 12px; }.annual-deposit-summary strong { display: block; margin: 4px 0; color: var(--blue-dark); font-size: 24px; }
 .benefit-grid article > div > strong { color: #059669; }
 @media (max-width: 700px) {
-  .landing-hero { min-height: 0; }.landing-layout { display: flex; min-height: 0; padding-block: 32px 0; flex-direction: column; gap: 18px; text-align: center; }.landing-copy h1 { font-size: 38px; }.landing-copy p { font-size: 16px; }.landing-portrait { width: 100%; align-items: flex-end; gap: 14px; }.landing-portrait img { max-width: 125px; max-height: 170px; }.landing-portrait div { padding-bottom: 24px; text-align: right; }.landing-portrait strong,.landing-portrait span { display: block; }.annual-deposit-summary { grid-template-columns: 1fr; }
+  .landing-hero { min-height: 0; }.landing-layout { display: flex; min-height: 0; padding-block: 30px 0; flex-direction: column; gap: 18px; text-align: center; }.landing-copy h1 { font-size: 36px; }.landing-copy p { font-size: 16px; }.landing-copy > small { display: block; margin: 12px 0 0; }.landing-proof { grid-template-columns: 1fr; margin-top: 20px; }.landing-proof span { min-height: 34px; }.landing-portrait { width: 100%; min-height: 235px; padding-bottom: 46px; }.landing-portrait img { max-width: 150px; max-height: 200px; }.landing-portrait div { bottom: 12px; width: 220px; padding: 9px 14px; }.annual-deposit-summary { grid-template-columns: 1fr; }
 }

@@ -19,3 +19,11 @@ test('ה-bundle כולל את בקרי הכפתורים ללא import חיצונ
   assert.match(bundle, /data-years/);
   assert.doesNotMatch(bundle, /^\s*import\s/m);
 });
+
+test('האתר אינו יכול לסגור את חלון הדפדפן ומגן מפני מעברים כפולים', async () => {
+  const source = await readFile(new URL('../ui/app.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(source, /window\.close|self\.close/);
+  assert.match(source, /clearTimeout\(advanceTimer\)/);
+  assert.match(source, /if \(isSubmitting\) return/);
+  assert.match(source, /if \(isTransitioning/);
+});
