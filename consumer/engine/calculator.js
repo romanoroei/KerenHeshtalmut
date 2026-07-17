@@ -67,10 +67,11 @@ export function projectedAnnualDeposits(input) {
 
 export function calculateConsumerResult(input, data = TAX_DATA_2026) {
   const income = normalizeMoney(input.income);
+  const existingBalance = normalizeMoney(input.existingBalance ?? 0);
   const depositedToDate = input.deposited === undefined ? totalDeposited(input) : normalizeMoney(input.deposited);
   const projectedDeposited = input.deposited === undefined ? projectedAnnualDeposits(input) : depositedToDate;
   if (!Number.isFinite(income) || income <= 0) throw new TypeError('Income must be greater than zero');
-  if (![depositedToDate, projectedDeposited].every(Number.isFinite)) throw new TypeError('Deposited amount must be zero or greater');
+  if (![depositedToDate, projectedDeposited, existingBalance].every(Number.isFinite)) throw new TypeError('Deposited amount must be zero or greater');
 
   const ceiling = data.contributionCeiling.value;
   const remaining = Math.max(0, ceiling - projectedDeposited);
@@ -107,12 +108,14 @@ export function calculateConsumerResult(input, data = TAX_DATA_2026) {
   const projections = RETURN_SCENARIOS.map((scenario) => ({
     ...scenario,
     years: projectionYears,
-    nominalValue: futureValueOfMonthlyDeposits(suggestedMonthly, scenario.annualRate, projectionYears),
+    nominalValue: (existingBalance * Math.pow(1 + scenario.annualRate, projectionYears))
+      + futureValueOfMonthlyDeposits(suggestedMonthly, scenario.annualRate, projectionYears),
   }));
 
   return {
     taxYear: data.taxYear,
     income,
+    existingBalance,
     deposited: depositedToDate,
     depositedToDate,
     projectedAnnualDeposited: projectedDeposited,

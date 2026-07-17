@@ -25,6 +25,15 @@ test('תרחישי 4%, 7% ו-9%', () => {
   const rates = calculateConsumerResult({ income: 200000, deposited: 0 }).projections.map((x) => x.annualRate);
   assert.deepEqual(rates, [0.04, 0.07, 0.09]);
 });
+
+test('תרחישי הצמיחה כוללים את הצבירה הקיימת', () => {
+  const withoutBalance = calculateConsumerResult({ income: 200000, deposited: 0, existingBalance: 0, projectionYears: 10 });
+  const withBalance = calculateConsumerResult({ income: 200000, deposited: 0, existingBalance: 100000, projectionYears: 10 });
+  withBalance.projections.forEach((scenario, index) => {
+    const expectedExistingValue = 100000 * Math.pow(1 + scenario.annualRate, 10);
+    assert.ok(Math.abs((scenario.nominalValue - withoutBalance.projections[index].nominalValue) - expectedExistingValue) < 0.01);
+  });
+});
 test('הפקדה חד־פעמית, הוראת קבע ושילוב מחושבים נכון', () => {
   assert.equal(totalDeposited({ lumpSum: 5000 }), 5000);
   assert.equal(totalDeposited({ monthlyDeposit: 1000, monthsDeposited: 6 }), 6000);

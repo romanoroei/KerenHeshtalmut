@@ -7,6 +7,7 @@ export function buildWhatsAppMessage(result, profile = {}) {
     `הכנסה שנתית חייבת משוערת: ${money(result.income)} ₪`,
     `סך הפקדות שבוצעו עד היום: ${money(result.depositedToDate ?? result.deposited)} ₪`,
     `צפי הפקדות עד סוף השנה: ${money(result.projectedAnnualDeposited ?? result.deposited)} ₪`,
+    `צבירה קיימת בקרן: ${money(result.existingBalance ?? 0)} ₪`,
     `יתרה לניצול: ${money(result.remaining)} ₪`,
     ...(result.overCeiling ? [`סכום מעל התקרה: ${money(result.overCeiling)} ₪`] : []),
     `דרך ההפקדה שנבחרה: ${profile.depositMethod ?? 'לא צוינה'}`,

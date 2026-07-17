@@ -58,7 +58,10 @@ function updateSummary() {
   $('#summary-income').textContent = Number.isFinite(income) && income > 0 ? money(income) : 'טרם הוזנה';
   const depositMethod = form.elements.depositMethod.value;
   $('#summary-deposited').textContent = depositMethod ? money(depositTotalFromForm()) : 'טרם הוזן';
-  $('#summary-fund').textContent = labels[form.elements.fundStatus.value] || 'טרם נבחר';
+  const balance = normalizeMoney(form.elements.existingBalance.value);
+  const fundStatus = form.elements.fundStatus.value;
+  $('#summary-balance').textContent = fundStatus === 'none' ? 'לא רלוונטי' : fundStatus && Number.isFinite(balance) ? money(balance) : 'טרם הוזנה';
+  $('#summary-fund').textContent = labels[fundStatus] || 'טרם נבחר';
   const preview = $('#deposit-preview');
   if (depositMethod) {
     preview.hidden = false;
@@ -152,6 +155,7 @@ function collect(years = 10) {
       lumpSum: ['lump', 'both'].includes(method) ? data.get('lumpSum') : 0,
       monthlyDeposit: ['monthly', 'both'].includes(method) ? data.get('monthlyDeposit') : 0,
       monthsDeposited: ['monthly', 'both'].includes(method) ? data.get('monthsDeposited') : 0,
+      existingBalance: data.get('existingBalance') || 0,
       projectionYears: years,
     },
     profile: {
@@ -194,12 +198,16 @@ function renderScore(result, profile) {
 }
 
 function renderRecommendationSteps(result, profile) {
-  const stepsForUser = [buildRecommendation(result, profile)];
+  const stepsForUser = [];
   if (profile.fundStatus === 'none') {
+    stepsForUser.push(buildRecommendation(result, profile));
     stepsForUser.push('להשוות בין מסלולי השקעה ודמי ניהול לפני פתיחת הקרן.');
     stepsForUser.push(`לאחר פתיחת הקרן, לבחון הפקדה שנתית עד ${money(result.ceiling)} בהתאם להכנסה ולתזרים.`);
   } else {
-    if (result.remaining > 0) stepsForUser.push(`לבחור כיצד לנצל את היתרה של ${money(result.remaining)} עד סוף שנת המס.`);
+    if (result.remaining > 0) {
+      stepsForUser.push(`אפשרות ראשונה: לשקול הפקדה חד־פעמית של ${money(result.remaining)} עד סוף שנת המס.`);
+      stepsForUser.push(`או לחלופין: להגדיל את ההפקדה החודשית לכ־${money(result.suggestedMonthlyToYearEnd)} עד סוף השנה.`);
+    } else stepsForUser.push(buildRecommendation(result, profile));
     stepsForUser.push(`להיערך לשנה הבאה עם הוראת קבע של כ־${money(result.suggestedMonthly)} בחודש, ולעדכן אותה כשהתקרה משתנה.`);
     stepsForUser.push('לבדוק אחת לשנה שהמסלול ודמי הניהול עדיין מתאימים למטרות שבחרת.');
   }
@@ -208,25 +216,19 @@ function renderRecommendationSteps(result, profile) {
 
 function renderResult(result, profile) {
   lastProfile = profile;
-  const hero = $('#result-hero');
-  hero.classList.toggle('is-attention', result.overCeiling > 0);
   let headline = 'נשאר לך מקום לנצל השנה';
   let detail = 'זהו הסכום שניתן לשקול להפקיד עד לתקרה המוטבת לשנת 2026.';
-  let mainValue = result.remaining;
   if (result.overCeiling > 0) {
     headline = 'חלק מההפקדה שלך נמצא מעל התקרה המוטבת';
     detail = 'הסכום שמעל התקרה לא צפוי ליהנות מהפטור על הרווחים.';
-    mainValue = result.overCeiling;
   } else if (result.remaining === 0) {
     headline = 'ניצלת את מלוא התקרה המוטבת לשנת 2026';
     detail = 'אפשר להתמקד בהתאמת המסלול ולהיערך לשנה הבאה.';
   }
   $('#headline').textContent = headline;
   $('#headline-detail').textContent = detail;
-  countUp($('#hero-remaining'), mainValue, money);
   countUp($('#remaining'), result.remaining, money);
   countUp($('#tax-benefit'), result.estimatedCombinedBenefitTotal, money);
-  countUp($('#monthly'), result.suggestedMonthly, (value) => `${money(value)} בחודש`);
   countUp($('#deposited-to-date'), result.depositedToDate, money);
   countUp($('#projected-annual'), result.projectedAnnualDeposited, money);
   $('#future-scheduled').textContent = result.futureScheduledDeposits > 0 ? `מתוכם ${money(result.futureScheduledDeposits)} צפויים בהוראת הקבע עד סוף השנה` : 'לא הוזנו הפקדות חודשיות עתידיות';
@@ -237,14 +239,14 @@ function renderResult(result, profile) {
   renderScore(result, profile);
   renderRecommendationSteps(result, profile);
   renderScenarios(result);
-  $('.growth-notice').textContent = `החישוב מניח הפקדה חודשית קבועה של ${money(result.suggestedMonthly)} (תקרת 2026 חלקי 12), ללא יתרה התחלתית וללא הפקדה חד־פעמית, ולפני דמי ניהול. הוא אינו מבוסס על ההפקדות שהזנת. המחשה בלבד, ללא התחייבות לתשואה; הסכומים נומינליים ובהנחת תשואה קבועה.`;
+  $('.growth-notice').textContent = `החישוב מתחיל מהצבירה שהזנת, ${money(result.existingBalance)}, ומוסיף הפקדה חודשית קבועה של ${money(result.suggestedMonthly)} (תקרת 2026 חלקי 12), ללא הפקדה חד־פעמית ולפני דמי ניהול. המחשה בלבד, ללא התחייבות לתשואה; הסכומים נומינליים ובהנחת תשואה קבועה.`;
   $('#whatsapp').href = buildWhatsAppUrl(result, profile);
   $('#calculation-details').innerHTML = `<p><strong>תקרת 2026:</strong> ${money(result.ceiling)} · <strong>הכנסה:</strong> ${money(result.income)} · <strong>הופקד עד היום:</strong> ${money(result.depositedToDate)} · <strong>צפי עד סוף השנה:</strong> ${money(result.projectedAnnualDeposited)}</p><p>אומדן ההטבות מחושב בהנחה של מיקסום ההפקדה השנתית עד התקרה, ולכן כולל גם את ההפקדות שכבר בוצעו ואת הוראת הקבע הצפויה עד סוף השנה — ולא רק את יתרת ההשלמה.</p><p><strong>מדרגת מס משוערת:</strong> ${result.taxRate * 100}% · <strong>שיעור ניכוי:</strong> ${result.deductibleRate * 100}%</p><p><strong>הטבה מיידית משוערת:</strong> מס הכנסה ${money(result.estimatedTotalTaxBenefit)} + ביטוח לאומי/בריאות ${money(result.estimatedNationalInsuranceBenefitTotal)}.</p><p><strong>שווי עתידי משוער:</strong> פטור ממס רווחי הון ${money(result.estimatedCapitalGainsExemptionValueTotal)}, בהנחת 8% לשנה ל־6 שנים ומס של 25% על הרווח.</p><p>מקורות: ספר הניכויים 2026 ושיעורי ביטוח לאומי לעצמאי 2026 כפי שתועדו באתר המקצועי. אימות: 15.07.2026. כל הרכיבים הם אומדן הדורש אימות אישי.</p>`;
 }
 
 form.addEventListener('click', (event) => {
   const amount = event.target.closest('[data-amount]')?.dataset.amount;
-  if (amount) { $('#income').value = Number(amount).toLocaleString('he-IL'); updateSummary(); return; }
+  if (amount) { $('#income').value = Number(amount).toLocaleString('he-IL'); updateSummary(); scheduleAdvance(() => transitionTo(1)); return; }
   if (event.target.closest('[data-back]')) {
     clearTimeout(advanceTimer);
     if (stepHistory.length > 1) {

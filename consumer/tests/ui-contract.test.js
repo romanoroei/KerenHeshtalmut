@@ -35,4 +35,7 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   assert.match(html, /כמה הפקדת לקרן שלך השנה/);
   assert.equal((html.match(/type="checkbox" name="goal"/g) || []).length, 4);
   assert.match(html, /id="recommendation-steps"/);
+  assert.match(html, /id="existingBalance"/);
+  assert.match(html, /class="deposit-mini"/);
+  assert.doesNotMatch(html, /הפקדה חודשית להמחשה/);
 });
