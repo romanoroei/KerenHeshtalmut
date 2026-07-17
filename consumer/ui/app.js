@@ -1,4 +1,4 @@
-import { buildGrowthSchedule, calculateConsumerResult, daysRemainingInTaxYear, normalizeMoney } from '../engine/calculator.js';
+import { buildGrowthSchedule, calculateConsumerResult, normalizeMoney } from '../engine/calculator.js';
 import { calculateUtilizationScore } from '../engine/score.js';
 import { buildCta, buildRecommendation } from '../engine/recommendations.js';
 import { buildWhatsAppUrl } from '../messages/whatsapp.js';
@@ -18,6 +18,7 @@ let currentStep = 0;
 let lastProfile;
 let lastResult;
 let advanceTimer;
+let countdownTimer;
 let isTransitioning = false;
 let isSubmitting = false;
 const stepHistory = [0];
@@ -251,24 +252,38 @@ function renderRecommendationSteps(result, profile) {
   $('#recommendation-steps').innerHTML = stepsForUser.map((step, index) => `<li><span>${index + 1}</span><p>${step}</p></li>`).join('');
 }
 
+function renderLiveCountdown(taxYear) {
+  clearInterval(countdownTimer);
+  const target = new Date(taxYear, 11, 31, 23, 59, 59, 999);
+  const update = () => {
+    const remainingMilliseconds = Math.max(0, target.getTime() - Date.now());
+    const totalSeconds = Math.floor(remainingMilliseconds / 1000);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    $('#countdown-days').textContent = days.toLocaleString('he-IL');
+    $('#countdown-hours').textContent = String(hours).padStart(2, '0');
+    $('#countdown-minutes').textContent = String(minutes).padStart(2, '0');
+    $('#countdown-seconds').textContent = String(seconds).padStart(2, '0');
+    $('#tax-countdown').hidden = remainingMilliseconds === 0;
+    if (remainingMilliseconds === 0) clearInterval(countdownTimer);
+  };
+  update();
+  countdownTimer = setInterval(update, 1000);
+}
+
+function buildSecondaryCta(result, profile) {
+  if (profile.fundStatus === 'none') return 'רוצה לבדוק איך פותחים קרן שמתאימה לך?';
+  if (result.remaining > 0) return 'רוצה לוודא שהדרך לנצל את היתרה באמת מתאימה לך?';
+  return 'רוצה לבדוק שהקרן הקיימת עדיין עובדת נכון עבורך?';
+}
+
 function renderResult(result, profile) {
   lastProfile = profile;
-  let headline = 'זה הסכום שעוד ניתן להפקיד עד סוף 2026';
-  let detail = 'זהו הסכום שניתן לשקול להפקיד עד לתקרה המוטבת לשנת 2026.';
-  if (result.overCeiling > 0) {
-    headline = 'חלק מההפקדה שלך נמצא מעל התקרה המוטבת';
-    detail = 'הסכום שמעל התקרה לא צפוי ליהנות מהפטור על הרווחים.';
-  } else if (result.remaining === 0) {
-    headline = 'ניצלת את מלוא התקרה המוטבת לשנת 2026';
-    detail = 'אפשר להתמקד בהתאמת המסלול ולהיערך לשנה הבאה.';
-  }
-  $('#headline').textContent = headline;
-  $('#headline-detail').textContent = detail;
   countUp($('#remaining'), result.remaining, money);
   countUp($('#tax-benefit'), result.estimatedCombinedBenefitTotal, money);
-  const countdownDays = daysRemainingInTaxYear(new Date(), result.taxYear);
-  $('#countdown-days').textContent = countdownDays.toLocaleString('he-IL');
-  $('#tax-countdown').hidden = countdownDays === 0;
+  renderLiveCountdown(result.taxYear);
   countUp($('#deposited-to-date'), result.depositedToDate, money);
   countUp($('#projected-annual'), result.projectedAnnualDeposited, money);
   $('#future-scheduled').textContent = result.futureScheduledDeposits > 0 ? `מתוכם ${money(result.futureScheduledDeposits)} צפויים בהוראת הקבע עד סוף השנה` : 'לא הוזנו הפקדות חודשיות עתידיות';
@@ -277,7 +292,7 @@ function renderResult(result, profile) {
   countUp($('#capital-gains-benefit'), result.estimatedCapitalGainsExemptionValueTotal, money);
   const ctaCopy = buildCta(result, profile);
   $('#dynamic-cta').textContent = ctaCopy;
-  $('#dynamic-cta-secondary').textContent = ctaCopy;
+  $('#dynamic-cta-secondary').textContent = buildSecondaryCta(result, profile);
   renderScore(result, profile);
   renderRecommendationSteps(result, profile);
   renderScenarios(result);

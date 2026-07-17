@@ -537,24 +537,37 @@
     }
     $("#recommendation-steps").innerHTML = stepsForUser.map((step, index) => `<li><span>${index + 1}</span><p>${step}</p></li>`).join("");
   }
+  var countdownTimer;
+  function renderLiveCountdown(taxYear) {
+    clearInterval(countdownTimer);
+    const target = new Date(taxYear, 11, 31, 23, 59, 59, 999);
+    const update = () => {
+      const remainingMilliseconds = Math.max(0, target.getTime() - Date.now());
+      const totalSeconds = Math.floor(remainingMilliseconds / 1e3);
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor(totalSeconds % 86400 / 3600);
+      const minutes = Math.floor(totalSeconds % 3600 / 60);
+      const seconds = totalSeconds % 60;
+      $("#countdown-days").textContent = days.toLocaleString("he-IL");
+      $("#countdown-hours").textContent = String(hours).padStart(2, "0");
+      $("#countdown-minutes").textContent = String(minutes).padStart(2, "0");
+      $("#countdown-seconds").textContent = String(seconds).padStart(2, "0");
+      $("#tax-countdown").hidden = remainingMilliseconds === 0;
+      if (remainingMilliseconds === 0) clearInterval(countdownTimer);
+    };
+    update();
+    countdownTimer = setInterval(update, 1e3);
+  }
+  function buildSecondaryCta(result, profile) {
+    if (profile.fundStatus === "none") return "\u05E8\u05D5\u05E6\u05D4 \u05DC\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D9\u05DA \u05E4\u05D5\u05EA\u05D7\u05D9\u05DD \u05E7\u05E8\u05DF \u05E9\u05DE\u05EA\u05D0\u05D9\u05DE\u05D4 \u05DC\u05DA?";
+    if (result.remaining > 0) return "\u05E8\u05D5\u05E6\u05D4 \u05DC\u05D5\u05D5\u05D3\u05D0 \u05E9\u05D4\u05D3\u05E8\u05DA \u05DC\u05E0\u05E6\u05DC \u05D0\u05EA \u05D4\u05D9\u05EA\u05E8\u05D4 \u05D1\u05D0\u05DE\u05EA \u05DE\u05EA\u05D0\u05D9\u05DE\u05D4 \u05DC\u05DA?";
+    return "\u05E8\u05D5\u05E6\u05D4 \u05DC\u05D1\u05D3\u05D5\u05E7 \u05E9\u05D4\u05E7\u05E8\u05DF \u05D4\u05E7\u05D9\u05D9\u05DE\u05EA \u05E2\u05D3\u05D9\u05D9\u05DF \u05E2\u05D5\u05D1\u05D3\u05EA \u05E0\u05DB\u05D5\u05DF \u05E2\u05D1\u05D5\u05E8\u05DA?";
+  }
   function renderResult(result, profile) {
     lastProfile = profile;
-    let headline = "\u05D6\u05D4 \u05D4\u05E1\u05DB\u05D5\u05DD \u05E9\u05E2\u05D5\u05D3 \u05E0\u05D9\u05EA\u05DF \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 \u05E2\u05D3 \u05E1\u05D5\u05E3 2026";
-    let detail = "\u05D6\u05D4\u05D5 \u05D4\u05E1\u05DB\u05D5\u05DD \u05E9\u05E0\u05D9\u05EA\u05DF \u05DC\u05E9\u05E7\u05D5\u05DC \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 \u05E2\u05D3 \u05DC\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA \u05DC\u05E9\u05E0\u05EA 2026.";
-    if (result.overCeiling > 0) {
-      headline = "\u05D7\u05DC\u05E7 \u05DE\u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05E9\u05DC\u05DA \u05E0\u05DE\u05E6\u05D0 \u05DE\u05E2\u05DC \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA";
-      detail = "\u05D4\u05E1\u05DB\u05D5\u05DD \u05E9\u05DE\u05E2\u05DC \u05D4\u05EA\u05E7\u05E8\u05D4 \u05DC\u05D0 \u05E6\u05E4\u05D5\u05D9 \u05DC\u05D9\u05D4\u05E0\u05D5\u05EA \u05DE\u05D4\u05E4\u05D8\u05D5\u05E8 \u05E2\u05DC \u05D4\u05E8\u05D5\u05D5\u05D7\u05D9\u05DD.";
-    } else if (result.remaining === 0) {
-      headline = "\u05E0\u05D9\u05E6\u05DC\u05EA \u05D0\u05EA \u05DE\u05DC\u05D5\u05D0 \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA \u05DC\u05E9\u05E0\u05EA 2026";
-      detail = "\u05D0\u05E4\u05E9\u05E8 \u05DC\u05D4\u05EA\u05DE\u05E7\u05D3 \u05D1\u05D4\u05EA\u05D0\u05DE\u05EA \u05D4\u05DE\u05E1\u05DC\u05D5\u05DC \u05D5\u05DC\u05D4\u05D9\u05E2\u05E8\u05DA \u05DC\u05E9\u05E0\u05D4 \u05D4\u05D1\u05D0\u05D4.";
-    }
-    $("#headline").textContent = headline;
-    $("#headline-detail").textContent = detail;
     countUp($("#remaining"), result.remaining, money2);
     countUp($("#tax-benefit"), result.estimatedCombinedBenefitTotal, money2);
-    const countdownDays = daysRemainingInTaxYear(/* @__PURE__ */ new Date(), result.taxYear);
-    $("#countdown-days").textContent = countdownDays.toLocaleString("he-IL");
-    $("#tax-countdown").hidden = countdownDays === 0;
+    renderLiveCountdown(result.taxYear);
     countUp($("#deposited-to-date"), result.depositedToDate, money2);
     countUp($("#projected-annual"), result.projectedAnnualDeposited, money2);
     $("#future-scheduled").textContent = result.futureScheduledDeposits > 0 ? `\u05DE\u05EA\u05D5\u05DB\u05DD ${money2(result.futureScheduledDeposits)} \u05E6\u05E4\u05D5\u05D9\u05D9\u05DD \u05D1\u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4` : "\u05DC\u05D0 \u05D4\u05D5\u05D6\u05E0\u05D5 \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05D7\u05D5\u05D3\u05E9\u05D9\u05D5\u05EA \u05E2\u05EA\u05D9\u05D3\u05D9\u05D5\u05EA";
@@ -563,7 +576,7 @@
     countUp($("#capital-gains-benefit"), result.estimatedCapitalGainsExemptionValueTotal, money2);
     const ctaCopy = buildCta(result, profile);
     $("#dynamic-cta").textContent = ctaCopy;
-    $("#dynamic-cta-secondary").textContent = ctaCopy;
+    $("#dynamic-cta-secondary").textContent = buildSecondaryCta(result, profile);
     renderScore(result, profile);
     renderRecommendationSteps(result, profile);
     renderScenarios(result);
