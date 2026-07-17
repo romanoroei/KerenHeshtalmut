@@ -3,11 +3,13 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 test('הכפתורים נטענים מ-bundle רגיל ללא script inline', async () => {
-  const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
-  assert.match(html, /id="start" type="button"/);
-  assert.match(html, /script defer src="\.\/ui\/app\.bundle\.js"/);
-  assert.doesNotMatch(html, /script type="module"/);
-  assert.doesNotMatch(html, /<script>(?!\s*<\/script>)/);
+  const landing = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+  const check = await readFile(new URL('../check.html', import.meta.url), 'utf8');
+  assert.match(landing, /href="\.\/check\.html"/);
+  assert.doesNotMatch(landing, /href="\.\.\/index\.html"/);
+  assert.match(check, /script defer src="\.\/ui\/app\.bundle\.js"/);
+  assert.doesNotMatch(check, /script type="module"/);
+  assert.doesNotMatch(check, /<script>(?!\s*<\/script>)/);
 });
 
 test('ה-bundle כולל את בקרי הכפתורים ללא import חיצוני', async () => {

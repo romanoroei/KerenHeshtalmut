@@ -3,6 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 const baseUrl = 'http://127.0.0.1:8010/consumer/';
+const checkUrl = `${baseUrl}check.html`;
 const outputDir = new URL('./', import.meta.url);
 await mkdir(outputDir, { recursive: true });
 const browser = await chromium.launch({
@@ -12,22 +13,19 @@ const browser = await chromium.launch({
 const report = [];
 
 async function completeFlow(page) {
-  await page.locator('#start').click();
-  await page.locator('#income').fill('200000');
-  await page.locator('[data-next]').click();
-  await page.waitForTimeout(250);
-  await page.locator('input[name="depositMethod"][value="lump"]').check({ force: true });
-  await page.locator('#lumpSum').fill('12000');
-  await page.locator('[data-next]').click();
-  await page.waitForTimeout(250);
+  await page.goto(checkUrl, { waitUntil: 'networkidle' });
+  await page.locator('[data-amount="200000"]').click();
+  await page.waitForTimeout(400);
+  await page.locator('input[name="depositMethod"][value="monthly"]').check({ force: true });
+  await page.locator('#monthlyDeposit').fill('500');
+  await page.locator('#monthsDeposited').fill('7');
+  await page.locator('#monthsDeposited').blur();
+  await page.waitForTimeout(400);
   await page.locator('input[name="fundStatus"][value="locked"]').check({ force: true });
-  await page.locator('[data-next]').click();
-  await page.waitForTimeout(250);
+  await page.waitForTimeout(400);
   await page.locator('input[name="completionPreference"][value="monthly"]').check({ force: true });
-  await page.locator('[data-next]').click();
-  await page.waitForTimeout(250);
+  await page.waitForTimeout(400);
   await page.locator('input[name="goal"][value="tax"]').check({ force: true });
-  await page.locator('#submit-check').click();
   await page.locator('#results:not([hidden])').waitFor({ timeout: 5000 });
   await page.waitForTimeout(900);
 }
@@ -39,11 +37,10 @@ for (const viewport of [{ name: 'mobile', width: 390, height: 844 }, { name: 'ta
   page.on('pageerror', (error) => consoleErrors.push(error.message));
   await page.goto(baseUrl, { waitUntil: 'networkidle' });
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
-  if (viewport.name !== 'tablet') await page.locator('.hero').screenshot({ path: fileURLToPath(new URL(`${viewport.name}-hero.png`, outputDir)) });
-  await page.locator('#start').click();
-  await page.locator('#income').fill('200000');
-  await page.locator('[data-next]').click();
-  await page.waitForTimeout(250);
+  if (viewport.name !== 'tablet') await page.locator('.landing-hero').screenshot({ path: fileURLToPath(new URL(`${viewport.name}-hero.png`, outputDir)) });
+  await page.goto(checkUrl, { waitUntil: 'networkidle' });
+  await page.locator('[data-amount="200000"]').click();
+  await page.waitForTimeout(400);
   await page.locator('input[name="depositMethod"][value="lump"]').check({ force: true });
   await page.locator('#lumpSum').fill('12000');
   if (viewport.name !== 'tablet') await page.locator('.wizard-layout').screenshot({ path: fileURLToPath(new URL(`${viewport.name}-question.png`, outputDir)) });
@@ -55,8 +52,8 @@ for (const viewport of [{ name: 'mobile', width: 390, height: 844 }, { name: 'ta
   await page.close();
 }
 
-await browser.close();
 await writeFile(new URL('qa-report.json', outputDir), JSON.stringify(report, null, 2));
+await Promise.race([browser.close(), new Promise((resolve) => setTimeout(resolve, 5000))]);
 if (report.some((item) => item.overflow || item.finalOverflow || item.consoleErrors.length)) {
   console.error(JSON.stringify(report, null, 2));
   process.exitCode = 1;

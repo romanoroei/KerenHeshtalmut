@@ -55,33 +55,44 @@ export function totalDeposited(input) {
   return lumpSum + (monthlyDeposit * monthsDeposited);
 }
 
+export function projectedAnnualDeposits(input) {
+  const lumpSum = normalizeMoney(input.lumpSum ?? 0);
+  const monthlyDeposit = normalizeMoney(input.monthlyDeposit ?? 0);
+  const monthsDeposited = normalizeMoney(input.monthsDeposited ?? 0);
+  if (![lumpSum, monthlyDeposit, monthsDeposited].every(Number.isFinite) || !Number.isInteger(monthsDeposited) || monthsDeposited > 12) {
+    throw new TypeError('Invalid deposit details');
+  }
+  return lumpSum + (monthlyDeposit * 12);
+}
+
 export function calculateConsumerResult(input, data = TAX_DATA_2026) {
   const income = normalizeMoney(input.income);
-  const deposited = input.deposited === undefined ? totalDeposited(input) : normalizeMoney(input.deposited);
+  const depositedToDate = input.deposited === undefined ? totalDeposited(input) : normalizeMoney(input.deposited);
+  const projectedDeposited = input.deposited === undefined ? projectedAnnualDeposits(input) : depositedToDate;
   if (!Number.isFinite(income) || income <= 0) throw new TypeError('Income must be greater than zero');
-  if (!Number.isFinite(deposited)) throw new TypeError('Deposited amount must be zero or greater');
+  if (![depositedToDate, projectedDeposited].every(Number.isFinite)) throw new TypeError('Deposited amount must be zero or greater');
 
   const ceiling = data.contributionCeiling.value;
-  const remaining = Math.max(0, ceiling - deposited);
+  const remaining = Math.max(0, ceiling - projectedDeposited);
   const eligibleIncome = Math.min(income, data.qualifyingIncomeCeiling.value);
   const annualDeductible = Math.min(
     eligibleIncome * data.deductibleRate.value,
     data.maxDeductibleContribution.value,
   );
-  const deductibleAlreadyUsed = Math.min(deposited, annualDeductible);
+  const deductibleAlreadyUsed = Math.min(projectedDeposited, annualDeductible);
   const additionalDeductible = Math.min(remaining, Math.max(0, annualDeductible - deductibleAlreadyUsed));
   const taxRate = marginalTaxRate(income, data.taxBrackets.value);
-  const totalDeductible = Math.min(deposited + remaining, annualDeductible);
+  const totalDeductible = Math.min(projectedDeposited + remaining, annualDeductible);
   const estimatedTotalTaxBenefit = totalDeductible * taxRate;
   const estimatedAdditionalTaxBenefit = additionalDeductible * taxRate;
-  const deductibleAlreadyDeposited = Math.min(deposited, annualDeductible);
+  const deductibleAlreadyDeposited = Math.min(projectedDeposited, annualDeductible);
   const estimatedNationalInsuranceBenefitTotal = Math.max(0,
     nationalInsuranceDue(income, data.nationalInsurance.value)
       - nationalInsuranceDue(Math.max(0, income - totalDeductible), data.nationalInsurance.value));
   const estimatedNationalInsuranceBenefitAdditional = Math.max(0,
     nationalInsuranceDue(Math.max(0, income - deductibleAlreadyDeposited), data.nationalInsurance.value)
       - nationalInsuranceDue(Math.max(0, income - totalDeductible), data.nationalInsurance.value));
-  const protectedTotal = Math.min(ceiling, deposited + remaining);
+  const protectedTotal = Math.min(ceiling, projectedDeposited + remaining);
   const protectedAdditional = Math.min(remaining, ceiling);
   const estimatedCapitalGainsExemptionValueTotal = capitalGainsExemptionValue(protectedTotal, data.capitalGainsExemption.value);
   const estimatedCapitalGainsExemptionValueAdditional = capitalGainsExemptionValue(protectedAdditional, data.capitalGainsExemption.value);
@@ -102,10 +113,13 @@ export function calculateConsumerResult(input, data = TAX_DATA_2026) {
   return {
     taxYear: data.taxYear,
     income,
-    deposited,
+    deposited: depositedToDate,
+    depositedToDate,
+    projectedAnnualDeposited: projectedDeposited,
+    futureScheduledDeposits: Math.max(0, projectedDeposited - depositedToDate),
     ceiling,
     remaining,
-    overCeiling: Math.max(0, deposited - ceiling),
+    overCeiling: Math.max(0, projectedDeposited - ceiling),
     taxRate,
     deductibleRate: data.deductibleRate.value,
     estimatedTaxBenefit: estimatedAdditionalTaxBenefit,

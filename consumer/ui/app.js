@@ -34,6 +34,13 @@ function depositTotalFromForm() {
   return lump + monthly * months;
 }
 
+function projectedDepositFromForm() {
+  const method = form.elements.depositMethod.value;
+  const lump = ['lump', 'both'].includes(method) ? normalizeMoney(form.elements.lumpSum.value) || 0 : 0;
+  const monthly = ['monthly', 'both'].includes(method) ? normalizeMoney(form.elements.monthlyDeposit.value) || 0 : 0;
+  return lump + monthly * 12;
+}
+
 function updateSummary() {
   const income = normalizeMoney(form.elements.income.value);
   $('#summary-income').textContent = Number.isFinite(income) && income > 0 ? money(income) : 'טרם הוזנה';
@@ -51,7 +58,24 @@ function updateDepositFields() {
   const method = form.elements.depositMethod.value;
   $('#lump-fields').hidden = !['lump', 'both'].includes(method);
   $('#monthly-fields').hidden = !['monthly', 'both'].includes(method);
+  const noFundOption = form.querySelector('[name="fundStatus"][value="none"]')?.closest('.choice-card');
+  if (noFundOption) {
+    noFundOption.hidden = Boolean(method && method !== 'none');
+    if (noFundOption.hidden && $('input', noFundOption).checked) $('input', noFundOption).checked = false;
+  }
   updateSummary();
+}
+
+function depositDetailsComplete() {
+  const method = form.elements.depositMethod.value;
+  const lump = normalizeMoney(form.elements.lumpSum.value);
+  const monthly = normalizeMoney(form.elements.monthlyDeposit.value);
+  const months = Number(form.elements.monthsDeposited.value);
+  if (method === 'none') return true;
+  if (method === 'lump') return lump > 0;
+  if (method === 'monthly') return monthly > 0 && months > 0;
+  if (method === 'both') return lump > 0 && monthly > 0 && months > 0;
+  return false;
 }
 
 function renderStep(index, animate = true) {
@@ -62,8 +86,8 @@ function renderStep(index, animate = true) {
   $('#progress-fill').style.width = `${(currentStep + 1) * 20}%`;
   $('.progress-track').setAttribute('aria-valuenow', String(currentStep + 1));
   $('[data-back]').hidden = currentStep === 0;
-  $('[data-next]').hidden = currentStep === steps.length - 1;
-  $('#submit-check').hidden = currentStep !== steps.length - 1;
+  $('[data-next]').hidden = currentStep !== 0;
+  $('#submit-check').hidden = true;
   $('#form-error').textContent = '';
   if (animate) steps[currentStep].classList.add('is-entering');
   steps[currentStep].querySelector('input')?.focus({ preventScroll: true });
@@ -167,28 +191,26 @@ function renderResult(result, profile) {
   $('#headline-detail').textContent = detail;
   countUp($('#hero-remaining'), mainValue, money);
   countUp($('#remaining'), result.remaining, money);
-  countUp($('#tax-benefit'), result.estimatedCombinedBenefitAdditional, money);
+  countUp($('#tax-benefit'), result.estimatedCombinedBenefitTotal, money);
   countUp($('#monthly'), result.suggestedMonthly, (value) => `${money(value)} בחודש`);
-  $('#total-tax-benefit').textContent = `כולל חיסכון אפשרי כיום ושווי פטור עתידי משוער`;
-  countUp($('#income-tax-benefit'), result.estimatedAdditionalTaxBenefit, money);
-  countUp($('#insurance-benefit'), result.estimatedNationalInsuranceBenefitAdditional, money);
-  countUp($('#capital-gains-benefit'), result.estimatedCapitalGainsExemptionValueAdditional, money);
-  $('#income-tax-total').textContent = `סה״כ משוער השנה: ${money(result.estimatedTotalTaxBenefit)}`;
-  $('#insurance-total').textContent = `סה״כ משוער השנה: ${money(result.estimatedNationalInsuranceBenefitTotal)}`;
-  $('#capital-gains-total').textContent = `שווי כולל עד התקרה: ${money(result.estimatedCapitalGainsExemptionValueTotal)}`;
+  countUp($('#deposited-to-date'), result.depositedToDate, money);
+  countUp($('#projected-annual'), result.projectedAnnualDeposited, money);
+  $('#future-scheduled').textContent = result.futureScheduledDeposits > 0 ? `מתוכם ${money(result.futureScheduledDeposits)} צפויים בהוראת הקבע עד סוף השנה` : 'לא הוזנו הפקדות חודשיות עתידיות';
+  countUp($('#income-tax-benefit'), result.estimatedTotalTaxBenefit, money);
+  countUp($('#insurance-benefit'), result.estimatedNationalInsuranceBenefitTotal, money);
+  countUp($('#capital-gains-benefit'), result.estimatedCapitalGainsExemptionValueTotal, money);
   $('#recommendation').textContent = buildRecommendation(result, profile);
   $('#dynamic-cta').textContent = buildCta(result, profile);
   renderScore(result, profile);
   renderScenarios(result);
+  $('.growth-notice').textContent = `החישוב מניח הפקדה חודשית קבועה של ${money(result.suggestedMonthly)} (תקרת 2026 חלקי 12), ללא יתרה התחלתית וללא הפקדה חד־פעמית, ולפני דמי ניהול. הוא אינו מבוסס על ההפקדות שהזנת. המחשה בלבד, ללא התחייבות לתשואה; הסכומים נומינליים ובהנחת תשואה קבועה.`;
   $('#whatsapp').href = buildWhatsAppUrl(result, profile);
-  $('#calculation-details').innerHTML = `<p><strong>תקרת 2026:</strong> ${money(result.ceiling)} · <strong>הכנסה:</strong> ${money(result.income)} · <strong>הופקד:</strong> ${money(result.deposited)}</p><p><strong>מדרגת מס משוערת:</strong> ${result.taxRate * 100}% · <strong>שיעור ניכוי:</strong> ${result.deductibleRate * 100}%</p><p><strong>הטבה מיידית משוערת:</strong> מס הכנסה ${money(result.estimatedAdditionalTaxBenefit)} + ביטוח לאומי/בריאות ${money(result.estimatedNationalInsuranceBenefitAdditional)}.</p><p><strong>שווי עתידי משוער:</strong> פטור ממס רווחי הון ${money(result.estimatedCapitalGainsExemptionValueAdditional)}, בהנחת 8% לשנה ל־6 שנים ומס של 25% על הרווח.</p><p>מקורות: ספר הניכויים 2026 ושיעורי ביטוח לאומי לעצמאי 2026 כפי שתועדו באתר המקצועי. אימות: 15.07.2026. כל הרכיבים הם אומדן הדורש אימות אישי.</p>`;
+  $('#calculation-details').innerHTML = `<p><strong>תקרת 2026:</strong> ${money(result.ceiling)} · <strong>הכנסה:</strong> ${money(result.income)} · <strong>הופקד עד היום:</strong> ${money(result.depositedToDate)} · <strong>צפי עד סוף השנה:</strong> ${money(result.projectedAnnualDeposited)}</p><p>אומדן ההטבות מחושב בהנחה של מיקסום ההפקדה השנתית עד התקרה, ולכן כולל גם את ההפקדות שכבר בוצעו ואת הוראת הקבע הצפויה עד סוף השנה — ולא רק את יתרת ההשלמה.</p><p><strong>מדרגת מס משוערת:</strong> ${result.taxRate * 100}% · <strong>שיעור ניכוי:</strong> ${result.deductibleRate * 100}%</p><p><strong>הטבה מיידית משוערת:</strong> מס הכנסה ${money(result.estimatedTotalTaxBenefit)} + ביטוח לאומי/בריאות ${money(result.estimatedNationalInsuranceBenefitTotal)}.</p><p><strong>שווי עתידי משוער:</strong> פטור ממס רווחי הון ${money(result.estimatedCapitalGainsExemptionValueTotal)}, בהנחת 8% לשנה ל־6 שנים ומס של 25% על הרווח.</p><p>מקורות: ספר הניכויים 2026 ושיעורי ביטוח לאומי לעצמאי 2026 כפי שתועדו באתר המקצועי. אימות: 15.07.2026. כל הרכיבים הם אומדן הדורש אימות אישי.</p>`;
 }
-
-$('#start').addEventListener('click', () => $('#check').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }));
 
 form.addEventListener('click', (event) => {
   const amount = event.target.closest('[data-amount]')?.dataset.amount;
-  if (amount) { $('#income').value = Number(amount).toLocaleString('he-IL'); updateSummary(); return; }
+  if (amount) { $('#income').value = Number(amount).toLocaleString('he-IL'); updateSummary(); setTimeout(() => transitionTo(1), 180); return; }
   if (event.target.closest('[data-back]')) transitionTo(currentStep - 1);
   if (event.target.closest('[data-next]') && validateStep()) transitionTo(currentStep + 1);
 });
@@ -197,6 +219,16 @@ form.addEventListener('change', (event) => {
   if (event.target.matches('input[type="radio"]')) updateSelectedCards();
   if (event.target.name === 'depositMethod') updateDepositFields();
   updateSummary();
+  if (!event.target.matches('input[type="radio"]')) {
+    if (currentStep === 1 && depositDetailsComplete()) setTimeout(() => transitionTo(2), 180);
+    return;
+  }
+  if (currentStep === 1) {
+    if (depositDetailsComplete()) setTimeout(() => transitionTo(2), 180);
+    return;
+  }
+  if (currentStep < steps.length - 1) setTimeout(() => transitionTo(currentStep + 1), 180);
+  else setTimeout(() => form.requestSubmit(), 180);
 });
 
 form.addEventListener('input', (event) => {
@@ -205,6 +237,7 @@ form.addEventListener('input', (event) => {
 
 form.addEventListener('focusout', (event) => {
   if (event.target.matches('[inputmode="numeric"]')) formatMoneyInput(event.target);
+  if (currentStep === 1 && depositDetailsComplete()) setTimeout(() => transitionTo(2), 180);
 });
 
 form.addEventListener('submit', (event) => {

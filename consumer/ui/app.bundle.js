@@ -118,26 +118,37 @@
     }
     return lumpSum + monthlyDeposit * monthsDeposited;
   }
+  function projectedAnnualDeposits(input) {
+    var _a, _b, _c;
+    const lumpSum = normalizeMoney((_a = input.lumpSum) != null ? _a : 0);
+    const monthlyDeposit = normalizeMoney((_b = input.monthlyDeposit) != null ? _b : 0);
+    const monthsDeposited = normalizeMoney((_c = input.monthsDeposited) != null ? _c : 0);
+    if (![lumpSum, monthlyDeposit, monthsDeposited].every(Number.isFinite) || !Number.isInteger(monthsDeposited) || monthsDeposited > 12) {
+      throw new TypeError("Invalid deposit details");
+    }
+    return lumpSum + monthlyDeposit * 12;
+  }
   function calculateConsumerResult(input, data = TAX_DATA_2026) {
     var _a;
     const income = normalizeMoney(input.income);
-    const deposited = input.deposited === void 0 ? totalDeposited(input) : normalizeMoney(input.deposited);
+    const depositedToDate = input.deposited === void 0 ? totalDeposited(input) : normalizeMoney(input.deposited);
+    const projectedDeposited = input.deposited === void 0 ? projectedAnnualDeposits(input) : depositedToDate;
     if (!Number.isFinite(income) || income <= 0) throw new TypeError("Income must be greater than zero");
-    if (!Number.isFinite(deposited)) throw new TypeError("Deposited amount must be zero or greater");
+    if (![depositedToDate, projectedDeposited].every(Number.isFinite)) throw new TypeError("Deposited amount must be zero or greater");
     const ceiling = data.contributionCeiling.value;
-    const remaining = Math.max(0, ceiling - deposited);
+    const remaining = Math.max(0, ceiling - projectedDeposited);
     const eligibleIncome = Math.min(income, data.qualifyingIncomeCeiling.value);
     const annualDeductible = Math.min(
       eligibleIncome * data.deductibleRate.value,
       data.maxDeductibleContribution.value
     );
-    const deductibleAlreadyUsed = Math.min(deposited, annualDeductible);
+    const deductibleAlreadyUsed = Math.min(projectedDeposited, annualDeductible);
     const additionalDeductible = Math.min(remaining, Math.max(0, annualDeductible - deductibleAlreadyUsed));
     const taxRate = marginalTaxRate(income, data.taxBrackets.value);
-    const totalDeductible = Math.min(deposited + remaining, annualDeductible);
+    const totalDeductible = Math.min(projectedDeposited + remaining, annualDeductible);
     const estimatedTotalTaxBenefit = totalDeductible * taxRate;
     const estimatedAdditionalTaxBenefit = additionalDeductible * taxRate;
-    const deductibleAlreadyDeposited = Math.min(deposited, annualDeductible);
+    const deductibleAlreadyDeposited = Math.min(projectedDeposited, annualDeductible);
     const estimatedNationalInsuranceBenefitTotal = Math.max(
       0,
       nationalInsuranceDue(income, data.nationalInsurance.value) - nationalInsuranceDue(Math.max(0, income - totalDeductible), data.nationalInsurance.value)
@@ -146,7 +157,7 @@
       0,
       nationalInsuranceDue(Math.max(0, income - deductibleAlreadyDeposited), data.nationalInsurance.value) - nationalInsuranceDue(Math.max(0, income - totalDeductible), data.nationalInsurance.value)
     );
-    const protectedTotal = Math.min(ceiling, deposited + remaining);
+    const protectedTotal = Math.min(ceiling, projectedDeposited + remaining);
     const protectedAdditional = Math.min(remaining, ceiling);
     const estimatedCapitalGainsExemptionValueTotal = capitalGainsExemptionValue(protectedTotal, data.capitalGainsExemption.value);
     const estimatedCapitalGainsExemptionValueAdditional = capitalGainsExemptionValue(protectedAdditional, data.capitalGainsExemption.value);
@@ -164,10 +175,13 @@
     return {
       taxYear: data.taxYear,
       income,
-      deposited,
+      deposited: depositedToDate,
+      depositedToDate,
+      projectedAnnualDeposited: projectedDeposited,
+      futureScheduledDeposits: Math.max(0, projectedDeposited - depositedToDate),
       ceiling,
       remaining,
-      overCeiling: Math.max(0, deposited - ceiling),
+      overCeiling: Math.max(0, projectedDeposited - ceiling),
       taxRate,
       deductibleRate: data.deductibleRate.value,
       estimatedTaxBenefit: estimatedAdditionalTaxBenefit,
@@ -218,23 +232,24 @@
   var PHONE = "972528089808";
   var money = (value) => new Intl.NumberFormat("he-IL", { maximumFractionDigits: 0 }).format(Math.round(value));
   function buildWhatsAppMessage(result, profile = {}) {
-    var _a, _b, _c, _d, _e, _f, _g, _h;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
     return [
       "\u05D4\u05D9\u05D9 \u05E8\u05D5\u05E2\u05D9, \u05D1\u05D9\u05E6\u05E2\u05EA\u05D9 \u05D0\u05EA \u05D1\u05D3\u05D9\u05E7\u05EA \u05E7\u05E8\u05DF \u05D4\u05D4\u05E9\u05EA\u05DC\u05DE\u05D5\u05EA \u05D1\u05D0\u05EA\u05E8.",
       `\u05D4\u05DB\u05E0\u05E1\u05D4 \u05E9\u05E0\u05EA\u05D9\u05EA \u05D7\u05D9\u05D9\u05D1\u05EA \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA: ${money(result.income)} \u20AA`,
-      `\u05E1\u05DA \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05D1\u05D5\u05E6\u05E2\u05D5 \u05D4\u05E9\u05E0\u05D4: ${money(result.deposited)} \u20AA`,
+      `\u05E1\u05DA \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05D1\u05D5\u05E6\u05E2\u05D5 \u05E2\u05D3 \u05D4\u05D9\u05D5\u05DD: ${money((_a = result.depositedToDate) != null ? _a : result.deposited)} \u20AA`,
+      `\u05E6\u05E4\u05D9 \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4: ${money((_b = result.projectedAnnualDeposited) != null ? _b : result.deposited)} \u20AA`,
       `\u05D9\u05EA\u05E8\u05D4 \u05DC\u05E0\u05D9\u05E6\u05D5\u05DC: ${money(result.remaining)} \u20AA`,
       ...result.overCeiling ? [`\u05E1\u05DB\u05D5\u05DD \u05DE\u05E2\u05DC \u05D4\u05EA\u05E7\u05E8\u05D4: ${money(result.overCeiling)} \u20AA`] : [],
-      `\u05D3\u05E8\u05DA \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05E9\u05E0\u05D1\u05D7\u05E8\u05D4: ${(_a = profile.depositMethod) != null ? _a : "\u05DC\u05D0 \u05E6\u05D5\u05D9\u05E0\u05D4"}`,
-      `\u05D4\u05E2\u05D3\u05E4\u05EA \u05EA\u05D6\u05E8\u05D9\u05DD: ${(_b = profile.completionPreference) != null ? _b : "\u05DC\u05D0 \u05E6\u05D5\u05D9\u05E0\u05D4"}`,
-      `\u05DE\u05E6\u05D1 \u05D4\u05E7\u05E8\u05DF: ${(_c = profile.fundStatus) != null ? _c : "\u05DC\u05D0 \u05E6\u05D5\u05D9\u05DF"}`,
-      `\u05D4\u05DE\u05D8\u05E8\u05D4 \u05D4\u05DE\u05E8\u05DB\u05D6\u05D9\u05EA: ${(_d = profile.goal) != null ? _d : "\u05DC\u05D0 \u05E6\u05D5\u05D9\u05E0\u05D4"}`,
+      `\u05D3\u05E8\u05DA \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05E9\u05E0\u05D1\u05D7\u05E8\u05D4: ${(_c = profile.depositMethod) != null ? _c : "\u05DC\u05D0 \u05E6\u05D5\u05D9\u05E0\u05D4"}`,
+      `\u05D4\u05E2\u05D3\u05E4\u05EA \u05EA\u05D6\u05E8\u05D9\u05DD: ${(_d = profile.completionPreference) != null ? _d : "\u05DC\u05D0 \u05E6\u05D5\u05D9\u05E0\u05D4"}`,
+      `\u05DE\u05E6\u05D1 \u05D4\u05E7\u05E8\u05DF: ${(_e = profile.fundStatus) != null ? _e : "\u05DC\u05D0 \u05E6\u05D5\u05D9\u05DF"}`,
+      `\u05D4\u05DE\u05D8\u05E8\u05D4 \u05D4\u05DE\u05E8\u05DB\u05D6\u05D9\u05EA: ${(_f = profile.goal) != null ? _f : "\u05DC\u05D0 \u05E6\u05D5\u05D9\u05E0\u05D4"}`,
       `\u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2 \u05DE\u05D5\u05E6\u05E2\u05EA: ${money(result.suggestedMonthly)} \u20AA \u05DC\u05D7\u05D5\u05D3\u05E9`,
-      `\u05D4\u05E2\u05E8\u05DB\u05EA \u05D4\u05D8\u05D1\u05EA \u05D4\u05DE\u05E1 \u05D4\u05E0\u05D5\u05E1\u05E4\u05EA: ${money(result.estimatedAdditionalTaxBenefit)} \u20AA`,
-      `\u05D0\u05D5\u05DE\u05D3\u05DF \u05D7\u05D9\u05E1\u05DB\u05D5\u05DF \u05E0\u05D5\u05E1\u05E3 \u05D1\u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9/\u05D1\u05E8\u05D9\u05D0\u05D5\u05EA: ${money((_e = result.estimatedNationalInsuranceBenefitAdditional) != null ? _e : 0)} \u20AA`,
-      `\u05E9\u05D5\u05D5\u05D9 \u05E2\u05EA\u05D9\u05D3\u05D9 \u05DE\u05E9\u05D5\u05E2\u05E8 \u05E9\u05DC \u05D4\u05E4\u05D8\u05D5\u05E8 \u05DE\u05DE\u05E1 \u05E8\u05D5\u05D5\u05D7\u05D9 \u05D4\u05D5\u05DF: ${money((_f = result.estimatedCapitalGainsExemptionValueAdditional) != null ? _f : 0)} \u20AA`,
-      `\u05D4\u05E2\u05E8\u05DB\u05EA \u05D4\u05E9\u05D5\u05D5\u05D9 \u05D4\u05DB\u05D5\u05DC\u05DC \u05D0\u05DD \u05D0\u05E9\u05DC\u05D9\u05DD: ${money((_g = result.estimatedCombinedBenefitAdditional) != null ? _g : result.estimatedAdditionalTaxBenefit)} \u20AA`,
-      `\u05E6\u05D9\u05D5\u05DF \u05E0\u05D9\u05E6\u05D5\u05DC \u05E7\u05E8\u05DF \u05D4\u05D4\u05E9\u05EA\u05DC\u05DE\u05D5\u05EA: ${(_h = profile.score) != null ? _h : 0}/100`,
+      `\u05D4\u05E2\u05E8\u05DB\u05EA \u05D4\u05D8\u05D1\u05EA \u05D4\u05DE\u05E1 \u05D1\u05DE\u05E1 \u05D4\u05DB\u05E0\u05E1\u05D4 \u05D1\u05DE\u05D9\u05E7\u05E1\u05D5\u05DD \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4: ${money(result.estimatedTotalTaxBenefit)} \u20AA`,
+      `\u05D0\u05D5\u05DE\u05D3\u05DF \u05D7\u05D9\u05E1\u05DB\u05D5\u05DF \u05D1\u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9/\u05D1\u05E8\u05D9\u05D0\u05D5\u05EA \u05D1\u05DE\u05D9\u05E7\u05E1\u05D5\u05DD \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4: ${money((_g = result.estimatedNationalInsuranceBenefitTotal) != null ? _g : 0)} \u20AA`,
+      `\u05E9\u05D5\u05D5\u05D9 \u05E2\u05EA\u05D9\u05D3\u05D9 \u05DE\u05E9\u05D5\u05E2\u05E8 \u05E9\u05DC \u05D4\u05E4\u05D8\u05D5\u05E8 \u05DE\u05DE\u05E1 \u05E8\u05D5\u05D5\u05D7\u05D9 \u05D4\u05D5\u05DF: ${money((_h = result.estimatedCapitalGainsExemptionValueTotal) != null ? _h : 0)} \u20AA`,
+      `\u05E9\u05D5\u05D5\u05D9 \u05D4\u05D8\u05D1\u05D5\u05EA \u05D4\u05DE\u05E1 \u05D4\u05DB\u05D5\u05DC\u05DC (\u05D0\u05D5\u05DE\u05D3\u05DF): ${money((_i = result.estimatedCombinedBenefitTotal) != null ? _i : result.estimatedTotalTaxBenefit)} \u20AA`,
+      `\u05E6\u05D9\u05D5\u05DF \u05E0\u05D9\u05E6\u05D5\u05DC \u05E7\u05E8\u05DF \u05D4\u05D4\u05E9\u05EA\u05DC\u05DE\u05D5\u05EA: ${(_j = profile.score) != null ? _j : 0}/100`,
       "\u05D0\u05E9\u05DE\u05D7 \u05E9\u05EA\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D9\u05EA\u05D9 \u05D0\u05DD \u05D4\u05EA\u05D5\u05E6\u05D0\u05D4 \u05DE\u05EA\u05D0\u05D9\u05DE\u05D4 \u05DC\u05DE\u05E6\u05D1 \u05E9\u05DC\u05D9."
     ].join("\n");
   }
@@ -304,10 +319,27 @@
     }
   }
   function updateDepositFields() {
+    var _a;
     const method = form.elements.depositMethod.value;
     $("#lump-fields").hidden = !["lump", "both"].includes(method);
     $("#monthly-fields").hidden = !["monthly", "both"].includes(method);
+    const noFundOption = (_a = form.querySelector('[name="fundStatus"][value="none"]')) == null ? void 0 : _a.closest(".choice-card");
+    if (noFundOption) {
+      noFundOption.hidden = Boolean(method && method !== "none");
+      if (noFundOption.hidden && $("input", noFundOption).checked) $("input", noFundOption).checked = false;
+    }
     updateSummary();
+  }
+  function depositDetailsComplete() {
+    const method = form.elements.depositMethod.value;
+    const lump = normalizeMoney(form.elements.lumpSum.value);
+    const monthly = normalizeMoney(form.elements.monthlyDeposit.value);
+    const months = Number(form.elements.monthsDeposited.value);
+    if (method === "none") return true;
+    if (method === "lump") return lump > 0;
+    if (method === "monthly") return monthly > 0 && months > 0;
+    if (method === "both") return lump > 0 && monthly > 0 && months > 0;
+    return false;
   }
   function renderStep(index, animate = true) {
     var _a;
@@ -321,8 +353,8 @@
     $("#progress-fill").style.width = `${(currentStep + 1) * 20}%`;
     $(".progress-track").setAttribute("aria-valuenow", String(currentStep + 1));
     $("[data-back]").hidden = currentStep === 0;
-    $("[data-next]").hidden = currentStep === steps.length - 1;
-    $("#submit-check").hidden = currentStep !== steps.length - 1;
+    $("[data-next]").hidden = currentStep !== 0;
+    $("#submit-check").hidden = true;
     $("#form-error").textContent = "";
     if (animate) steps[currentStep].classList.add("is-entering");
     (_a = steps[currentStep].querySelector("input")) == null ? void 0 : _a.focus({ preventScroll: true });
@@ -425,29 +457,29 @@
     $("#headline-detail").textContent = detail;
     countUp($("#hero-remaining"), mainValue, money2);
     countUp($("#remaining"), result.remaining, money2);
-    countUp($("#tax-benefit"), result.estimatedCombinedBenefitAdditional, money2);
+    countUp($("#tax-benefit"), result.estimatedCombinedBenefitTotal, money2);
     countUp($("#monthly"), result.suggestedMonthly, (value) => `${money2(value)} \u05D1\u05D7\u05D5\u05D3\u05E9`);
-    $("#total-tax-benefit").textContent = `\u05DB\u05D5\u05DC\u05DC \u05D7\u05D9\u05E1\u05DB\u05D5\u05DF \u05D0\u05E4\u05E9\u05E8\u05D9 \u05DB\u05D9\u05D5\u05DD \u05D5\u05E9\u05D5\u05D5\u05D9 \u05E4\u05D8\u05D5\u05E8 \u05E2\u05EA\u05D9\u05D3\u05D9 \u05DE\u05E9\u05D5\u05E2\u05E8`;
-    countUp($("#income-tax-benefit"), result.estimatedAdditionalTaxBenefit, money2);
-    countUp($("#insurance-benefit"), result.estimatedNationalInsuranceBenefitAdditional, money2);
-    countUp($("#capital-gains-benefit"), result.estimatedCapitalGainsExemptionValueAdditional, money2);
-    $("#income-tax-total").textContent = `\u05E1\u05D4\u05F4\u05DB \u05DE\u05E9\u05D5\u05E2\u05E8 \u05D4\u05E9\u05E0\u05D4: ${money2(result.estimatedTotalTaxBenefit)}`;
-    $("#insurance-total").textContent = `\u05E1\u05D4\u05F4\u05DB \u05DE\u05E9\u05D5\u05E2\u05E8 \u05D4\u05E9\u05E0\u05D4: ${money2(result.estimatedNationalInsuranceBenefitTotal)}`;
-    $("#capital-gains-total").textContent = `\u05E9\u05D5\u05D5\u05D9 \u05DB\u05D5\u05DC\u05DC \u05E2\u05D3 \u05D4\u05EA\u05E7\u05E8\u05D4: ${money2(result.estimatedCapitalGainsExemptionValueTotal)}`;
+    countUp($("#deposited-to-date"), result.depositedToDate, money2);
+    countUp($("#projected-annual"), result.projectedAnnualDeposited, money2);
+    $("#future-scheduled").textContent = result.futureScheduledDeposits > 0 ? `\u05DE\u05EA\u05D5\u05DB\u05DD ${money2(result.futureScheduledDeposits)} \u05E6\u05E4\u05D5\u05D9\u05D9\u05DD \u05D1\u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4` : "\u05DC\u05D0 \u05D4\u05D5\u05D6\u05E0\u05D5 \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05D7\u05D5\u05D3\u05E9\u05D9\u05D5\u05EA \u05E2\u05EA\u05D9\u05D3\u05D9\u05D5\u05EA";
+    countUp($("#income-tax-benefit"), result.estimatedTotalTaxBenefit, money2);
+    countUp($("#insurance-benefit"), result.estimatedNationalInsuranceBenefitTotal, money2);
+    countUp($("#capital-gains-benefit"), result.estimatedCapitalGainsExemptionValueTotal, money2);
     $("#recommendation").textContent = buildRecommendation(result, profile);
     $("#dynamic-cta").textContent = buildCta(result, profile);
     renderScore(result, profile);
     renderScenarios(result);
+    $(".growth-notice").textContent = `\u05D4\u05D7\u05D9\u05E9\u05D5\u05D1 \u05DE\u05E0\u05D9\u05D7 \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D5\u05D3\u05E9\u05D9\u05EA \u05E7\u05D1\u05D5\u05E2\u05D4 \u05E9\u05DC ${money2(result.suggestedMonthly)} (\u05EA\u05E7\u05E8\u05EA 2026 \u05D7\u05DC\u05E7\u05D9 12), \u05DC\u05DC\u05D0 \u05D9\u05EA\u05E8\u05D4 \u05D4\u05EA\u05D7\u05DC\u05EA\u05D9\u05EA \u05D5\u05DC\u05DC\u05D0 \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9\u05EA, \u05D5\u05DC\u05E4\u05E0\u05D9 \u05D3\u05DE\u05D9 \u05E0\u05D9\u05D4\u05D5\u05DC. \u05D4\u05D5\u05D0 \u05D0\u05D9\u05E0\u05D5 \u05DE\u05D1\u05D5\u05E1\u05E1 \u05E2\u05DC \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05D4\u05D6\u05E0\u05EA. \u05D4\u05DE\u05D7\u05E9\u05D4 \u05D1\u05DC\u05D1\u05D3, \u05DC\u05DC\u05D0 \u05D4\u05EA\u05D7\u05D9\u05D9\u05D1\u05D5\u05EA \u05DC\u05EA\u05E9\u05D5\u05D0\u05D4; \u05D4\u05E1\u05DB\u05D5\u05DE\u05D9\u05DD \u05E0\u05D5\u05DE\u05D9\u05E0\u05DC\u05D9\u05D9\u05DD \u05D5\u05D1\u05D4\u05E0\u05D7\u05EA \u05EA\u05E9\u05D5\u05D0\u05D4 \u05E7\u05D1\u05D5\u05E2\u05D4.`;
     $("#whatsapp").href = buildWhatsAppUrl(result, profile);
-    $("#calculation-details").innerHTML = `<p><strong>\u05EA\u05E7\u05E8\u05EA 2026:</strong> ${money2(result.ceiling)} \xB7 <strong>\u05D4\u05DB\u05E0\u05E1\u05D4:</strong> ${money2(result.income)} \xB7 <strong>\u05D4\u05D5\u05E4\u05E7\u05D3:</strong> ${money2(result.deposited)}</p><p><strong>\u05DE\u05D3\u05E8\u05D2\u05EA \u05DE\u05E1 \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA:</strong> ${result.taxRate * 100}% \xB7 <strong>\u05E9\u05D9\u05E2\u05D5\u05E8 \u05E0\u05D9\u05DB\u05D5\u05D9:</strong> ${result.deductibleRate * 100}%</p><p><strong>\u05D4\u05D8\u05D1\u05D4 \u05DE\u05D9\u05D9\u05D3\u05D9\u05EA \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA:</strong> \u05DE\u05E1 \u05D4\u05DB\u05E0\u05E1\u05D4 ${money2(result.estimatedAdditionalTaxBenefit)} + \u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9/\u05D1\u05E8\u05D9\u05D0\u05D5\u05EA ${money2(result.estimatedNationalInsuranceBenefitAdditional)}.</p><p><strong>\u05E9\u05D5\u05D5\u05D9 \u05E2\u05EA\u05D9\u05D3\u05D9 \u05DE\u05E9\u05D5\u05E2\u05E8:</strong> \u05E4\u05D8\u05D5\u05E8 \u05DE\u05DE\u05E1 \u05E8\u05D5\u05D5\u05D7\u05D9 \u05D4\u05D5\u05DF ${money2(result.estimatedCapitalGainsExemptionValueAdditional)}, \u05D1\u05D4\u05E0\u05D7\u05EA 8% \u05DC\u05E9\u05E0\u05D4 \u05DC\u05BE6 \u05E9\u05E0\u05D9\u05DD \u05D5\u05DE\u05E1 \u05E9\u05DC 25% \u05E2\u05DC \u05D4\u05E8\u05D5\u05D5\u05D7.</p><p>\u05DE\u05E7\u05D5\u05E8\u05D5\u05EA: \u05E1\u05E4\u05E8 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9\u05D9\u05DD 2026 \u05D5\u05E9\u05D9\u05E2\u05D5\u05E8\u05D9 \u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9 \u05DC\u05E2\u05E6\u05DE\u05D0\u05D9 2026 \u05DB\u05E4\u05D9 \u05E9\u05EA\u05D5\u05E2\u05D3\u05D5 \u05D1\u05D0\u05EA\u05E8 \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2\u05D9. \u05D0\u05D9\u05DE\u05D5\u05EA: 15.07.2026. \u05DB\u05DC \u05D4\u05E8\u05DB\u05D9\u05D1\u05D9\u05DD \u05D4\u05DD \u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D3\u05D5\u05E8\u05E9 \u05D0\u05D9\u05DE\u05D5\u05EA \u05D0\u05D9\u05E9\u05D9.</p>`;
+    $("#calculation-details").innerHTML = `<p><strong>\u05EA\u05E7\u05E8\u05EA 2026:</strong> ${money2(result.ceiling)} \xB7 <strong>\u05D4\u05DB\u05E0\u05E1\u05D4:</strong> ${money2(result.income)} \xB7 <strong>\u05D4\u05D5\u05E4\u05E7\u05D3 \u05E2\u05D3 \u05D4\u05D9\u05D5\u05DD:</strong> ${money2(result.depositedToDate)} \xB7 <strong>\u05E6\u05E4\u05D9 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4:</strong> ${money2(result.projectedAnnualDeposited)}</p><p>\u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D4\u05D8\u05D1\u05D5\u05EA \u05DE\u05D7\u05D5\u05E9\u05D1 \u05D1\u05D4\u05E0\u05D7\u05D4 \u05E9\u05DC \u05DE\u05D9\u05E7\u05E1\u05D5\u05DD \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D4\u05E9\u05E0\u05EA\u05D9\u05EA \u05E2\u05D3 \u05D4\u05EA\u05E7\u05E8\u05D4, \u05D5\u05DC\u05DB\u05DF \u05DB\u05D5\u05DC\u05DC \u05D2\u05DD \u05D0\u05EA \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05DB\u05D1\u05E8 \u05D1\u05D5\u05E6\u05E2\u05D5 \u05D5\u05D0\u05EA \u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05D4\u05E6\u05E4\u05D5\u05D9\u05D4 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4 \u2014 \u05D5\u05DC\u05D0 \u05E8\u05E7 \u05D0\u05EA \u05D9\u05EA\u05E8\u05EA \u05D4\u05D4\u05E9\u05DC\u05DE\u05D4.</p><p><strong>\u05DE\u05D3\u05E8\u05D2\u05EA \u05DE\u05E1 \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA:</strong> ${result.taxRate * 100}% \xB7 <strong>\u05E9\u05D9\u05E2\u05D5\u05E8 \u05E0\u05D9\u05DB\u05D5\u05D9:</strong> ${result.deductibleRate * 100}%</p><p><strong>\u05D4\u05D8\u05D1\u05D4 \u05DE\u05D9\u05D9\u05D3\u05D9\u05EA \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA:</strong> \u05DE\u05E1 \u05D4\u05DB\u05E0\u05E1\u05D4 ${money2(result.estimatedTotalTaxBenefit)} + \u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9/\u05D1\u05E8\u05D9\u05D0\u05D5\u05EA ${money2(result.estimatedNationalInsuranceBenefitTotal)}.</p><p><strong>\u05E9\u05D5\u05D5\u05D9 \u05E2\u05EA\u05D9\u05D3\u05D9 \u05DE\u05E9\u05D5\u05E2\u05E8:</strong> \u05E4\u05D8\u05D5\u05E8 \u05DE\u05DE\u05E1 \u05E8\u05D5\u05D5\u05D7\u05D9 \u05D4\u05D5\u05DF ${money2(result.estimatedCapitalGainsExemptionValueTotal)}, \u05D1\u05D4\u05E0\u05D7\u05EA 8% \u05DC\u05E9\u05E0\u05D4 \u05DC\u05BE6 \u05E9\u05E0\u05D9\u05DD \u05D5\u05DE\u05E1 \u05E9\u05DC 25% \u05E2\u05DC \u05D4\u05E8\u05D5\u05D5\u05D7.</p><p>\u05DE\u05E7\u05D5\u05E8\u05D5\u05EA: \u05E1\u05E4\u05E8 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9\u05D9\u05DD 2026 \u05D5\u05E9\u05D9\u05E2\u05D5\u05E8\u05D9 \u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9 \u05DC\u05E2\u05E6\u05DE\u05D0\u05D9 2026 \u05DB\u05E4\u05D9 \u05E9\u05EA\u05D5\u05E2\u05D3\u05D5 \u05D1\u05D0\u05EA\u05E8 \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2\u05D9. \u05D0\u05D9\u05DE\u05D5\u05EA: 15.07.2026. \u05DB\u05DC \u05D4\u05E8\u05DB\u05D9\u05D1\u05D9\u05DD \u05D4\u05DD \u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D3\u05D5\u05E8\u05E9 \u05D0\u05D9\u05DE\u05D5\u05EA \u05D0\u05D9\u05E9\u05D9.</p>`;
   }
-  $("#start").addEventListener("click", () => $("#check").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }));
   form.addEventListener("click", (event) => {
     var _a;
     const amount = (_a = event.target.closest("[data-amount]")) == null ? void 0 : _a.dataset.amount;
     if (amount) {
       $("#income").value = Number(amount).toLocaleString("he-IL");
       updateSummary();
+      setTimeout(() => transitionTo(1), 180);
       return;
     }
     if (event.target.closest("[data-back]")) transitionTo(currentStep - 1);
@@ -457,12 +489,23 @@
     if (event.target.matches('input[type="radio"]')) updateSelectedCards();
     if (event.target.name === "depositMethod") updateDepositFields();
     updateSummary();
+    if (!event.target.matches('input[type="radio"]')) {
+      if (currentStep === 1 && depositDetailsComplete()) setTimeout(() => transitionTo(2), 180);
+      return;
+    }
+    if (currentStep === 1) {
+      if (depositDetailsComplete()) setTimeout(() => transitionTo(2), 180);
+      return;
+    }
+    if (currentStep < steps.length - 1) setTimeout(() => transitionTo(currentStep + 1), 180);
+    else setTimeout(() => form.requestSubmit(), 180);
   });
   form.addEventListener("input", (event) => {
     if (event.target.matches('[inputmode="numeric"], input[type="number"]')) updateSummary();
   });
   form.addEventListener("focusout", (event) => {
     if (event.target.matches('[inputmode="numeric"]')) formatMoneyInput(event.target);
+    if (currentStep === 1 && depositDetailsComplete()) setTimeout(() => transitionTo(2), 180);
   });
   form.addEventListener("submit", (event) => {
     event.preventDefault();
