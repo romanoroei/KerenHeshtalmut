@@ -14,6 +14,9 @@ export function buildWhatsAppMessage(result, profile = {}) {
     `המטרה המרכזית: ${profile.goal ?? 'לא צוינה'}`,
     `הוראת קבע מוצעת: ${money(result.suggestedMonthly)} ₪ לחודש`,
     `הערכת הטבת המס הנוספת: ${money(result.estimatedAdditionalTaxBenefit)} ₪`,
+    `אומדן חיסכון נוסף בביטוח לאומי/בריאות: ${money(result.estimatedNationalInsuranceBenefitAdditional ?? 0)} ₪`,
+    `שווי עתידי משוער של הפטור ממס רווחי הון: ${money(result.estimatedCapitalGainsExemptionValueAdditional ?? 0)} ₪`,
+    `הערכת השווי הכולל אם אשלים: ${money(result.estimatedCombinedBenefitAdditional ?? result.estimatedAdditionalTaxBenefit)} ₪`,
     `ציון ניצול קרן ההשתלמות: ${profile.score ?? 0}/100`,
     'אשמח שתבדוק איתי אם התוצאה מתאימה למצב שלי.',
   ].join('\n');

@@ -12,6 +12,22 @@ export function marginalTaxRate(income, brackets = TAX_DATA_2026.taxBrackets.val
   return brackets.find(([limit]) => income <= limit)?.[1] ?? 0;
 }
 
+export function nationalInsuranceDue(income, config = TAX_DATA_2026.nationalInsurance.value) {
+  if (!Number.isFinite(income) || income < 0) return 0;
+  const threshold = config.reducedMonthly * 12;
+  const maximum = config.maxMonthly * 12;
+  const insuredIncome = Math.min(income, maximum);
+  const reducedPart = Math.min(insuredIncome, threshold);
+  const regularPart = Math.max(0, insuredIncome - threshold);
+  return reducedPart * config.reducedRate + regularPart * config.regularRate;
+}
+
+export function capitalGainsExemptionValue(contribution, config = TAX_DATA_2026.capitalGainsExemption.value) {
+  if (!Number.isFinite(contribution) || contribution < 0) throw new TypeError('Invalid contribution');
+  const gain = contribution * (Math.pow(1 + config.annualReturn, config.years) - 1);
+  return gain * config.capitalGainsTaxRate;
+}
+
 export function futureValueOfMonthlyDeposits(monthlyDeposit, annualRate, years = 6) {
   if (![monthlyDeposit, annualRate, years].every(Number.isFinite) || monthlyDeposit < 0 || annualRate < 0 || years < 0) {
     throw new TypeError('Invalid forecast input');
@@ -58,6 +74,21 @@ export function calculateConsumerResult(input, data = TAX_DATA_2026) {
   const totalDeductible = Math.min(deposited + remaining, annualDeductible);
   const estimatedTotalTaxBenefit = totalDeductible * taxRate;
   const estimatedAdditionalTaxBenefit = additionalDeductible * taxRate;
+  const deductibleAlreadyDeposited = Math.min(deposited, annualDeductible);
+  const estimatedNationalInsuranceBenefitTotal = Math.max(0,
+    nationalInsuranceDue(income, data.nationalInsurance.value)
+      - nationalInsuranceDue(Math.max(0, income - totalDeductible), data.nationalInsurance.value));
+  const estimatedNationalInsuranceBenefitAdditional = Math.max(0,
+    nationalInsuranceDue(Math.max(0, income - deductibleAlreadyDeposited), data.nationalInsurance.value)
+      - nationalInsuranceDue(Math.max(0, income - totalDeductible), data.nationalInsurance.value));
+  const protectedTotal = Math.min(ceiling, deposited + remaining);
+  const protectedAdditional = Math.min(remaining, ceiling);
+  const estimatedCapitalGainsExemptionValueTotal = capitalGainsExemptionValue(protectedTotal, data.capitalGainsExemption.value);
+  const estimatedCapitalGainsExemptionValueAdditional = capitalGainsExemptionValue(protectedAdditional, data.capitalGainsExemption.value);
+  const estimatedCombinedBenefitTotal = estimatedTotalTaxBenefit
+    + estimatedNationalInsuranceBenefitTotal + estimatedCapitalGainsExemptionValueTotal;
+  const estimatedCombinedBenefitAdditional = estimatedAdditionalTaxBenefit
+    + estimatedNationalInsuranceBenefitAdditional + estimatedCapitalGainsExemptionValueAdditional;
   const monthsRemaining = monthsRemainingInTaxYear(input.today ?? new Date(), data.taxYear);
   const suggestedMonthlyToYearEnd = remaining > 0 && monthsRemaining > 0 ? Math.ceil(remaining / monthsRemaining) : 0;
   const suggestedMonthly = Math.ceil(ceiling / 12);
@@ -80,6 +111,12 @@ export function calculateConsumerResult(input, data = TAX_DATA_2026) {
     estimatedTaxBenefit: estimatedAdditionalTaxBenefit,
     estimatedTotalTaxBenefit,
     estimatedAdditionalTaxBenefit,
+    estimatedNationalInsuranceBenefitTotal,
+    estimatedNationalInsuranceBenefitAdditional,
+    estimatedCapitalGainsExemptionValueTotal,
+    estimatedCapitalGainsExemptionValueAdditional,
+    estimatedCombinedBenefitTotal,
+    estimatedCombinedBenefitAdditional,
     monthsRemaining,
     suggestedMonthlyToYearEnd,
     suggestedMonthly,

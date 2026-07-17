@@ -167,15 +167,21 @@ function renderResult(result, profile) {
   $('#headline-detail').textContent = detail;
   countUp($('#hero-remaining'), mainValue, money);
   countUp($('#remaining'), result.remaining, money);
-  countUp($('#tax-benefit'), result.estimatedAdditionalTaxBenefit, money);
+  countUp($('#tax-benefit'), result.estimatedCombinedBenefitAdditional, money);
   countUp($('#monthly'), result.suggestedMonthly, (value) => `${money(value)} בחודש`);
-  $('#total-tax-benefit').textContent = `סך ההטבה המשוערת על ההפקדות המזכות: ${money(result.estimatedTotalTaxBenefit)}`;
+  $('#total-tax-benefit').textContent = `כולל חיסכון אפשרי כיום ושווי פטור עתידי משוער`;
+  countUp($('#income-tax-benefit'), result.estimatedAdditionalTaxBenefit, money);
+  countUp($('#insurance-benefit'), result.estimatedNationalInsuranceBenefitAdditional, money);
+  countUp($('#capital-gains-benefit'), result.estimatedCapitalGainsExemptionValueAdditional, money);
+  $('#income-tax-total').textContent = `סה״כ משוער השנה: ${money(result.estimatedTotalTaxBenefit)}`;
+  $('#insurance-total').textContent = `סה״כ משוער השנה: ${money(result.estimatedNationalInsuranceBenefitTotal)}`;
+  $('#capital-gains-total').textContent = `שווי כולל עד התקרה: ${money(result.estimatedCapitalGainsExemptionValueTotal)}`;
   $('#recommendation').textContent = buildRecommendation(result, profile);
   $('#dynamic-cta').textContent = buildCta(result, profile);
   renderScore(result, profile);
   renderScenarios(result);
   $('#whatsapp').href = buildWhatsAppUrl(result, profile);
-  $('#calculation-details').innerHTML = `<p><strong>תקרת 2026:</strong> ${money(result.ceiling)} · <strong>הכנסה:</strong> ${money(result.income)} · <strong>הופקד:</strong> ${money(result.deposited)}</p><p><strong>מדרגת מס משוערת:</strong> ${result.taxRate * 100}% · <strong>שיעור ניכוי:</strong> ${result.deductibleRate * 100}%</p><p>מקור: ספר הניכויים 2026 כפי שתועד באתר המקצועי. אימות: 15.07.2026. מדרגות המס ושיעור הניכוי הם אומדן הדורש אימות.</p>`;
+  $('#calculation-details').innerHTML = `<p><strong>תקרת 2026:</strong> ${money(result.ceiling)} · <strong>הכנסה:</strong> ${money(result.income)} · <strong>הופקד:</strong> ${money(result.deposited)}</p><p><strong>מדרגת מס משוערת:</strong> ${result.taxRate * 100}% · <strong>שיעור ניכוי:</strong> ${result.deductibleRate * 100}%</p><p><strong>הטבה מיידית משוערת:</strong> מס הכנסה ${money(result.estimatedAdditionalTaxBenefit)} + ביטוח לאומי/בריאות ${money(result.estimatedNationalInsuranceBenefitAdditional)}.</p><p><strong>שווי עתידי משוער:</strong> פטור ממס רווחי הון ${money(result.estimatedCapitalGainsExemptionValueAdditional)}, בהנחת 8% לשנה ל־6 שנים ומס של 25% על הרווח.</p><p>מקורות: ספר הניכויים 2026 ושיעורי ביטוח לאומי לעצמאי 2026 כפי שתועדו באתר המקצועי. אימות: 15.07.2026. כל הרכיבים הם אומדן הדורש אימות אישי.</p>`;
 }
 
 $('#start').addEventListener('click', () => $('#check').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }));

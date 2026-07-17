@@ -39,6 +39,20 @@ export const TAX_DATA_2026 = Object.freeze({
     source: 'מדרגות המס 2026 שבאתר המקצועי הקיים; יש לאמת מול פרסום רשות המסים',
     status: 'estimate',
   },
+  nationalInsurance: {
+    value: { reducedMonthly: 7703, maxMonthly: 51910, reducedRate: 0.077, regularRate: 0.18 },
+    taxYear: 2026,
+    verifiedAt: '2026-07-15',
+    source: 'ביטוח לאומי, שיעורי דמי הביטוח לעובד עצמאי 2026 (כפי שתועד באתר המקצועי הקיים)',
+    status: 'estimate',
+  },
+  capitalGainsExemption: {
+    value: { annualReturn: 0.08, years: 6, capitalGainsTaxRate: 0.25 },
+    taxYear: 2026,
+    verifiedAt: '2026-07-15',
+    source: 'הנחת ההמחשה במחשבון המקצועי: 8% לשנה, 6 שנים ומס רווחי הון של 25%',
+    status: 'estimate',
+  },
 });
 
 export const RETURN_SCENARIOS = Object.freeze([

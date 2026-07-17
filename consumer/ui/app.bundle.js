@@ -45,6 +45,20 @@
       verifiedAt: "2026-07-15",
       source: "\u05DE\u05D3\u05E8\u05D2\u05D5\u05EA \u05D4\u05DE\u05E1 2026 \u05E9\u05D1\u05D0\u05EA\u05E8 \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2\u05D9 \u05D4\u05E7\u05D9\u05D9\u05DD; \u05D9\u05E9 \u05DC\u05D0\u05DE\u05EA \u05DE\u05D5\u05DC \u05E4\u05E8\u05E1\u05D5\u05DD \u05E8\u05E9\u05D5\u05EA \u05D4\u05DE\u05E1\u05D9\u05DD",
       status: "estimate"
+    },
+    nationalInsurance: {
+      value: { reducedMonthly: 7703, maxMonthly: 51910, reducedRate: 0.077, regularRate: 0.18 },
+      taxYear: 2026,
+      verifiedAt: "2026-07-15",
+      source: "\u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9, \u05E9\u05D9\u05E2\u05D5\u05E8\u05D9 \u05D3\u05DE\u05D9 \u05D4\u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05E2\u05D5\u05D1\u05D3 \u05E2\u05E6\u05DE\u05D0\u05D9 2026 (\u05DB\u05E4\u05D9 \u05E9\u05EA\u05D5\u05E2\u05D3 \u05D1\u05D0\u05EA\u05E8 \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2\u05D9 \u05D4\u05E7\u05D9\u05D9\u05DD)",
+      status: "estimate"
+    },
+    capitalGainsExemption: {
+      value: { annualReturn: 0.08, years: 6, capitalGainsTaxRate: 0.25 },
+      taxYear: 2026,
+      verifiedAt: "2026-07-15",
+      source: "\u05D4\u05E0\u05D7\u05EA \u05D4\u05D4\u05DE\u05D7\u05E9\u05D4 \u05D1\u05DE\u05D7\u05E9\u05D1\u05D5\u05DF \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2\u05D9: 8% \u05DC\u05E9\u05E0\u05D4, 6 \u05E9\u05E0\u05D9\u05DD \u05D5\u05DE\u05E1 \u05E8\u05D5\u05D5\u05D7\u05D9 \u05D4\u05D5\u05DF \u05E9\u05DC 25%",
+      status: "estimate"
     }
   });
   var RETURN_SCENARIOS = Object.freeze([
@@ -64,6 +78,20 @@
     var _a, _b;
     if (!Number.isFinite(income) || income < 0) return 0;
     return (_b = (_a = brackets.find(([limit]) => income <= limit)) == null ? void 0 : _a[1]) != null ? _b : 0;
+  }
+  function nationalInsuranceDue(income, config = TAX_DATA_2026.nationalInsurance.value) {
+    if (!Number.isFinite(income) || income < 0) return 0;
+    const threshold = config.reducedMonthly * 12;
+    const maximum = config.maxMonthly * 12;
+    const insuredIncome = Math.min(income, maximum);
+    const reducedPart = Math.min(insuredIncome, threshold);
+    const regularPart = Math.max(0, insuredIncome - threshold);
+    return reducedPart * config.reducedRate + regularPart * config.regularRate;
+  }
+  function capitalGainsExemptionValue(contribution, config = TAX_DATA_2026.capitalGainsExemption.value) {
+    if (!Number.isFinite(contribution) || contribution < 0) throw new TypeError("Invalid contribution");
+    const gain = contribution * (Math.pow(1 + config.annualReturn, config.years) - 1);
+    return gain * config.capitalGainsTaxRate;
   }
   function futureValueOfMonthlyDeposits(monthlyDeposit, annualRate, years = 6) {
     if (![monthlyDeposit, annualRate, years].every(Number.isFinite) || monthlyDeposit < 0 || annualRate < 0 || years < 0) {
@@ -109,6 +137,21 @@
     const totalDeductible = Math.min(deposited + remaining, annualDeductible);
     const estimatedTotalTaxBenefit = totalDeductible * taxRate;
     const estimatedAdditionalTaxBenefit = additionalDeductible * taxRate;
+    const deductibleAlreadyDeposited = Math.min(deposited, annualDeductible);
+    const estimatedNationalInsuranceBenefitTotal = Math.max(
+      0,
+      nationalInsuranceDue(income, data.nationalInsurance.value) - nationalInsuranceDue(Math.max(0, income - totalDeductible), data.nationalInsurance.value)
+    );
+    const estimatedNationalInsuranceBenefitAdditional = Math.max(
+      0,
+      nationalInsuranceDue(Math.max(0, income - deductibleAlreadyDeposited), data.nationalInsurance.value) - nationalInsuranceDue(Math.max(0, income - totalDeductible), data.nationalInsurance.value)
+    );
+    const protectedTotal = Math.min(ceiling, deposited + remaining);
+    const protectedAdditional = Math.min(remaining, ceiling);
+    const estimatedCapitalGainsExemptionValueTotal = capitalGainsExemptionValue(protectedTotal, data.capitalGainsExemption.value);
+    const estimatedCapitalGainsExemptionValueAdditional = capitalGainsExemptionValue(protectedAdditional, data.capitalGainsExemption.value);
+    const estimatedCombinedBenefitTotal = estimatedTotalTaxBenefit + estimatedNationalInsuranceBenefitTotal + estimatedCapitalGainsExemptionValueTotal;
+    const estimatedCombinedBenefitAdditional = estimatedAdditionalTaxBenefit + estimatedNationalInsuranceBenefitAdditional + estimatedCapitalGainsExemptionValueAdditional;
     const monthsRemaining = monthsRemainingInTaxYear((_a = input.today) != null ? _a : /* @__PURE__ */ new Date(), data.taxYear);
     const suggestedMonthlyToYearEnd = remaining > 0 && monthsRemaining > 0 ? Math.ceil(remaining / monthsRemaining) : 0;
     const suggestedMonthly = Math.ceil(ceiling / 12);
@@ -130,6 +173,12 @@
       estimatedTaxBenefit: estimatedAdditionalTaxBenefit,
       estimatedTotalTaxBenefit,
       estimatedAdditionalTaxBenefit,
+      estimatedNationalInsuranceBenefitTotal,
+      estimatedNationalInsuranceBenefitAdditional,
+      estimatedCapitalGainsExemptionValueTotal,
+      estimatedCapitalGainsExemptionValueAdditional,
+      estimatedCombinedBenefitTotal,
+      estimatedCombinedBenefitAdditional,
       monthsRemaining,
       suggestedMonthlyToYearEnd,
       suggestedMonthly,
@@ -169,7 +218,7 @@
   var PHONE = "972528089808";
   var money = (value) => new Intl.NumberFormat("he-IL", { maximumFractionDigits: 0 }).format(Math.round(value));
   function buildWhatsAppMessage(result, profile = {}) {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     return [
       "\u05D4\u05D9\u05D9 \u05E8\u05D5\u05E2\u05D9, \u05D1\u05D9\u05E6\u05E2\u05EA\u05D9 \u05D0\u05EA \u05D1\u05D3\u05D9\u05E7\u05EA \u05E7\u05E8\u05DF \u05D4\u05D4\u05E9\u05EA\u05DC\u05DE\u05D5\u05EA \u05D1\u05D0\u05EA\u05E8.",
       `\u05D4\u05DB\u05E0\u05E1\u05D4 \u05E9\u05E0\u05EA\u05D9\u05EA \u05D7\u05D9\u05D9\u05D1\u05EA \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA: ${money(result.income)} \u20AA`,
@@ -182,7 +231,10 @@
       `\u05D4\u05DE\u05D8\u05E8\u05D4 \u05D4\u05DE\u05E8\u05DB\u05D6\u05D9\u05EA: ${(_d = profile.goal) != null ? _d : "\u05DC\u05D0 \u05E6\u05D5\u05D9\u05E0\u05D4"}`,
       `\u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2 \u05DE\u05D5\u05E6\u05E2\u05EA: ${money(result.suggestedMonthly)} \u20AA \u05DC\u05D7\u05D5\u05D3\u05E9`,
       `\u05D4\u05E2\u05E8\u05DB\u05EA \u05D4\u05D8\u05D1\u05EA \u05D4\u05DE\u05E1 \u05D4\u05E0\u05D5\u05E1\u05E4\u05EA: ${money(result.estimatedAdditionalTaxBenefit)} \u20AA`,
-      `\u05E6\u05D9\u05D5\u05DF \u05E0\u05D9\u05E6\u05D5\u05DC \u05E7\u05E8\u05DF \u05D4\u05D4\u05E9\u05EA\u05DC\u05DE\u05D5\u05EA: ${(_e = profile.score) != null ? _e : 0}/100`,
+      `\u05D0\u05D5\u05DE\u05D3\u05DF \u05D7\u05D9\u05E1\u05DB\u05D5\u05DF \u05E0\u05D5\u05E1\u05E3 \u05D1\u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9/\u05D1\u05E8\u05D9\u05D0\u05D5\u05EA: ${money((_e = result.estimatedNationalInsuranceBenefitAdditional) != null ? _e : 0)} \u20AA`,
+      `\u05E9\u05D5\u05D5\u05D9 \u05E2\u05EA\u05D9\u05D3\u05D9 \u05DE\u05E9\u05D5\u05E2\u05E8 \u05E9\u05DC \u05D4\u05E4\u05D8\u05D5\u05E8 \u05DE\u05DE\u05E1 \u05E8\u05D5\u05D5\u05D7\u05D9 \u05D4\u05D5\u05DF: ${money((_f = result.estimatedCapitalGainsExemptionValueAdditional) != null ? _f : 0)} \u20AA`,
+      `\u05D4\u05E2\u05E8\u05DB\u05EA \u05D4\u05E9\u05D5\u05D5\u05D9 \u05D4\u05DB\u05D5\u05DC\u05DC \u05D0\u05DD \u05D0\u05E9\u05DC\u05D9\u05DD: ${money((_g = result.estimatedCombinedBenefitAdditional) != null ? _g : result.estimatedAdditionalTaxBenefit)} \u20AA`,
+      `\u05E6\u05D9\u05D5\u05DF \u05E0\u05D9\u05E6\u05D5\u05DC \u05E7\u05E8\u05DF \u05D4\u05D4\u05E9\u05EA\u05DC\u05DE\u05D5\u05EA: ${(_h = profile.score) != null ? _h : 0}/100`,
       "\u05D0\u05E9\u05DE\u05D7 \u05E9\u05EA\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D9\u05EA\u05D9 \u05D0\u05DD \u05D4\u05EA\u05D5\u05E6\u05D0\u05D4 \u05DE\u05EA\u05D0\u05D9\u05DE\u05D4 \u05DC\u05DE\u05E6\u05D1 \u05E9\u05DC\u05D9."
     ].join("\n");
   }
@@ -373,15 +425,21 @@
     $("#headline-detail").textContent = detail;
     countUp($("#hero-remaining"), mainValue, money2);
     countUp($("#remaining"), result.remaining, money2);
-    countUp($("#tax-benefit"), result.estimatedAdditionalTaxBenefit, money2);
+    countUp($("#tax-benefit"), result.estimatedCombinedBenefitAdditional, money2);
     countUp($("#monthly"), result.suggestedMonthly, (value) => `${money2(value)} \u05D1\u05D7\u05D5\u05D3\u05E9`);
-    $("#total-tax-benefit").textContent = `\u05E1\u05DA \u05D4\u05D4\u05D8\u05D1\u05D4 \u05D4\u05DE\u05E9\u05D5\u05E2\u05E8\u05EA \u05E2\u05DC \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05D4\u05DE\u05D6\u05DB\u05D5\u05EA: ${money2(result.estimatedTotalTaxBenefit)}`;
+    $("#total-tax-benefit").textContent = `\u05DB\u05D5\u05DC\u05DC \u05D7\u05D9\u05E1\u05DB\u05D5\u05DF \u05D0\u05E4\u05E9\u05E8\u05D9 \u05DB\u05D9\u05D5\u05DD \u05D5\u05E9\u05D5\u05D5\u05D9 \u05E4\u05D8\u05D5\u05E8 \u05E2\u05EA\u05D9\u05D3\u05D9 \u05DE\u05E9\u05D5\u05E2\u05E8`;
+    countUp($("#income-tax-benefit"), result.estimatedAdditionalTaxBenefit, money2);
+    countUp($("#insurance-benefit"), result.estimatedNationalInsuranceBenefitAdditional, money2);
+    countUp($("#capital-gains-benefit"), result.estimatedCapitalGainsExemptionValueAdditional, money2);
+    $("#income-tax-total").textContent = `\u05E1\u05D4\u05F4\u05DB \u05DE\u05E9\u05D5\u05E2\u05E8 \u05D4\u05E9\u05E0\u05D4: ${money2(result.estimatedTotalTaxBenefit)}`;
+    $("#insurance-total").textContent = `\u05E1\u05D4\u05F4\u05DB \u05DE\u05E9\u05D5\u05E2\u05E8 \u05D4\u05E9\u05E0\u05D4: ${money2(result.estimatedNationalInsuranceBenefitTotal)}`;
+    $("#capital-gains-total").textContent = `\u05E9\u05D5\u05D5\u05D9 \u05DB\u05D5\u05DC\u05DC \u05E2\u05D3 \u05D4\u05EA\u05E7\u05E8\u05D4: ${money2(result.estimatedCapitalGainsExemptionValueTotal)}`;
     $("#recommendation").textContent = buildRecommendation(result, profile);
     $("#dynamic-cta").textContent = buildCta(result, profile);
     renderScore(result, profile);
     renderScenarios(result);
     $("#whatsapp").href = buildWhatsAppUrl(result, profile);
-    $("#calculation-details").innerHTML = `<p><strong>\u05EA\u05E7\u05E8\u05EA 2026:</strong> ${money2(result.ceiling)} \xB7 <strong>\u05D4\u05DB\u05E0\u05E1\u05D4:</strong> ${money2(result.income)} \xB7 <strong>\u05D4\u05D5\u05E4\u05E7\u05D3:</strong> ${money2(result.deposited)}</p><p><strong>\u05DE\u05D3\u05E8\u05D2\u05EA \u05DE\u05E1 \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA:</strong> ${result.taxRate * 100}% \xB7 <strong>\u05E9\u05D9\u05E2\u05D5\u05E8 \u05E0\u05D9\u05DB\u05D5\u05D9:</strong> ${result.deductibleRate * 100}%</p><p>\u05DE\u05E7\u05D5\u05E8: \u05E1\u05E4\u05E8 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9\u05D9\u05DD 2026 \u05DB\u05E4\u05D9 \u05E9\u05EA\u05D5\u05E2\u05D3 \u05D1\u05D0\u05EA\u05E8 \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2\u05D9. \u05D0\u05D9\u05DE\u05D5\u05EA: 15.07.2026. \u05DE\u05D3\u05E8\u05D2\u05D5\u05EA \u05D4\u05DE\u05E1 \u05D5\u05E9\u05D9\u05E2\u05D5\u05E8 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9 \u05D4\u05DD \u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D3\u05D5\u05E8\u05E9 \u05D0\u05D9\u05DE\u05D5\u05EA.</p>`;
+    $("#calculation-details").innerHTML = `<p><strong>\u05EA\u05E7\u05E8\u05EA 2026:</strong> ${money2(result.ceiling)} \xB7 <strong>\u05D4\u05DB\u05E0\u05E1\u05D4:</strong> ${money2(result.income)} \xB7 <strong>\u05D4\u05D5\u05E4\u05E7\u05D3:</strong> ${money2(result.deposited)}</p><p><strong>\u05DE\u05D3\u05E8\u05D2\u05EA \u05DE\u05E1 \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA:</strong> ${result.taxRate * 100}% \xB7 <strong>\u05E9\u05D9\u05E2\u05D5\u05E8 \u05E0\u05D9\u05DB\u05D5\u05D9:</strong> ${result.deductibleRate * 100}%</p><p><strong>\u05D4\u05D8\u05D1\u05D4 \u05DE\u05D9\u05D9\u05D3\u05D9\u05EA \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA:</strong> \u05DE\u05E1 \u05D4\u05DB\u05E0\u05E1\u05D4 ${money2(result.estimatedAdditionalTaxBenefit)} + \u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9/\u05D1\u05E8\u05D9\u05D0\u05D5\u05EA ${money2(result.estimatedNationalInsuranceBenefitAdditional)}.</p><p><strong>\u05E9\u05D5\u05D5\u05D9 \u05E2\u05EA\u05D9\u05D3\u05D9 \u05DE\u05E9\u05D5\u05E2\u05E8:</strong> \u05E4\u05D8\u05D5\u05E8 \u05DE\u05DE\u05E1 \u05E8\u05D5\u05D5\u05D7\u05D9 \u05D4\u05D5\u05DF ${money2(result.estimatedCapitalGainsExemptionValueAdditional)}, \u05D1\u05D4\u05E0\u05D7\u05EA 8% \u05DC\u05E9\u05E0\u05D4 \u05DC\u05BE6 \u05E9\u05E0\u05D9\u05DD \u05D5\u05DE\u05E1 \u05E9\u05DC 25% \u05E2\u05DC \u05D4\u05E8\u05D5\u05D5\u05D7.</p><p>\u05DE\u05E7\u05D5\u05E8\u05D5\u05EA: \u05E1\u05E4\u05E8 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9\u05D9\u05DD 2026 \u05D5\u05E9\u05D9\u05E2\u05D5\u05E8\u05D9 \u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9 \u05DC\u05E2\u05E6\u05DE\u05D0\u05D9 2026 \u05DB\u05E4\u05D9 \u05E9\u05EA\u05D5\u05E2\u05D3\u05D5 \u05D1\u05D0\u05EA\u05E8 \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2\u05D9. \u05D0\u05D9\u05DE\u05D5\u05EA: 15.07.2026. \u05DB\u05DC \u05D4\u05E8\u05DB\u05D9\u05D1\u05D9\u05DD \u05D4\u05DD \u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D3\u05D5\u05E8\u05E9 \u05D0\u05D9\u05DE\u05D5\u05EA \u05D0\u05D9\u05E9\u05D9.</p>`;
   }
   $("#start").addEventListener("click", () => $("#check").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }));
   form.addEventListener("click", (event) => {

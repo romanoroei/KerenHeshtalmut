@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculateConsumerResult, futureValueOfMonthlyDeposits, monthsRemainingInTaxYear, normalizeMoney, totalDeposited } from '../engine/calculator.js';
+import { calculateConsumerResult, capitalGainsExemptionValue, futureValueOfMonthlyDeposits, monthsRemainingInTaxYear, nationalInsuranceDue, normalizeMoney, totalDeposited } from '../engine/calculator.js';
 import { TAX_DATA_2026 } from '../data/tax-data.js';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '../messages/whatsapp.js';
 
@@ -40,6 +40,20 @@ test('הטבת מס כוללת ונוספת מופרדות', () => {
   assert.ok(result.estimatedTotalTaxBenefit > result.estimatedAdditionalTaxBenefit);
   assert.ok(result.estimatedAdditionalTaxBenefit >= 0);
 });
+test('אומדן ביטוח לאומי ובריאות מחושב לפי אותן מדרגות של האתר המקצועי', () => {
+  assert.equal(nationalInsuranceDue(7703 * 12), 7703 * 12 * 0.077);
+  assert.ok(nationalInsuranceDue(200000) > nationalInsuranceDue(100000));
+});
+test('שווי הפטור ממס רווחי הון משתמש בהנחת 8% ל-6 שנים ומס 25%', () => {
+  const expected = 20566 * (Math.pow(1.08, 6) - 1) * 0.25;
+  assert.equal(capitalGainsExemptionValue(20566), expected);
+});
+test('השווי הכולל מפריד מס הכנסה, ביטוח לאומי ושווי עתידי', () => {
+  const result = calculateConsumerResult({ income: 200000, deposited: 10000 });
+  assert.equal(result.estimatedCombinedBenefitAdditional,
+    result.estimatedAdditionalTaxBenefit + result.estimatedNationalInsuranceBenefitAdditional + result.estimatedCapitalGainsExemptionValueAdditional);
+  assert.ok(result.estimatedCombinedBenefitTotal >= result.estimatedCombinedBenefitAdditional);
+});
 test('תקופות תחזית 6, 10, 15 ו-20 שנים', () => {
   for (const years of [6, 10, 15, 20]) assert.equal(calculateConsumerResult({ income: 200000, deposited: 0, projectionYears: years }).projections[0].years, years);
 });
@@ -58,6 +72,6 @@ test('הודעת WhatsApp כוללת את כל נתוני החובה ונשלח�
   const result = calculateConsumerResult({ income: 200000, deposited: 10000 });
   const profile = { depositMethod:'monthly', completionPreference:'monthly', fundStatus:'liquid', goal:'tax', score:72 };
   const message = buildWhatsAppMessage(result, profile);
-  for (const label of ['הכנסה', 'הפקדות', 'יתרה לניצול', 'דרך ההפקדה', 'העדפת תזרים', 'מצב הקרן', 'המטרה המרכזית', 'הוראת קבע', 'הערכת הטבת המס', 'ציון ניצול']) assert.match(message, new RegExp(label));
+  for (const label of ['הכנסה', 'הפקדות', 'יתרה לניצול', 'דרך ההפקדה', 'העדפת תזרים', 'מצב הקרן', 'המטרה המרכזית', 'הוראת קבע', 'הערכת הטבת המס', 'ביטוח לאומי', 'רווחי הון', 'השווי הכולל', 'ציון ניצול']) assert.match(message, new RegExp(label));
   assert.match(buildWhatsAppUrl(result), /^https:\/\/wa\.me\/972528089808\?text=/);
 });
