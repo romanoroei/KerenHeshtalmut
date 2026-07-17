@@ -51,3 +51,23 @@ test('מסך הפתיחה אינו מציג תגית צפה ליד תמונת ה
   assert.doesNotMatch(landing, /landing-result-chip/);
   assert.match(landing, /landing-assurance/);
 });
+
+test('רכיבי הציות של האתר המקצועי זמינים בשני מסכי המחשבון', async () => {
+  const landing = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+  const check = await readFile(new URL('../check.html', import.meta.url), 'utf8');
+  const compliance = await readFile(new URL('../ui/compliance.js', import.meta.url), 'utf8');
+
+  for (const html of [landing, check]) {
+    assert.match(html, /id="cookieNotice"/);
+    assert.match(html, /הודעה על עוגיות/);
+    assert.match(html, /id="disclaimer"/);
+    assert.match(html, /גילוי נאות/);
+    assert.match(html, /href="\.\.\/privacy\.html"/);
+    assert.match(html, /href="\.\.\/accessibility\.html"/);
+    assert.match(html, /script defer src="\.\/ui\/compliance\.js"/);
+  }
+
+  assert.match(compliance, /cookieNoticeAccepted/);
+  assert.match(compliance, /acceptCookies/);
+  assert.match(compliance, /closeCookies/);
+});
