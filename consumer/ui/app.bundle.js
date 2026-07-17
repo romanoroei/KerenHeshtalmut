@@ -124,6 +124,12 @@
     if (date.getFullYear() > taxYear) return 0;
     return Math.max(0, 12 - date.getMonth());
   }
+  function daysRemainingInTaxYear(date = /* @__PURE__ */ new Date(), taxYear = 2026) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) throw new TypeError("Invalid date");
+    const end = new Date(taxYear, 11, 31, 23, 59, 59, 999);
+    if (date > end) return 0;
+    return Math.max(0, Math.ceil((end.getTime() - date.getTime()) / 864e5));
+  }
   function totalDeposited(input) {
     var _a, _b, _c;
     const lumpSum = normalizeMoney((_a = input.lumpSum) != null ? _a : 0);
@@ -465,14 +471,32 @@
   function renderGrowthDetail(result, scenarioIndex) {
     const scenario = result.projections[scenarioIndex];
     const schedule = buildGrowthSchedule(result.existingBalance, result.suggestedMonthly, scenario.annualRate, scenario.years);
-    const maxValue = Math.max(...schedule.map((row) => row.nominalValue), 1);
+    const maxValue = Math.max(...schedule.map((row) => row.nominalValue), 1) * 1.08;
     $$("#scenario-list .scenario-card").forEach((card, index) => {
       const selected = index === scenarioIndex;
       card.classList.toggle("is-selected", selected);
       card.setAttribute("aria-expanded", String(selected));
     });
     $("#growth-detail-title").textContent = `${scenario.label} \xB7 ${Math.round(scenario.annualRate * 100)}% \u05DC\u05E9\u05E0\u05D4`;
-    $("#growth-bars").innerHTML = schedule.map((row) => `<div class="growth-bar-item"><span style="height:${Math.max(3, row.nominalValue / maxValue * 100)}%"></span><small>${row.year}</small></div>`).join("");
+    const chart = { left: 76, right: 730, top: 24, bottom: 220 };
+    const points = schedule.map((row, index) => ({
+      x: chart.left + index / Math.max(1, schedule.length - 1) * (chart.right - chart.left),
+      y: chart.bottom - row.nominalValue / maxValue * (chart.bottom - chart.top)
+    }));
+    const compactMoney = (value) => `${new Intl.NumberFormat("he-IL", { notation: "compact", maximumFractionDigits: 1 }).format(value)} \u20AA`;
+    const yTicks = Array.from({ length: 5 }, (_, index) => {
+      const value = maxValue * index / 4;
+      const y = chart.bottom - index / 4 * (chart.bottom - chart.top);
+      return `<line x1="${chart.left}" y1="${y}" x2="${chart.right}" y2="${y}" class="chart-grid"/><text x="${chart.left - 10}" y="${y + 4}" class="chart-label chart-label--y">${compactMoney(value)}</text>`;
+    }).join("");
+    const xEvery = Math.max(1, Math.ceil(scenario.years / 5));
+    const xLabels = schedule.filter((row) => row.year % xEvery === 0 || row.year === scenario.years).map((row) => {
+      const x = chart.left + row.year / scenario.years * (chart.right - chart.left);
+      return `<line x1="${x}" y1="${chart.bottom}" x2="${x}" y2="${chart.bottom + 5}" class="chart-axis"/><text x="${x}" y="${chart.bottom + 22}" class="chart-label chart-label--x">${row.year}</text>`;
+    }).join("");
+    const pointString = points.map((point) => `${point.x},${point.y}`).join(" ");
+    const areaString = `${chart.left},${chart.bottom} ${pointString} ${chart.right},${chart.bottom}`;
+    $("#growth-chart").innerHTML = `${yTicks}<line x1="${chart.left}" y1="${chart.top}" x2="${chart.left}" y2="${chart.bottom}" class="chart-axis"/><line x1="${chart.left}" y1="${chart.bottom}" x2="${chart.right}" y2="${chart.bottom}" class="chart-axis"/>${xLabels}<polygon points="${areaString}" class="chart-area"/><polyline points="${pointString}" class="chart-line"/>${points.map((point) => `<circle cx="${point.x}" cy="${point.y}" r="3.5" class="chart-point"/>`).join("")}<text x="${(chart.left + chart.right) / 2}" y="262" class="chart-axis-title">\u05E9\u05E0\u05D9\u05DD</text><text x="18" y="${(chart.top + chart.bottom) / 2}" class="chart-axis-title chart-axis-title--y">\u05E9\u05D5\u05D5\u05D9 \u05DE\u05E9\u05D5\u05E2\u05E8</text>`;
     $("#growth-table-body").innerHTML = schedule.map((row) => `<tr><th scope="row">${row.year === 0 ? "\u05D4\u05D9\u05D5\u05DD" : `\u05E9\u05E0\u05D4 ${row.year}`}</th><td>${money2(row.openingBalance)}</td><td>${money2(row.contributions)}</td><td>${money2(row.estimatedGrowth)}</td><td><strong>${money2(row.nominalValue)}</strong></td></tr>`).join("");
     $("#growth-detail").hidden = false;
     $("#growth-detail").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
@@ -515,7 +539,7 @@
   }
   function renderResult(result, profile) {
     lastProfile = profile;
-    let headline = "\u05E0\u05E9\u05D0\u05E8 \u05DC\u05DA \u05DE\u05E7\u05D5\u05DD \u05DC\u05E0\u05E6\u05DC \u05D4\u05E9\u05E0\u05D4";
+    let headline = "\u05D6\u05D4 \u05D4\u05E1\u05DB\u05D5\u05DD \u05E9\u05E2\u05D5\u05D3 \u05E0\u05D9\u05EA\u05DF \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 \u05E2\u05D3 \u05E1\u05D5\u05E3 2026";
     let detail = "\u05D6\u05D4\u05D5 \u05D4\u05E1\u05DB\u05D5\u05DD \u05E9\u05E0\u05D9\u05EA\u05DF \u05DC\u05E9\u05E7\u05D5\u05DC \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 \u05E2\u05D3 \u05DC\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA \u05DC\u05E9\u05E0\u05EA 2026.";
     if (result.overCeiling > 0) {
       headline = "\u05D7\u05DC\u05E7 \u05DE\u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05E9\u05DC\u05DA \u05E0\u05DE\u05E6\u05D0 \u05DE\u05E2\u05DC \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA";
@@ -528,18 +552,25 @@
     $("#headline-detail").textContent = detail;
     countUp($("#remaining"), result.remaining, money2);
     countUp($("#tax-benefit"), result.estimatedCombinedBenefitTotal, money2);
+    const countdownDays = daysRemainingInTaxYear(/* @__PURE__ */ new Date(), result.taxYear);
+    $("#countdown-days").textContent = countdownDays.toLocaleString("he-IL");
+    $("#tax-countdown").hidden = countdownDays === 0;
     countUp($("#deposited-to-date"), result.depositedToDate, money2);
     countUp($("#projected-annual"), result.projectedAnnualDeposited, money2);
     $("#future-scheduled").textContent = result.futureScheduledDeposits > 0 ? `\u05DE\u05EA\u05D5\u05DB\u05DD ${money2(result.futureScheduledDeposits)} \u05E6\u05E4\u05D5\u05D9\u05D9\u05DD \u05D1\u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4` : "\u05DC\u05D0 \u05D4\u05D5\u05D6\u05E0\u05D5 \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05D7\u05D5\u05D3\u05E9\u05D9\u05D5\u05EA \u05E2\u05EA\u05D9\u05D3\u05D9\u05D5\u05EA";
     countUp($("#income-tax-benefit"), result.estimatedTotalTaxBenefit, money2);
     countUp($("#insurance-benefit"), result.estimatedNationalInsuranceBenefitTotal, money2);
     countUp($("#capital-gains-benefit"), result.estimatedCapitalGainsExemptionValueTotal, money2);
-    $("#dynamic-cta").textContent = buildCta(result, profile);
+    const ctaCopy = buildCta(result, profile);
+    $("#dynamic-cta").textContent = ctaCopy;
+    $("#dynamic-cta-secondary").textContent = ctaCopy;
     renderScore(result, profile);
     renderRecommendationSteps(result, profile);
     renderScenarios(result);
     $(".growth-notice").textContent = `\u05D4\u05D7\u05D9\u05E9\u05D5\u05D1 \u05DE\u05EA\u05D7\u05D9\u05DC \u05DE\u05D4\u05E6\u05D1\u05D9\u05E8\u05D4 \u05E9\u05D4\u05D6\u05E0\u05EA, ${money2(result.existingBalance)}, \u05D5\u05DE\u05D5\u05E1\u05D9\u05E3 \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D5\u05D3\u05E9\u05D9\u05EA \u05E7\u05D1\u05D5\u05E2\u05D4 \u05E9\u05DC ${money2(result.suggestedMonthly)} (\u05EA\u05E7\u05E8\u05EA 2026 \u05D7\u05DC\u05E7\u05D9 12), \u05DC\u05DC\u05D0 \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9\u05EA \u05D5\u05DC\u05E4\u05E0\u05D9 \u05D3\u05DE\u05D9 \u05E0\u05D9\u05D4\u05D5\u05DC. \u05D4\u05DE\u05D7\u05E9\u05D4 \u05D1\u05DC\u05D1\u05D3, \u05DC\u05DC\u05D0 \u05D4\u05EA\u05D7\u05D9\u05D9\u05D1\u05D5\u05EA \u05DC\u05EA\u05E9\u05D5\u05D0\u05D4; \u05D4\u05E1\u05DB\u05D5\u05DE\u05D9\u05DD \u05E0\u05D5\u05DE\u05D9\u05E0\u05DC\u05D9\u05D9\u05DD \u05D5\u05D1\u05D4\u05E0\u05D7\u05EA \u05EA\u05E9\u05D5\u05D0\u05D4 \u05E7\u05D1\u05D5\u05E2\u05D4.`;
-    $("#whatsapp").href = buildWhatsAppUrl(result, profile);
+    const whatsappUrl = buildWhatsAppUrl(result, profile);
+    $("#whatsapp").href = whatsappUrl;
+    $("#whatsapp-secondary").href = whatsappUrl;
     $("#calculation-details").innerHTML = `<p><strong>\u05EA\u05E7\u05E8\u05EA 2026:</strong> ${money2(result.ceiling)} \xB7 <strong>\u05D4\u05DB\u05E0\u05E1\u05D4:</strong> ${money2(result.income)} \xB7 <strong>\u05D4\u05D5\u05E4\u05E7\u05D3 \u05E2\u05D3 \u05D4\u05D9\u05D5\u05DD:</strong> ${money2(result.depositedToDate)} \xB7 <strong>\u05E6\u05E4\u05D9 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4:</strong> ${money2(result.projectedAnnualDeposited)}</p><p>\u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D4\u05D8\u05D1\u05D5\u05EA \u05DE\u05D7\u05D5\u05E9\u05D1 \u05D1\u05D4\u05E0\u05D7\u05D4 \u05E9\u05DC \u05DE\u05D9\u05E7\u05E1\u05D5\u05DD \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D4\u05E9\u05E0\u05EA\u05D9\u05EA \u05E2\u05D3 \u05D4\u05EA\u05E7\u05E8\u05D4, \u05D5\u05DC\u05DB\u05DF \u05DB\u05D5\u05DC\u05DC \u05D2\u05DD \u05D0\u05EA \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05DB\u05D1\u05E8 \u05D1\u05D5\u05E6\u05E2\u05D5 \u05D5\u05D0\u05EA \u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05D4\u05E6\u05E4\u05D5\u05D9\u05D4 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4 \u2014 \u05D5\u05DC\u05D0 \u05E8\u05E7 \u05D0\u05EA \u05D9\u05EA\u05E8\u05EA \u05D4\u05D4\u05E9\u05DC\u05DE\u05D4.</p><p><strong>\u05DE\u05D3\u05E8\u05D2\u05EA \u05DE\u05E1 \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA:</strong> ${result.taxRate * 100}% \xB7 <strong>\u05E9\u05D9\u05E2\u05D5\u05E8 \u05E0\u05D9\u05DB\u05D5\u05D9:</strong> ${result.deductibleRate * 100}%</p><p><strong>\u05D4\u05D8\u05D1\u05D4 \u05DE\u05D9\u05D9\u05D3\u05D9\u05EA \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA:</strong> \u05DE\u05E1 \u05D4\u05DB\u05E0\u05E1\u05D4 ${money2(result.estimatedTotalTaxBenefit)} + \u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9/\u05D1\u05E8\u05D9\u05D0\u05D5\u05EA ${money2(result.estimatedNationalInsuranceBenefitTotal)}.</p><p><strong>\u05E9\u05D5\u05D5\u05D9 \u05E2\u05EA\u05D9\u05D3\u05D9 \u05DE\u05E9\u05D5\u05E2\u05E8:</strong> \u05E4\u05D8\u05D5\u05E8 \u05DE\u05DE\u05E1 \u05E8\u05D5\u05D5\u05D7\u05D9 \u05D4\u05D5\u05DF ${money2(result.estimatedCapitalGainsExemptionValueTotal)}, \u05D1\u05D4\u05E0\u05D7\u05EA 8% \u05DC\u05E9\u05E0\u05D4 \u05DC\u05BE6 \u05E9\u05E0\u05D9\u05DD \u05D5\u05DE\u05E1 \u05E9\u05DC 25% \u05E2\u05DC \u05D4\u05E8\u05D5\u05D5\u05D7.</p><p>\u05DE\u05E7\u05D5\u05E8\u05D5\u05EA: \u05E1\u05E4\u05E8 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9\u05D9\u05DD 2026 \u05D5\u05E9\u05D9\u05E2\u05D5\u05E8\u05D9 \u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9 \u05DC\u05E2\u05E6\u05DE\u05D0\u05D9 2026 \u05DB\u05E4\u05D9 \u05E9\u05EA\u05D5\u05E2\u05D3\u05D5 \u05D1\u05D0\u05EA\u05E8 \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2\u05D9. \u05D0\u05D9\u05DE\u05D5\u05EA: 15.07.2026. \u05DB\u05DC \u05D4\u05E8\u05DB\u05D9\u05D1\u05D9\u05DD \u05D4\u05DD \u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D3\u05D5\u05E8\u05E9 \u05D0\u05D9\u05DE\u05D5\u05EA \u05D0\u05D9\u05E9\u05D9.</p>`;
   }
   form.addEventListener("click", (event) => {

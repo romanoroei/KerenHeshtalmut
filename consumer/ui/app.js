@@ -1,4 +1,4 @@
-import { buildGrowthSchedule, calculateConsumerResult, normalizeMoney } from '../engine/calculator.js';
+import { buildGrowthSchedule, calculateConsumerResult, daysRemainingInTaxYear, normalizeMoney } from '../engine/calculator.js';
 import { calculateUtilizationScore } from '../engine/score.js';
 import { buildCta, buildRecommendation } from '../engine/recommendations.js';
 import { buildWhatsAppUrl } from '../messages/whatsapp.js';
@@ -184,14 +184,32 @@ function renderScenarios(result) {
 function renderGrowthDetail(result, scenarioIndex) {
   const scenario = result.projections[scenarioIndex];
   const schedule = buildGrowthSchedule(result.existingBalance, result.suggestedMonthly, scenario.annualRate, scenario.years);
-  const maxValue = Math.max(...schedule.map((row) => row.nominalValue), 1);
+  const maxValue = Math.max(...schedule.map((row) => row.nominalValue), 1) * 1.08;
   $$('#scenario-list .scenario-card').forEach((card, index) => {
     const selected = index === scenarioIndex;
     card.classList.toggle('is-selected', selected);
     card.setAttribute('aria-expanded', String(selected));
   });
   $('#growth-detail-title').textContent = `${scenario.label} · ${Math.round(scenario.annualRate * 100)}% לשנה`;
-  $('#growth-bars').innerHTML = schedule.map((row) => `<div class="growth-bar-item"><span style="height:${Math.max(3, row.nominalValue / maxValue * 100)}%"></span><small>${row.year}</small></div>`).join('');
+  const chart = { left: 76, right: 730, top: 24, bottom: 220 };
+  const points = schedule.map((row, index) => ({
+    x: chart.left + (index / Math.max(1, schedule.length - 1)) * (chart.right - chart.left),
+    y: chart.bottom - (row.nominalValue / maxValue) * (chart.bottom - chart.top),
+  }));
+  const compactMoney = (value) => `${new Intl.NumberFormat('he-IL', { notation: 'compact', maximumFractionDigits: 1 }).format(value)} ₪`;
+  const yTicks = Array.from({ length: 5 }, (_, index) => {
+    const value = maxValue * index / 4;
+    const y = chart.bottom - (index / 4) * (chart.bottom - chart.top);
+    return `<line x1="${chart.left}" y1="${y}" x2="${chart.right}" y2="${y}" class="chart-grid"/><text x="${chart.left - 10}" y="${y + 4}" class="chart-label chart-label--y">${compactMoney(value)}</text>`;
+  }).join('');
+  const xEvery = Math.max(1, Math.ceil(scenario.years / 5));
+  const xLabels = schedule.filter((row) => row.year % xEvery === 0 || row.year === scenario.years).map((row) => {
+    const x = chart.left + (row.year / scenario.years) * (chart.right - chart.left);
+    return `<line x1="${x}" y1="${chart.bottom}" x2="${x}" y2="${chart.bottom + 5}" class="chart-axis"/><text x="${x}" y="${chart.bottom + 22}" class="chart-label chart-label--x">${row.year}</text>`;
+  }).join('');
+  const pointString = points.map((point) => `${point.x},${point.y}`).join(' ');
+  const areaString = `${chart.left},${chart.bottom} ${pointString} ${chart.right},${chart.bottom}`;
+  $('#growth-chart').innerHTML = `${yTicks}<line x1="${chart.left}" y1="${chart.top}" x2="${chart.left}" y2="${chart.bottom}" class="chart-axis"/><line x1="${chart.left}" y1="${chart.bottom}" x2="${chart.right}" y2="${chart.bottom}" class="chart-axis"/>${xLabels}<polygon points="${areaString}" class="chart-area"/><polyline points="${pointString}" class="chart-line"/>${points.map((point) => `<circle cx="${point.x}" cy="${point.y}" r="3.5" class="chart-point"/>`).join('')}<text x="${(chart.left + chart.right) / 2}" y="262" class="chart-axis-title">שנים</text><text x="18" y="${(chart.top + chart.bottom) / 2}" class="chart-axis-title chart-axis-title--y">שווי משוער</text>`;
   $('#growth-table-body').innerHTML = schedule.map((row) => `<tr><th scope="row">${row.year === 0 ? 'היום' : `שנה ${row.year}`}</th><td>${money(row.openingBalance)}</td><td>${money(row.contributions)}</td><td>${money(row.estimatedGrowth)}</td><td><strong>${money(row.nominalValue)}</strong></td></tr>`).join('');
   $('#growth-detail').hidden = false;
   $('#growth-detail').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
@@ -235,7 +253,7 @@ function renderRecommendationSteps(result, profile) {
 
 function renderResult(result, profile) {
   lastProfile = profile;
-  let headline = 'נשאר לך מקום לנצל השנה';
+  let headline = 'זה הסכום שעוד ניתן להפקיד עד סוף 2026';
   let detail = 'זהו הסכום שניתן לשקול להפקיד עד לתקרה המוטבת לשנת 2026.';
   if (result.overCeiling > 0) {
     headline = 'חלק מההפקדה שלך נמצא מעל התקרה המוטבת';
@@ -248,18 +266,25 @@ function renderResult(result, profile) {
   $('#headline-detail').textContent = detail;
   countUp($('#remaining'), result.remaining, money);
   countUp($('#tax-benefit'), result.estimatedCombinedBenefitTotal, money);
+  const countdownDays = daysRemainingInTaxYear(new Date(), result.taxYear);
+  $('#countdown-days').textContent = countdownDays.toLocaleString('he-IL');
+  $('#tax-countdown').hidden = countdownDays === 0;
   countUp($('#deposited-to-date'), result.depositedToDate, money);
   countUp($('#projected-annual'), result.projectedAnnualDeposited, money);
   $('#future-scheduled').textContent = result.futureScheduledDeposits > 0 ? `מתוכם ${money(result.futureScheduledDeposits)} צפויים בהוראת הקבע עד סוף השנה` : 'לא הוזנו הפקדות חודשיות עתידיות';
   countUp($('#income-tax-benefit'), result.estimatedTotalTaxBenefit, money);
   countUp($('#insurance-benefit'), result.estimatedNationalInsuranceBenefitTotal, money);
   countUp($('#capital-gains-benefit'), result.estimatedCapitalGainsExemptionValueTotal, money);
-  $('#dynamic-cta').textContent = buildCta(result, profile);
+  const ctaCopy = buildCta(result, profile);
+  $('#dynamic-cta').textContent = ctaCopy;
+  $('#dynamic-cta-secondary').textContent = ctaCopy;
   renderScore(result, profile);
   renderRecommendationSteps(result, profile);
   renderScenarios(result);
   $('.growth-notice').textContent = `החישוב מתחיל מהצבירה שהזנת, ${money(result.existingBalance)}, ומוסיף הפקדה חודשית קבועה של ${money(result.suggestedMonthly)} (תקרת 2026 חלקי 12), ללא הפקדה חד־פעמית ולפני דמי ניהול. המחשה בלבד, ללא התחייבות לתשואה; הסכומים נומינליים ובהנחת תשואה קבועה.`;
-  $('#whatsapp').href = buildWhatsAppUrl(result, profile);
+  const whatsappUrl = buildWhatsAppUrl(result, profile);
+  $('#whatsapp').href = whatsappUrl;
+  $('#whatsapp-secondary').href = whatsappUrl;
   $('#calculation-details').innerHTML = `<p><strong>תקרת 2026:</strong> ${money(result.ceiling)} · <strong>הכנסה:</strong> ${money(result.income)} · <strong>הופקד עד היום:</strong> ${money(result.depositedToDate)} · <strong>צפי עד סוף השנה:</strong> ${money(result.projectedAnnualDeposited)}</p><p>אומדן ההטבות מחושב בהנחה של מיקסום ההפקדה השנתית עד התקרה, ולכן כולל גם את ההפקדות שכבר בוצעו ואת הוראת הקבע הצפויה עד סוף השנה — ולא רק את יתרת ההשלמה.</p><p><strong>מדרגת מס משוערת:</strong> ${result.taxRate * 100}% · <strong>שיעור ניכוי:</strong> ${result.deductibleRate * 100}%</p><p><strong>הטבה מיידית משוערת:</strong> מס הכנסה ${money(result.estimatedTotalTaxBenefit)} + ביטוח לאומי/בריאות ${money(result.estimatedNationalInsuranceBenefitTotal)}.</p><p><strong>שווי עתידי משוער:</strong> פטור ממס רווחי הון ${money(result.estimatedCapitalGainsExemptionValueTotal)}, בהנחת 8% לשנה ל־6 שנים ומס של 25% על הרווח.</p><p>מקורות: ספר הניכויים 2026 ושיעורי ביטוח לאומי לעצמאי 2026 כפי שתועדו באתר המקצועי. אימות: 15.07.2026. כל הרכיבים הם אומדן הדורש אימות אישי.</p>`;
 }
 

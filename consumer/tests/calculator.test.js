@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildGrowthSchedule, calculateConsumerResult, capitalGainsExemptionValue, futureValueOfMonthlyDeposits, monthsRemainingInTaxYear, nationalInsuranceDue, normalizeMoney, projectedAnnualDeposits, totalDeposited } from '../engine/calculator.js';
+import { buildGrowthSchedule, calculateConsumerResult, capitalGainsExemptionValue, daysRemainingInTaxYear, futureValueOfMonthlyDeposits, monthsRemainingInTaxYear, nationalInsuranceDue, normalizeMoney, projectedAnnualDeposits, totalDeposited } from '../engine/calculator.js';
 import { TAX_DATA_2026 } from '../data/tax-data.js';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '../messages/whatsapp.js';
 
@@ -61,6 +61,12 @@ test('חודשים שנותרו עד סוף שנת המס 2026', () => {
   assert.equal(monthsRemainingInTaxYear(new Date('2026-07-15T12:00:00')), 6);
   assert.equal(monthsRemainingInTaxYear(new Date('2025-07-15T12:00:00')), 12);
   assert.equal(monthsRemainingInTaxYear(new Date('2027-01-01T12:00:00')), 0);
+});
+
+test('ספירה לאחור עד סוף שנת המס 2026', () => {
+  assert.equal(daysRemainingInTaxYear(new Date(2026, 11, 31, 12), 2026), 1);
+  assert.equal(daysRemainingInTaxYear(new Date(2027, 0, 1), 2026), 0);
+  assert.ok(daysRemainingInTaxYear(new Date(2026, 6, 18), 2026) > 0);
 });
 test('הטבת מס כוללת ונוספת מופרדות', () => {
   const result = calculateConsumerResult({ income: 200000, deposited: 5000, today: new Date('2026-07-15') });

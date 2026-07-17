@@ -39,7 +39,11 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   assert.match(html, /class="deposit-mini"/);
   assert.doesNotMatch(html, /הפקדה חודשית להמחשה/);
   assert.match(html, /id="growth-detail"/);
+  assert.match(html, /id="growth-chart"/);
+  assert.doesNotMatch(html, /id="growth-bars"/);
   assert.ok(html.indexOf('class="whatsapp-card"') < html.indexOf('class="support-grid"'));
+  assert.match(html, /id="countdown-days"/);
+  assert.match(html, /id="whatsapp-secondary"/);
 });
 
 test('מסך הפתיחה אינו מציג תגית צפה ליד תמונת היועץ', async () => {

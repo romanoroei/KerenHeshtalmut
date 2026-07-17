@@ -64,6 +64,13 @@ export function monthsRemainingInTaxYear(date = new Date(), taxYear = 2026) {
   return Math.max(0, 12 - date.getMonth());
 }
 
+export function daysRemainingInTaxYear(date = new Date(), taxYear = 2026) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) throw new TypeError('Invalid date');
+  const end = new Date(taxYear, 11, 31, 23, 59, 59, 999);
+  if (date > end) return 0;
+  return Math.max(0, Math.ceil((end.getTime() - date.getTime()) / 86400000));
+}
+
 export function totalDeposited(input) {
   const lumpSum = normalizeMoney(input.lumpSum ?? 0);
   const monthlyDeposit = normalizeMoney(input.monthlyDeposit ?? 0);
