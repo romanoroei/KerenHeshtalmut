@@ -115,6 +115,10 @@ test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקד
   const check = await readFile(new URL('../check.html', import.meta.url), 'utf8');
   const landing = await readFile(new URL('../index.html', import.meta.url), 'utf8');
   assert.match(check, /id="share-benefits"/);
+  assert.match(check, /מכירים עצמאי שזה יכול לעזור לו\?/);
+  assert.match(check, /שתפו את הבדיקה/);
+  assert.match(check, /class="restart-link"/);
+  assert.doesNotMatch(check, /class="btn btn-share"/);
   assert.doesNotMatch(check, />למחשבון המקצועי/);
   assert.match(landing, /property="og:image" content="https:\/\/romanoroei\.github\.io\/KerenHeshtalmut\/og-share\.jpg/);
   assert.match(landing, /property="og:image:secure_url"/);
