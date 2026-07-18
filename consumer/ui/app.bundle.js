@@ -397,7 +397,8 @@ ${CONSUMER_URL}`;
     if (depositMethod) {
       preview.hidden = false;
       preview.classList.toggle("is-error", !Number.isFinite(depositedTotal));
-      $("span", preview).textContent = Number.isFinite(depositedTotal) ? `\u05E2\u05D3 \u05DB\u05D4 \u05D4\u05D5\u05D6\u05E0\u05D5 \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05D1\u05E1\u05DA ${money2(depositedTotal)}.` : "\u05DE\u05E1\u05E4\u05E8 \u05D4\u05D7\u05D5\u05D3\u05E9\u05D9\u05DD \u05D0\u05D9\u05E0\u05D5 \u05D4\u05D2\u05D9\u05D5\u05E0\u05D9. \u05D9\u05E9 \u05DC\u05D4\u05D6\u05D9\u05DF \u05DE\u05E1\u05E4\u05E8 \u05E9\u05DC\u05DD \u05D1\u05D9\u05DF 1 \u05DC\u05BE12.";
+      const includesStandingOrder = ["monthly", "both"].includes(depositMethod);
+      $("span", preview).textContent = Number.isFinite(depositedTotal) ? `\u05E2\u05D3 \u05DB\u05D4 \u05D4\u05D5\u05D6\u05E0\u05D5 \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05D1\u05E1\u05DA ${money2(depositedTotal)}${includesStandingOrder ? ", \u05DB\u05D5\u05DC\u05DC \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2" : ""}.` : "\u05DE\u05E1\u05E4\u05E8 \u05D4\u05D7\u05D5\u05D3\u05E9\u05D9\u05DD \u05D0\u05D9\u05E0\u05D5 \u05D4\u05D2\u05D9\u05D5\u05E0\u05D9. \u05D9\u05E9 \u05DC\u05D4\u05D6\u05D9\u05DF \u05DE\u05E1\u05E4\u05E8 \u05E9\u05DC\u05DD \u05D1\u05D9\u05DF 1 \u05DC\u05BE12.";
     }
   }
   function updateDepositFields() {
@@ -436,7 +437,7 @@ ${CONSUMER_URL}`;
     $("#form-error").textContent = "";
     if (animate) steps[currentStep].classList.add("is-entering");
     (_a = steps[currentStep].querySelector("input")) == null ? void 0 : _a.focus({ preventScroll: true });
-    if (innerWidth <= 640) form.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    if (innerWidth <= 640 && currentStep > 0) form.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   }
   function validateStep() {
     const active = steps[currentStep];
@@ -726,11 +727,11 @@ ${CONSUMER_URL}`;
     if (event.target.matches('input[type="radio"], input[type="checkbox"]')) updateSelectedCards();
     if (event.target.name === "depositMethod") {
       updateDepositFields();
+      const target = ["lump", "both"].includes(event.target.value) ? $("#lumpSum") : ["monthly"].includes(event.target.value) ? $("#monthlyDeposit") : $("#existingBalance");
+      if (target && normalizeMoney(target.value) === 0) target.value = "";
+      target == null ? void 0 : target.focus({ preventScroll: true });
       requestAnimationFrame(() => {
         var _a;
-        const target = ["lump", "both"].includes(event.target.value) ? $("#lumpSum") : ["monthly"].includes(event.target.value) ? $("#monthlyDeposit") : $("#existingBalance");
-        if (target && normalizeMoney(target.value) === 0) target.value = "";
-        target == null ? void 0 : target.focus({ preventScroll: true });
         (_a = target == null ? void 0 : target.closest(".conditional-fields")) == null ? void 0 : _a.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
       });
     }
@@ -787,6 +788,13 @@ ${CONSUMER_URL}`;
     if (!card || !lastResult) return;
     renderGrowthDetail(lastResult, Number(card.dataset.scenarioIndex));
   });
-  $("#restart").addEventListener("click", () => location.reload());
+  $("#restart").addEventListener("click", () => {
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+    location.assign("./check.html?restart=1");
+  });
+  if (new URLSearchParams(location.search).has("restart")) {
+    history.replaceState(null, "", "./check.html");
+    scrollTo(0, 0);
+  }
   renderStep(0, false);
 })();

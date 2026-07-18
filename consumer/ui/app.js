@@ -81,7 +81,8 @@ function updateSummary() {
   if (depositMethod) {
     preview.hidden = false;
     preview.classList.toggle('is-error', !Number.isFinite(depositedTotal));
-    $('span', preview).textContent = Number.isFinite(depositedTotal) ? `עד כה הוזנו הפקדות בסך ${money(depositedTotal)}.` : 'מספר החודשים אינו הגיוני. יש להזין מספר שלם בין 1 ל־12.';
+    const includesStandingOrder = ['monthly', 'both'].includes(depositMethod);
+    $('span', preview).textContent = Number.isFinite(depositedTotal) ? `עד כה הוזנו הפקדות בסך ${money(depositedTotal)}${includesStandingOrder ? ', כולל הוראת קבע' : ''}.` : 'מספר החודשים אינו הגיוני. יש להזין מספר שלם בין 1 ל־12.';
   }
 }
 
@@ -119,7 +120,7 @@ function renderStep(index, animate = true) {
   $('#form-error').textContent = '';
   if (animate) steps[currentStep].classList.add('is-entering');
   steps[currentStep].querySelector('input')?.focus({ preventScroll: true });
-  if (innerWidth <= 640) form.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  if (innerWidth <= 640 && currentStep > 0) form.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
 }
 
 function validateStep() {
@@ -411,11 +412,11 @@ form.addEventListener('change', (event) => {
   if (event.target.matches('input[type="radio"], input[type="checkbox"]')) updateSelectedCards();
   if (event.target.name === 'depositMethod') {
     updateDepositFields();
+    const target = ['lump', 'both'].includes(event.target.value) ? $('#lumpSum')
+      : ['monthly'].includes(event.target.value) ? $('#monthlyDeposit') : $('#existingBalance');
+    if (target && normalizeMoney(target.value) === 0) target.value = '';
+    target?.focus({ preventScroll: true });
     requestAnimationFrame(() => {
-      const target = ['lump', 'both'].includes(event.target.value) ? $('#lumpSum')
-        : ['monthly'].includes(event.target.value) ? $('#monthlyDeposit') : $('#existingBalance');
-      if (target && normalizeMoney(target.value) === 0) target.value = '';
-      target?.focus({ preventScroll: true });
       target?.closest('.conditional-fields')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
     });
   }
@@ -476,5 +477,12 @@ $('#scenario-list').addEventListener('click', (event) => {
   renderGrowthDetail(lastResult, Number(card.dataset.scenarioIndex));
 });
 
-$('#restart').addEventListener('click', () => location.reload());
+$('#restart').addEventListener('click', () => {
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  location.assign('./check.html?restart=1');
+});
+if (new URLSearchParams(location.search).has('restart')) {
+  history.replaceState(null, '', './check.html');
+  scrollTo(0, 0);
+}
 renderStep(0, false);
