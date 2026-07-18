@@ -133,6 +133,10 @@ test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקד
   assert.match(styles, /\.whatsapp-card \+ \.action-plan-card \{ margin-top: 30px;/);
   assert.match(styles, /\.recommendation-disclaimer \{ color: var\(--slate-900\)/);
   assert.match(landing, /לחצו כאן ומתחילים בדיקה/);
+  assert.match(landing, /תכנית עבודה ברורה/);
+  assert.match(landing, /ליווי פיננסי של בעל מקצוע/);
+  assert.doesNotMatch(landing, /תוצאה ברורה/);
+  assert.doesNotMatch(`${landing}\n${check}\n${source}`, /מחשבון פשוט/);
   assert.equal((check.match(/class="site-footer"/g) ?? []).length, 0);
   assert.match(check, /שיתוף האתר ב־WhatsApp/);
   assert.doesNotMatch(check, />למחשבון המקצועי/);
