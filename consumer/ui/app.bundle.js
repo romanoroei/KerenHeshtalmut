@@ -134,22 +134,25 @@
     }
     return lumpSum + monthlyDeposit * monthsDeposited;
   }
-  function projectedAnnualDeposits(input) {
-    var _a, _b, _c;
-    const lumpSum = normalizeMoney((_a = input.lumpSum) != null ? _a : 0);
+  function projectedAnnualDeposits(input, date = ((_a) => (_a = input.today) != null ? _a : /* @__PURE__ */ new Date())()) {
+    var _a2, _b, _c;
+    const lumpSum = normalizeMoney((_a2 = input.lumpSum) != null ? _a2 : 0);
     const monthlyDeposit = normalizeMoney((_b = input.monthlyDeposit) != null ? _b : 0);
     const monthsDeposited = normalizeMoney((_c = input.monthsDeposited) != null ? _c : 0);
     if (![lumpSum, monthlyDeposit, monthsDeposited].every(Number.isFinite) || !Number.isInteger(monthsDeposited) || monthsDeposited > 12) {
       throw new TypeError("Invalid deposit details");
     }
-    return lumpSum + monthlyDeposit * 12;
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) throw new TypeError("Invalid date");
+    const futurePayments = date.getFullYear() === TAX_DATA_2026.taxYear ? Math.max(0, 11 - date.getMonth()) : date.getFullYear() < TAX_DATA_2026.taxYear ? 12 : 0;
+    return lumpSum + monthlyDeposit * Math.min(12, monthsDeposited + futurePayments);
   }
   function calculateConsumerResult(input, data = TAX_DATA_2026) {
     var _a, _b, _c, _d;
+    const calculationDate = (_a = input.today) != null ? _a : /* @__PURE__ */ new Date();
     const income = normalizeMoney(input.income);
-    const lumpSumDeposit = normalizeMoney((_a = input.lumpSum) != null ? _a : 0);
+    const lumpSumDeposit = normalizeMoney((_b = input.lumpSum) != null ? _b : 0);
     const depositedToDate = input.deposited === void 0 ? totalDeposited(input) : normalizeMoney(input.deposited);
-    const projectedDeposited = input.deposited === void 0 ? projectedAnnualDeposits(input) : depositedToDate;
+    const projectedDeposited = input.deposited === void 0 ? projectedAnnualDeposits(input, calculationDate) : depositedToDate;
     const enteredExistingBalance = normalizeMoney(input.existingBalance);
     const existingBalance = input.existingBalance === "" || input.existingBalance === null || input.existingBalance === void 0 || enteredExistingBalance === 0 ? depositedToDate : enteredExistingBalance;
     if (!Number.isFinite(income) || income <= 0) throw new TypeError("Income must be greater than zero");
@@ -182,11 +185,10 @@
     const estimatedCapitalGainsExemptionValueAdditional = capitalGainsExemptionValue(protectedAdditional, data.capitalGainsExemption.value);
     const estimatedCombinedBenefitTotal = estimatedTotalTaxBenefit + estimatedNationalInsuranceBenefitTotal + estimatedCapitalGainsExemptionValueTotal;
     const estimatedCombinedBenefitAdditional = estimatedAdditionalTaxBenefit + estimatedNationalInsuranceBenefitAdditional + estimatedCapitalGainsExemptionValueAdditional;
-    const calculationDate = (_b = input.today) != null ? _b : /* @__PURE__ */ new Date();
     const monthsRemaining = monthsRemainingInTaxYear(calculationDate, data.taxYear);
     const monthlyDeposit = normalizeMoney((_c = input.monthlyDeposit) != null ? _c : 0);
     const monthsDeposited = normalizeMoney((_d = input.monthsDeposited) != null ? _d : 0);
-    const scheduledMonthsRemaining = input.deposited === void 0 && monthlyDeposit > 0 ? Math.max(0, 12 - monthsDeposited) : calculationDate.getFullYear() === data.taxYear ? Math.max(0, 11 - calculationDate.getMonth()) : monthsRemaining;
+    const scheduledMonthsRemaining = calculationDate.getFullYear() === data.taxYear ? Math.max(0, 11 - calculationDate.getMonth()) : calculationDate.getFullYear() < data.taxYear ? 12 : 0;
     const suggestedMonthlyToYearEnd = remaining > 0 && scheduledMonthsRemaining > 0 ? Math.ceil(remaining / scheduledMonthsRemaining) : 0;
     const suggestedTotalMonthlyToYearEnd = monthlyDeposit + suggestedMonthlyToYearEnd;
     const suggestedMonthly = Math.ceil(ceiling / 12);
@@ -200,7 +202,7 @@
     }
     const oldRatePaymentsBeforeChange = scheduledMonthsRemaining - nextYearRatePayments;
     const nextYearRateLumpSum = nextYearRatePayments > 0 ? Math.max(0, capacityFromToday - oldRatePaymentsBeforeChange * monthlyDeposit - nextYearRatePayments * suggestedMonthly) : 0;
-    const nextYearRateStartMonthIndex = nextYearRatePayments > 0 ? Math.min(11, monthsDeposited + oldRatePaymentsBeforeChange) : null;
+    const nextYearRateStartMonthIndex = nextYearRatePayments > 0 ? Math.min(11, calculationDate.getMonth() + 1 + oldRatePaymentsBeforeChange) : null;
     const projectionYears = [6, 10, 15, 20].includes(Number(input.projectionYears)) ? Number(input.projectionYears) : 10;
     const projections = RETURN_SCENARIOS.map((scenario) => {
       const schedule = buildGrowthSchedule(existingBalance, suggestedMonthly, scenario.annualRate, projectionYears);
@@ -614,7 +616,7 @@ ${url}`;
     $("#submit-check").hidden = currentStep !== 3;
     $("#form-error").textContent = "";
     if (animate) steps[currentStep].classList.add("is-entering");
-    (_a = steps[currentStep].querySelector("input")) == null ? void 0 : _a.focus({ preventScroll: true });
+    (_a = steps[currentStep].querySelector('input:not([type="radio"]):not([type="checkbox"])')) == null ? void 0 : _a.focus({ preventScroll: true });
     if (innerWidth <= 640 && currentStep > 0) form.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
     saveFormState();
   }

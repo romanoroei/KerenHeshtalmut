@@ -95,7 +95,7 @@ test('קלט ריק או לא תקין', () => {
   assert.throws(() => calculateConsumerResult({ income: '', deposited: 0 }), TypeError);
   assert.throws(() => calculateConsumerResult({ income: 100000, deposited: '-1' }), TypeError);
 });
-test('השלמה חודשית מתחשבת במספר ההפקדות שנותרו ולא בחודשי לוח השנה', () => {
+test('השלמה חודשית מתחשבת בחודשים הקלנדריים שנותרו החל מהחודש הבא', () => {
   const result = calculateConsumerResult({
     income: 200000,
     lumpSum: 12000,
@@ -110,6 +110,21 @@ test('השלמה חודשית מתחשבת במספר ההפקדות שנותר�
   assert.equal(result.scheduledMonthsRemaining, 5);
   assert.equal(result.suggestedMonthlyToYearEnd, 514);
   assert.equal(result.suggestedTotalMonthlyToYearEnd, 1014);
+});
+test('מספר הפקדות קטן אינו יוצר הפקדות עתידיות מעבר לסוף השנה', () => {
+  const result = calculateConsumerResult({
+    income: 200000,
+    monthlyDeposit: 500,
+    monthsDeposited: 1,
+    today: new Date('2026-07-18'),
+  });
+  assert.equal(result.depositedToDate, 500);
+  assert.equal(result.scheduledMonthsRemaining, 5);
+  assert.equal(result.projectedAnnualDeposited, 3000);
+  assert.equal(result.futureScheduledDeposits, 2500);
+  assert.equal(result.remaining, 17566);
+  assert.equal(result.suggestedMonthlyToYearEnd, Math.ceil(17566 / 5));
+  assert.equal(result.suggestedTotalMonthlyToYearEnd, 500 + Math.ceil(17566 / 5));
 });
 test('חלופת מעבר השנה להוראת הקבע של השנה הבאה משלימה בדיוק את התקרה', () => {
   const result = calculateConsumerResult({ income: 200000, lumpSum: 10000, monthlyDeposit: 500, monthsDeposited: 7, today: new Date('2026-07-18') });

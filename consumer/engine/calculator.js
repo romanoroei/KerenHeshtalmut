@@ -81,21 +81,26 @@ export function totalDeposited(input) {
   return lumpSum + (monthlyDeposit * monthsDeposited);
 }
 
-export function projectedAnnualDeposits(input) {
+export function projectedAnnualDeposits(input, date = input.today ?? new Date()) {
   const lumpSum = normalizeMoney(input.lumpSum ?? 0);
   const monthlyDeposit = normalizeMoney(input.monthlyDeposit ?? 0);
   const monthsDeposited = normalizeMoney(input.monthsDeposited ?? 0);
   if (![lumpSum, monthlyDeposit, monthsDeposited].every(Number.isFinite) || !Number.isInteger(monthsDeposited) || monthsDeposited > 12) {
     throw new TypeError('Invalid deposit details');
   }
-  return lumpSum + (monthlyDeposit * 12);
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) throw new TypeError('Invalid date');
+  const futurePayments = date.getFullYear() === TAX_DATA_2026.taxYear
+    ? Math.max(0, 11 - date.getMonth())
+    : date.getFullYear() < TAX_DATA_2026.taxYear ? 12 : 0;
+  return lumpSum + (monthlyDeposit * Math.min(12, monthsDeposited + futurePayments));
 }
 
 export function calculateConsumerResult(input, data = TAX_DATA_2026) {
+  const calculationDate = input.today ?? new Date();
   const income = normalizeMoney(input.income);
   const lumpSumDeposit = normalizeMoney(input.lumpSum ?? 0);
   const depositedToDate = input.deposited === undefined ? totalDeposited(input) : normalizeMoney(input.deposited);
-  const projectedDeposited = input.deposited === undefined ? projectedAnnualDeposits(input) : depositedToDate;
+  const projectedDeposited = input.deposited === undefined ? projectedAnnualDeposits(input, calculationDate) : depositedToDate;
   const enteredExistingBalance = normalizeMoney(input.existingBalance);
   const existingBalance = input.existingBalance === '' || input.existingBalance === null || input.existingBalance === undefined || enteredExistingBalance === 0
     ? depositedToDate
@@ -131,13 +136,12 @@ export function calculateConsumerResult(input, data = TAX_DATA_2026) {
     + estimatedNationalInsuranceBenefitTotal + estimatedCapitalGainsExemptionValueTotal;
   const estimatedCombinedBenefitAdditional = estimatedAdditionalTaxBenefit
     + estimatedNationalInsuranceBenefitAdditional + estimatedCapitalGainsExemptionValueAdditional;
-  const calculationDate = input.today ?? new Date();
   const monthsRemaining = monthsRemainingInTaxYear(calculationDate, data.taxYear);
   const monthlyDeposit = normalizeMoney(input.monthlyDeposit ?? 0);
   const monthsDeposited = normalizeMoney(input.monthsDeposited ?? 0);
-  const scheduledMonthsRemaining = input.deposited === undefined && monthlyDeposit > 0
-    ? Math.max(0, 12 - monthsDeposited)
-    : calculationDate.getFullYear() === data.taxYear ? Math.max(0, 11 - calculationDate.getMonth()) : monthsRemaining;
+  const scheduledMonthsRemaining = calculationDate.getFullYear() === data.taxYear
+    ? Math.max(0, 11 - calculationDate.getMonth())
+    : calculationDate.getFullYear() < data.taxYear ? 12 : 0;
   const suggestedMonthlyToYearEnd = remaining > 0 && scheduledMonthsRemaining > 0
     ? Math.ceil(remaining / scheduledMonthsRemaining)
     : 0;
@@ -153,7 +157,9 @@ export function calculateConsumerResult(input, data = TAX_DATA_2026) {
   }
   const oldRatePaymentsBeforeChange = scheduledMonthsRemaining - nextYearRatePayments;
   const nextYearRateLumpSum = nextYearRatePayments > 0 ? Math.max(0, capacityFromToday - (oldRatePaymentsBeforeChange * monthlyDeposit) - (nextYearRatePayments * suggestedMonthly)) : 0;
-  const nextYearRateStartMonthIndex = nextYearRatePayments > 0 ? Math.min(11, monthsDeposited + oldRatePaymentsBeforeChange) : null;
+  const nextYearRateStartMonthIndex = nextYearRatePayments > 0
+    ? Math.min(11, calculationDate.getMonth() + 1 + oldRatePaymentsBeforeChange)
+    : null;
   const projectionYears = [6, 10, 15, 20].includes(Number(input.projectionYears)) ? Number(input.projectionYears) : 10;
   const projections = RETURN_SCENARIOS.map((scenario) => {
     const schedule = buildGrowthSchedule(existingBalance, suggestedMonthly, scenario.annualRate, projectionYears);

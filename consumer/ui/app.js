@@ -154,7 +154,7 @@ function renderStep(index, animate = true) {
   $('#submit-check').hidden = currentStep !== 3;
   $('#form-error').textContent = '';
   if (animate) steps[currentStep].classList.add('is-entering');
-  steps[currentStep].querySelector('input')?.focus({ preventScroll: true });
+  steps[currentStep].querySelector('input:not([type="radio"]):not([type="checkbox"])')?.focus({ preventScroll: true });
   if (innerWidth <= 640 && currentStep > 0) form.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
   saveFormState();
 }
