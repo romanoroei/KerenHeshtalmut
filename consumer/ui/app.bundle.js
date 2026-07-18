@@ -599,12 +599,15 @@
         }
       } else stepsForUser.push(buildRecommendation(result, profile));
       const wantsMonthlyPlan = profile.goals.includes("monthly");
+      if (result.overCeiling > 0) {
+        stepsForUser.push(`לקבוע תזכורת ל־1.1.${result.taxYear + 1}: לאחר פרסום התקרה המעודכנת, לבדוק את הסכום החדש ולשקול להפקיד את מלוא התקרה כבר בתחילת השנה, כדי שהכסף יוכל לעבוד לאורך שנה ארוכה יותר.`);
+      }
       if (wantsMonthlyPlan && result.remaining > 0) {
         stepsForUser.push(`חלופה נוספת: להשלים השנה את מלוא היתרה, ${money2(result.remaining)}, בהפקדה חד־פעמית; ומ־1.1.${result.taxYear + 1} להתחיל הוראת קבע שוטפת של כ־${money2(result.suggestedMonthly)} בחודש. הסכום החודשי מבוסס על תקרת ${result.taxYear} ויש לעדכנו לאחר פרסום התקרה החדשה.`);
       }
-      if (profile.completionPreference === "lump" && !wantsMonthlyPlan) {
+      if (profile.completionPreference === "lump" && !wantsMonthlyPlan && result.overCeiling === 0) {
         stepsForUser.push(`לקבוע כבר עכשיו תזכורת ל־1.1.${result.taxYear + 1}. לאחר פרסום התקרה המעודכנת לשנה הבאה, ניתן לשקול להפקיד אותה בתחילת השנה — כך הכסף יוכל להיות מושקע ולעבוד לאורך שנה ארוכה יותר.`);
-      } else if (result.nextYearRatePayments === 0 && !(wantsMonthlyPlan && result.remaining > 0 && result.currentMonthlyDeposit === 0)) {
+      } else if (result.nextYearRatePayments === 0 && (result.overCeiling === 0 || wantsMonthlyPlan) && !(wantsMonthlyPlan && result.remaining > 0 && result.currentMonthlyDeposit === 0)) {
         stepsForUser.push(`\u05DC\u05D4\u05D9\u05E2\u05E8\u05DA \u05DC\u05E9\u05E0\u05D4 \u05D4\u05D1\u05D0\u05D4 \u05E2\u05DD \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2 \u05E9\u05DC \u05DB\u05BE${money2(result.suggestedMonthly)} \u05D1\u05D7\u05D5\u05D3\u05E9, \u05D5\u05DC\u05E2\u05D3\u05DB\u05DF \u05D0\u05D5\u05EA\u05D4 \u05DB\u05E9\u05D4\u05EA\u05E7\u05E8\u05D4 \u05DE\u05E9\u05EA\u05E0\u05D4.`);
       }
       stepsForUser.push("\u05DC\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D7\u05EA \u05DC\u05E9\u05E0\u05D4 \u05E9\u05D4\u05DE\u05E1\u05DC\u05D5\u05DC \u05D5\u05D3\u05DE\u05D9 \u05D4\u05E0\u05D9\u05D4\u05D5\u05DC \u05E2\u05D3\u05D9\u05D9\u05DF \u05DE\u05EA\u05D0\u05D9\u05DE\u05D9\u05DD \u05DC\u05DE\u05D8\u05E8\u05D5\u05EA \u05E9\u05D1\u05D7\u05E8\u05EA.");

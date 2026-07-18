@@ -291,12 +291,15 @@ function renderRecommendationSteps(result, profile) {
       }
     } else stepsForUser.push(buildRecommendation(result, profile));
     const wantsMonthlyPlan = profile.goals.includes('monthly');
+    if (result.overCeiling > 0) {
+      stepsForUser.push(`לקבוע תזכורת ל־1.1.${result.taxYear + 1}: לאחר פרסום התקרה המעודכנת, לבדוק את הסכום החדש ולשקול להפקיד את מלוא התקרה כבר בתחילת השנה, כדי שהכסף יוכל לעבוד לאורך שנה ארוכה יותר.`);
+    }
     if (wantsMonthlyPlan && result.remaining > 0) {
       stepsForUser.push(`חלופה נוספת: להשלים השנה את מלוא היתרה, ${money(result.remaining)}, בהפקדה חד־פעמית; ומ־1.1.${result.taxYear + 1} להתחיל הוראת קבע שוטפת של כ־${money(result.suggestedMonthly)} בחודש. הסכום החודשי מבוסס על תקרת ${result.taxYear} ויש לעדכנו לאחר פרסום התקרה החדשה.`);
     }
-    if (profile.completionPreference === 'lump' && !wantsMonthlyPlan) {
+    if (profile.completionPreference === 'lump' && !wantsMonthlyPlan && result.overCeiling === 0) {
       stepsForUser.push(`לקבוע כבר עכשיו תזכורת ל־1.1.${result.taxYear + 1}. לאחר פרסום התקרה המעודכנת לשנה הבאה, ניתן לשקול להפקיד אותה בתחילת השנה — כך הכסף יוכל להיות מושקע ולעבוד לאורך שנה ארוכה יותר.`);
-    } else if (result.nextYearRatePayments === 0 && !(wantsMonthlyPlan && result.remaining > 0 && result.currentMonthlyDeposit === 0)) {
+    } else if (result.nextYearRatePayments === 0 && (result.overCeiling === 0 || wantsMonthlyPlan) && !(wantsMonthlyPlan && result.remaining > 0 && result.currentMonthlyDeposit === 0)) {
       stepsForUser.push(`להיערך לשנה הבאה עם הוראת קבע של כ־${money(result.suggestedMonthly)} בחודש, ולעדכן אותה כשהתקרה משתנה.`);
     }
     stepsForUser.push('לבדוק אחת לשנה שהמסלול ודמי הניהול עדיין מתאימים למטרות שבחרת.');
