@@ -121,6 +121,7 @@ test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקד
   assert.match(check, /class="restart-link"/);
   assert.doesNotMatch(check, /class="btn btn-share"/);
   assert.doesNotMatch(check, /name="(?:lumpSum|monthlyDeposit|monthsDeposited)"[^>]*value="0"/);
+  assert.match(check, /name="monthlyDeposit"[\s\S]*?<p class="field-error" aria-hidden="true"><\/p>[\s\S]*?name="monthsDeposited"/);
   assert.match(source, /כולל הוראת קבע/);
   assert.match(source, /location\.assign\('\.\/check\.html\?restart=1'\)/);
   assert.match(source, /currentStep > 0/);
