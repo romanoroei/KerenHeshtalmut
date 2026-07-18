@@ -2,25 +2,28 @@ const PHONE = '972528089808';
 const money = (value) => new Intl.NumberFormat('he-IL', { maximumFractionDigits: 0 }).format(Math.round(value));
 
 export function buildWhatsAppMessage(result, profile = {}) {
+  const goalLabels = {
+    tax: 'לנצל את הטבת המס',
+    saving: 'להגדיל את החיסכון',
+    monthly: 'לבנות הוראת קבע',
+    check: 'לבדוק אם אני בדרך הנכונה',
+  };
+  const goals = (profile.goals ?? String(profile.goal ?? '').split(',').map((goal) => goal.trim()).filter(Boolean))
+    .map((goal) => goalLabels[goal] ?? goal)
+    .join(', ');
   return [
-    'היי רועי, ביצעתי את בדיקת קרן ההשתלמות באתר.',
+    'היי רועי, ביצעתי את בדיקת קרן ההשתלמות לעצמאים באתר:',
     `הכנסה שנתית חייבת משוערת: ${money(result.income)} ₪`,
-    `סך הפקדות שבוצעו עד היום: ${money(result.depositedToDate ?? result.deposited)} ₪`,
-    `צפי הפקדות עד סוף השנה: ${money(result.projectedAnnualDeposited ?? result.deposited)} ₪`,
-    `צבירה קיימת בקרן: ${money(result.existingBalance ?? 0)} ₪`,
-    `יתרה לניצול: ${money(result.remaining)} ₪`,
-    ...(result.overCeiling ? [`סכום מעל התקרה: ${money(result.overCeiling)} ₪`] : []),
-    `דרך ההפקדה שנבחרה: ${profile.depositMethod ?? 'לא צוינה'}`,
-    `העדפת תזרים: ${profile.completionPreference ?? 'לא צוינה'}`,
-    `מצב הקרן: ${profile.fundStatus ?? 'לא צוין'}`,
-    `המטרה המרכזית: ${profile.goal ?? 'לא צוינה'}`,
-    `הוראת קבע מוצעת: ${money(result.suggestedMonthly)} ₪ לחודש`,
-    `הערכת הטבת המס במס הכנסה במיקסום ההפקדה: ${money(result.estimatedTotalTaxBenefit)} ₪`,
-    `אומדן חיסכון בביטוח לאומי/בריאות במיקסום ההפקדה: ${money(result.estimatedNationalInsuranceBenefitTotal ?? 0)} ₪`,
-    `שווי עתידי משוער של הפטור ממס רווחי הון: ${money(result.estimatedCapitalGainsExemptionValueTotal ?? 0)} ₪`,
+    `סך הפקדה חד־פעמית שביצעתי השנה: ${money(result.currentLumpSumDeposit ?? 0)} ₪`,
+    `הוראת קבע קיימת: ${money(result.currentMonthlyDeposit ?? 0)} ₪`,
+    `צבירה נוכחית בקרן: ${money(result.existingBalance ?? 0)} ₪`,
+    `סכום מומלץ להפקדה עד סוף ${result.taxYear ?? 2026}: ${money(result.remaining)} ₪`,
+    '',
+    `הכי חשוב לי: ${goals || 'לא צוין'}`,
+    '',
     `שווי הטבות המס הכולל (אומדן): ${money(result.estimatedCombinedBenefitTotal ?? result.estimatedTotalTaxBenefit)} ₪`,
-    `ציון ניצול קרן ההשתלמות: ${profile.score ?? 0}/100`,
-    'אשמח שתבדוק איתי אם התוצאה מתאימה למצב שלי.',
+    '',
+    'אשמח שתבדוק איתי מה הצעד הבא שמתאים למצב שלי',
   ].join('\n');
 }
 

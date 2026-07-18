@@ -153,7 +153,8 @@
   function calculateConsumerResult(input, data = TAX_DATA_2026) {
     var _a, _b;
     const income = normalizeMoney(input.income);
-    const existingBalance = normalizeMoney((_a = input.existingBalance) != null ? _a : 0);
+    const lumpSumDeposit = normalizeMoney((_a = input.lumpSum) != null ? _a : 0);
+    const existingBalance = normalizeMoney(input.existingBalance != null ? input.existingBalance : 0);
     const depositedToDate = input.deposited === void 0 ? totalDeposited(input) : normalizeMoney(input.deposited);
     const projectedDeposited = input.deposited === void 0 ? projectedAnnualDeposits(input) : depositedToDate;
     if (!Number.isFinite(income) || income <= 0) throw new TypeError("Income must be greater than zero");
@@ -234,6 +235,7 @@
       monthsRemaining,
       scheduledMonthsRemaining,
       currentMonthlyDeposit: monthlyDeposit,
+      currentLumpSumDeposit: lumpSumDeposit,
       suggestedMonthlyToYearEnd,
       suggestedTotalMonthlyToYearEnd,
       suggestedMonthly,
@@ -277,26 +279,26 @@
   var PHONE = "972528089808";
   var money = (value) => new Intl.NumberFormat("he-IL", { maximumFractionDigits: 0 }).format(Math.round(value));
   function buildWhatsAppMessage(result, profile = {}) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
+    const goalLabels = {
+      tax: "לנצל את הטבת המס",
+      saving: "להגדיל את החיסכון",
+      monthly: "לבנות הוראת קבע",
+      check: "לבדוק אם אני בדרך הנכונה"
+    };
+    const goals = (profile.goals || String(profile.goal || "").split(",").map((goal) => goal.trim()).filter(Boolean)).map((goal) => goalLabels[goal] || goal).join(", ");
     return [
-      "\u05D4\u05D9\u05D9 \u05E8\u05D5\u05E2\u05D9, \u05D1\u05D9\u05E6\u05E2\u05EA\u05D9 \u05D0\u05EA \u05D1\u05D3\u05D9\u05E7\u05EA \u05E7\u05E8\u05DF \u05D4\u05D4\u05E9\u05EA\u05DC\u05DE\u05D5\u05EA \u05D1\u05D0\u05EA\u05E8.",
+      "היי רועי, ביצעתי את בדיקת קרן ההשתלמות לעצמאים באתר:",
       `\u05D4\u05DB\u05E0\u05E1\u05D4 \u05E9\u05E0\u05EA\u05D9\u05EA \u05D7\u05D9\u05D9\u05D1\u05EA \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA: ${money(result.income)} \u20AA`,
-      `\u05E1\u05DA \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05D1\u05D5\u05E6\u05E2\u05D5 \u05E2\u05D3 \u05D4\u05D9\u05D5\u05DD: ${money((_a = result.depositedToDate) != null ? _a : result.deposited)} \u20AA`,
-      `\u05E6\u05E4\u05D9 \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4: ${money((_b = result.projectedAnnualDeposited) != null ? _b : result.deposited)} \u20AA`,
-      `\u05E6\u05D1\u05D9\u05E8\u05D4 \u05E7\u05D9\u05D9\u05DE\u05EA \u05D1\u05E7\u05E8\u05DF: ${money((_c = result.existingBalance) != null ? _c : 0)} \u20AA`,
-      `\u05D9\u05EA\u05E8\u05D4 \u05DC\u05E0\u05D9\u05E6\u05D5\u05DC: ${money(result.remaining)} \u20AA`,
-      ...result.overCeiling ? [`\u05E1\u05DB\u05D5\u05DD \u05DE\u05E2\u05DC \u05D4\u05EA\u05E7\u05E8\u05D4: ${money(result.overCeiling)} \u20AA`] : [],
-      `\u05D3\u05E8\u05DA \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05E9\u05E0\u05D1\u05D7\u05E8\u05D4: ${(_d = profile.depositMethod) != null ? _d : "\u05DC\u05D0 \u05E6\u05D5\u05D9\u05E0\u05D4"}`,
-      `\u05D4\u05E2\u05D3\u05E4\u05EA \u05EA\u05D6\u05E8\u05D9\u05DD: ${(_e = profile.completionPreference) != null ? _e : "\u05DC\u05D0 \u05E6\u05D5\u05D9\u05E0\u05D4"}`,
-      `\u05DE\u05E6\u05D1 \u05D4\u05E7\u05E8\u05DF: ${(_f = profile.fundStatus) != null ? _f : "\u05DC\u05D0 \u05E6\u05D5\u05D9\u05DF"}`,
-      `\u05D4\u05DE\u05D8\u05E8\u05D4 \u05D4\u05DE\u05E8\u05DB\u05D6\u05D9\u05EA: ${(_g = profile.goal) != null ? _g : "\u05DC\u05D0 \u05E6\u05D5\u05D9\u05E0\u05D4"}`,
-      `\u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2 \u05DE\u05D5\u05E6\u05E2\u05EA: ${money(result.suggestedMonthly)} \u20AA \u05DC\u05D7\u05D5\u05D3\u05E9`,
-      `\u05D4\u05E2\u05E8\u05DB\u05EA \u05D4\u05D8\u05D1\u05EA \u05D4\u05DE\u05E1 \u05D1\u05DE\u05E1 \u05D4\u05DB\u05E0\u05E1\u05D4 \u05D1\u05DE\u05D9\u05E7\u05E1\u05D5\u05DD \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4: ${money(result.estimatedTotalTaxBenefit)} \u20AA`,
-      `\u05D0\u05D5\u05DE\u05D3\u05DF \u05D7\u05D9\u05E1\u05DB\u05D5\u05DF \u05D1\u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9/\u05D1\u05E8\u05D9\u05D0\u05D5\u05EA \u05D1\u05DE\u05D9\u05E7\u05E1\u05D5\u05DD \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4: ${money((_h = result.estimatedNationalInsuranceBenefitTotal) != null ? _h : 0)} \u20AA`,
-      `\u05E9\u05D5\u05D5\u05D9 \u05E2\u05EA\u05D9\u05D3\u05D9 \u05DE\u05E9\u05D5\u05E2\u05E8 \u05E9\u05DC \u05D4\u05E4\u05D8\u05D5\u05E8 \u05DE\u05DE\u05E1 \u05E8\u05D5\u05D5\u05D7\u05D9 \u05D4\u05D5\u05DF: ${money((_i = result.estimatedCapitalGainsExemptionValueTotal) != null ? _i : 0)} \u20AA`,
-      `\u05E9\u05D5\u05D5\u05D9 \u05D4\u05D8\u05D1\u05D5\u05EA \u05D4\u05DE\u05E1 \u05D4\u05DB\u05D5\u05DC\u05DC (\u05D0\u05D5\u05DE\u05D3\u05DF): ${money((_j = result.estimatedCombinedBenefitTotal) != null ? _j : result.estimatedTotalTaxBenefit)} \u20AA`,
-      `\u05E6\u05D9\u05D5\u05DF \u05E0\u05D9\u05E6\u05D5\u05DC \u05E7\u05E8\u05DF \u05D4\u05D4\u05E9\u05EA\u05DC\u05DE\u05D5\u05EA: ${(_k = profile.score) != null ? _k : 0}/100`,
-      "\u05D0\u05E9\u05DE\u05D7 \u05E9\u05EA\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D9\u05EA\u05D9 \u05D0\u05DD \u05D4\u05EA\u05D5\u05E6\u05D0\u05D4 \u05DE\u05EA\u05D0\u05D9\u05DE\u05D4 \u05DC\u05DE\u05E6\u05D1 \u05E9\u05DC\u05D9."
+      `סך הפקדה חד־פעמית שביצעתי השנה: ${money(result.currentLumpSumDeposit || 0)} ₪`,
+      `הוראת קבע קיימת: ${money(result.currentMonthlyDeposit || 0)} ₪`,
+      `צבירה נוכחית בקרן: ${money(result.existingBalance || 0)} ₪`,
+      `סכום מומלץ להפקדה עד סוף ${result.taxYear || 2026}: ${money(result.remaining)} ₪`,
+      "",
+      `הכי חשוב לי: ${goals || "לא צוין"}`,
+      "",
+      `שווי הטבות המס הכולל (אומדן): ${money(result.estimatedCombinedBenefitTotal != null ? result.estimatedCombinedBenefitTotal : result.estimatedTotalTaxBenefit)} ₪`,
+      "",
+      "אשמח שתבדוק איתי מה הצעד הבא שמתאים למצב שלי"
     ].join("\n");
   }
   function buildWhatsAppUrl(result, profile) {

@@ -93,6 +93,7 @@ export function projectedAnnualDeposits(input) {
 
 export function calculateConsumerResult(input, data = TAX_DATA_2026) {
   const income = normalizeMoney(input.income);
+  const lumpSumDeposit = normalizeMoney(input.lumpSum ?? 0);
   const existingBalance = normalizeMoney(input.existingBalance ?? 0);
   const depositedToDate = input.deposited === undefined ? totalDeposited(input) : normalizeMoney(input.deposited);
   const projectedDeposited = input.deposited === undefined ? projectedAnnualDeposits(input) : depositedToDate;
@@ -180,6 +181,7 @@ export function calculateConsumerResult(input, data = TAX_DATA_2026) {
     monthsRemaining,
     scheduledMonthsRemaining,
     currentMonthlyDeposit: monthlyDeposit,
+    currentLumpSumDeposit: lumpSumDeposit,
     suggestedMonthlyToYearEnd,
     suggestedTotalMonthlyToYearEnd,
     suggestedMonthly,
