@@ -598,11 +598,35 @@
     if (result.remaining > 0) return "\u05E8\u05D5\u05E6\u05D4 \u05DC\u05D5\u05D5\u05D3\u05D0 \u05E9\u05D4\u05D3\u05E8\u05DA \u05DC\u05E0\u05E6\u05DC \u05D0\u05EA \u05D4\u05D9\u05EA\u05E8\u05D4 \u05D1\u05D0\u05DE\u05EA \u05DE\u05EA\u05D0\u05D9\u05DE\u05D4 \u05DC\u05DA?";
     return "\u05E8\u05D5\u05E6\u05D4 \u05DC\u05D1\u05D3\u05D5\u05E7 \u05E9\u05D4\u05E7\u05E8\u05DF \u05D4\u05E7\u05D9\u05D9\u05DE\u05EA \u05E2\u05D3\u05D9\u05D9\u05DF \u05E2\u05D5\u05D1\u05D3\u05EA \u05E0\u05DB\u05D5\u05DF \u05E2\u05D1\u05D5\u05E8\u05DA?";
   }
+  function renderResultIntro(result) {
+    clearInterval(countdownTimer);
+    const countdown = $("#tax-countdown");
+    const intro = $("#result-intro");
+    const message = $("#result-message");
+    intro.classList.toggle("is-over-ceiling", result.overCeiling > 0);
+    if (result.overCeiling > 0) {
+      $("#result-title").textContent = "ההפקדות הצפויות השנה גבוהות מהתקרה המוטבת";
+      message.textContent = `הסכום הצפוי שמעל התקרה הוא ${money2(result.overCeiling)}. כדאי לבדוק אותו לפני ביצוע הפקדות נוספות.`;
+      message.hidden = false;
+      countdown.hidden = true;
+      return;
+    }
+    if (result.remaining === 0) {
+      $("#result-title").textContent = `ניצלת את מלוא התקרה המוטבת לשנת ${result.taxYear}`;
+      message.textContent = "אין צורך לבצע הפקדה נוספת כדי לנצל את התקרה השנה.";
+      message.hidden = false;
+      countdown.hidden = true;
+      return;
+    }
+    $("#result-title").textContent = "ההזדמנות לנצל את ההטבה מסתיימת בסוף השנה";
+    message.hidden = true;
+    renderLiveCountdown(result.taxYear);
+  }
   function renderResult(result, profile) {
     lastProfile = profile;
     countUp($("#remaining"), result.remaining, money2);
     countUp($("#tax-benefit"), result.estimatedCombinedBenefitTotal, money2);
-    renderLiveCountdown(result.taxYear);
+    renderResultIntro(result);
     countUp($("#deposited-to-date"), result.depositedToDate, money2);
     countUp($("#projected-annual"), result.projectedAnnualDeposited, money2);
     const hasFutureProjection = result.projectedAnnualDeposited > result.depositedToDate;

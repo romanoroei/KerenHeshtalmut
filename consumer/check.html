@@ -90,7 +90,7 @@
       <section id="loading" class="loading-card" hidden aria-live="polite"><div class="loading-brand"><img src="../roei-romano.png" alt=""><div><strong>רועי רומנו</strong><span>מחשב את תמונת המצב שלך</span></div></div><div class="loading-icon"><i class="fas fa-calculator"></i></div><div class="loading-track"><span></span></div><ul><li class="is-active">בודק את ההפקדות שבוצעו</li><li>מחשב את היתרה לניצול</li><li>בונה תרחישי צמיחה</li></ul></section>
 
       <section id="results" class="results" hidden tabindex="-1" aria-live="polite">
-        <div class="result-intro"><div><span class="section-kicker"><i class="fas fa-chart-pie"></i> תמונת המצב שלך ל־2026</span><h2>ההזדמנות לנצל את ההטבה מסתיימת בסוף השנה</h2></div><div class="tax-countdown" id="tax-countdown"><i class="fas fa-clock"></i><span>הזמן שנותר עד סוף שנת המס</span><div class="countdown-clock" aria-live="off"><strong id="countdown-seconds"></strong><small>שניות</small><strong id="countdown-minutes"></strong><small>דקות</small><strong id="countdown-hours"></strong><small>שעות</small><strong id="countdown-days"></strong><small>ימים</small></div></div></div>
+        <div class="result-intro" id="result-intro"><div><span class="section-kicker"><i class="fas fa-chart-pie"></i> תמונת המצב שלך ל־2026</span><h2 id="result-title">ההזדמנות לנצל את ההטבה מסתיימת בסוף השנה</h2><p id="result-message" hidden></p></div><div class="tax-countdown" id="tax-countdown"><i class="fas fa-clock"></i><span>הזמן שנותר עד סוף שנת המס</span><div class="countdown-clock" aria-live="off"><strong id="countdown-seconds"></strong><small>שניות</small><strong id="countdown-minutes"></strong><small>דקות</small><strong id="countdown-hours"></strong><small>שעות</small><strong id="countdown-days"></strong><small>ימים</small></div></div></div>
         <div class="result-metrics result-metrics--essential"><article class="result-card result-card--blue"><i class="fas fa-wallet"></i><span>זה הסכום שעוד ניתן להפקיד עד סוף 2026</span><strong id="remaining"></strong><div class="deposit-mini" id="deposit-mini"><span>הופקד השנה <b id="deposited-to-date"></b></span><span id="projected-deposit-row">צפוי עד סוף השנה כולל הוראת קבע <b id="projected-annual"></b><small id="future-scheduled"></small></span></div></article><article class="result-card result-card--purple"><i class="fas fa-sparkles"></i><span>שווי הטבות המס הכולל (אומדן)</span><strong id="tax-benefit"></strong><small>בהתאם למיקסום ההפקדה (ראה פירוט בהמשך)</small></article></div>
         <section class="benefit-breakdown" aria-labelledby="benefit-title">
           <div class="benefit-heading"><span class="section-kicker">ממה מורכב שווי הטבות המס (אומדן).</span><h3 id="benefit-title">הטבה מיידית ושווי עתידי משוער</h3><p>הסכומים מוצגים בנפרד כדי לא לערבב חיסכון אפשרי כיום עם שווי פטור עתידי.</p></div>
@@ -129,6 +129,6 @@
     <div class="cookie-notice__actions"><button class="cookie-notice__btn cookie-notice__btn--accept" id="acceptCookies" type="button">מאשר/ת</button><button class="cookie-notice__btn cookie-notice__btn--close" id="closeCookies" type="button">סגירה</button></div>
   </div>
   <script defer src="./ui/compliance.js"></script>
-  <script defer src="./ui/app.bundle.js?v=20260718-4"></script>
+  <script defer src="./ui/app.bundle.js?v=20260718-6"></script>
 </body>
 </html>

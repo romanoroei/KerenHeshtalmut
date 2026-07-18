@@ -292,11 +292,36 @@ function buildSecondaryCta(result, profile) {
   return 'רוצה לבדוק שהקרן הקיימת עדיין עובדת נכון עבורך?';
 }
 
+function renderResultIntro(result) {
+  clearInterval(countdownTimer);
+  const countdown = $('#tax-countdown');
+  const intro = $('#result-intro');
+  const message = $('#result-message');
+  intro.classList.toggle('is-over-ceiling', result.overCeiling > 0);
+  if (result.overCeiling > 0) {
+    $('#result-title').textContent = 'ההפקדות הצפויות השנה גבוהות מהתקרה המוטבת';
+    message.textContent = `הסכום הצפוי שמעל התקרה הוא ${money(result.overCeiling)}. כדאי לבדוק אותו לפני ביצוע הפקדות נוספות.`;
+    message.hidden = false;
+    countdown.hidden = true;
+    return;
+  }
+  if (result.remaining === 0) {
+    $('#result-title').textContent = `ניצלת את מלוא התקרה המוטבת לשנת ${result.taxYear}`;
+    message.textContent = 'אין צורך לבצע הפקדה נוספת כדי לנצל את התקרה השנה.';
+    message.hidden = false;
+    countdown.hidden = true;
+    return;
+  }
+  $('#result-title').textContent = 'ההזדמנות לנצל את ההטבה מסתיימת בסוף השנה';
+  message.hidden = true;
+  renderLiveCountdown(result.taxYear);
+}
+
 function renderResult(result, profile) {
   lastProfile = profile;
   countUp($('#remaining'), result.remaining, money);
   countUp($('#tax-benefit'), result.estimatedCombinedBenefitTotal, money);
-  renderLiveCountdown(result.taxYear);
+  renderResultIntro(result);
   countUp($('#deposited-to-date'), result.depositedToDate, money);
   countUp($('#projected-annual'), result.projectedAnnualDeposited, money);
   const hasFutureProjection = result.projectedAnnualDeposited > result.depositedToDate;

@@ -87,6 +87,9 @@ test('מסך התוצאה מציג יתרה פעם אחת, טיימר חי ו-CT
   assert.match(html, /id="countdown-seconds"/);
   assert.ok(html.indexOf('id="countdown-seconds"') < html.indexOf('id="countdown-days"'));
   assert.match(source, /setInterval\(update, 1000\)/);
+  assert.match(source, /ההפקדות הצפויות השנה גבוהות מהתקרה המוטבת/);
+  assert.match(source, /ניצלת את מלוא התקרה המוטבת לשנת/);
+  assert.match(source, /countdown\.hidden = true/);
   assert.match(source, /buildSecondaryCta/);
   assert.match(source, /hasFutureProjection/);
   assert.match(source, /מנהל ההשקעות מייצר תשואה טובה ועקבית ביחס למתחרים/);
