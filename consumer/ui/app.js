@@ -272,11 +272,19 @@ function renderRecommendationSteps(result, profile) {
         }
       } else {
         stepsForUser.push(`או לחלופין: להתחיל הפקדה חודשית של כ־${money(result.suggestedMonthlyToYearEnd)} עד סוף השנה.`);
+        if (profile.goals.includes('monthly')) {
+          const targetPayments = Math.min(result.scheduledMonthsRemaining, Math.floor(result.remaining / result.suggestedMonthly));
+          const setupLumpSum = result.remaining - (targetPayments * result.suggestedMonthly);
+          const setupMonth = targetPayments > 0 ? monthNames[12 - targetPayments] : `ינואר ${result.taxYear + 1}`;
+          const lumpCopy = setupLumpSum > 0 ? `להפקיד ${money(setupLumpSum)} בהפקדה חד־פעמית, ובמקביל ` : '';
+          stepsForUser.push(`אפשרות נוספת לבניית הוראת קבע: ${lumpCopy}לעדכן את הוראת הקבע ל־${money(result.suggestedMonthly)} החל מחודש ${setupMonth}, ולהמשיך איתה גם בשנת ${result.taxYear + 1}.`);
+        }
       }
     } else stepsForUser.push(buildRecommendation(result, profile));
-    if (profile.completionPreference === 'lump') {
+    const wantsMonthlyPlan = profile.goals.includes('monthly');
+    if (profile.completionPreference === 'lump' && !wantsMonthlyPlan) {
       stepsForUser.push(`לקבוע כבר עכשיו תזכורת ל־1.1.${result.taxYear + 1}. לאחר פרסום התקרה המעודכנת לשנה הבאה, ניתן לשקול להפקיד אותה בתחילת השנה — כך הכסף יוכל להיות מושקע ולעבוד לאורך שנה ארוכה יותר.`);
-    } else if (result.nextYearRatePayments === 0) {
+    } else if (result.nextYearRatePayments === 0 && !(wantsMonthlyPlan && result.remaining > 0 && result.currentMonthlyDeposit === 0)) {
       stepsForUser.push(`להיערך לשנה הבאה עם הוראת קבע של כ־${money(result.suggestedMonthly)} בחודש, ולעדכן אותה כשהתקרה משתנה.`);
     }
     stepsForUser.push('לבדוק אחת לשנה שהמסלול ודמי הניהול עדיין מתאימים למטרות שבחרת.');
