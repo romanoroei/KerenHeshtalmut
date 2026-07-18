@@ -69,7 +69,7 @@
               </div>
               <div class="conditional-fields" id="lump-fields" hidden><div class="field-group"><label for="lumpSum">כמה כבר הפקדת השנה?</label><div class="money-field"><input id="lumpSum" name="lumpSum" inputmode="numeric" value="0"><span>₪</span></div></div></div>
               <div class="conditional-fields fields-row" id="monthly-fields" hidden><div class="field-group"><label for="monthlyDeposit">כמה מופקד בכל חודש?</label><div class="money-field"><input id="monthlyDeposit" name="monthlyDeposit" inputmode="numeric" value="0"><span>₪</span></div></div><div class="field-group"><label for="monthsDeposited">כמה חודשים הופקדו מתחילת השנה?</label><input id="monthsDeposited" name="monthsDeposited" type="number" min="1" max="12" step="1" value="0" aria-describedby="months-deposited-error"><p class="field-error" id="months-deposited-error"></p></div></div>
-              <div class="conditional-fields existing-balance-field"><div class="field-group"><label for="existingBalance">מה הצבירה הנוכחית בקרן? (כולל הפקדות השנה)</label><div class="money-field"><input id="existingBalance" name="existingBalance" inputmode="numeric" value="0" required><span>₪</span></div><small>הסכום משמש רק לתרחישי הצמיחה.</small></div></div>
+              <div class="conditional-fields existing-balance-field"><div class="field-group"><label for="existingBalance">מה הצבירה הנוכחית בקרן? (כולל הפקדות השנה)</label><div class="money-field"><input id="existingBalance" name="existingBalance" inputmode="numeric" placeholder="0"><span>₪</span></div><small>אם השדה יישאר ריק, נשתמש בסכום שהפקדת השנה לצורך תרחישי הצמיחה.</small></div></div>
               <div class="deposit-preview" id="deposit-preview" hidden><i class="fas fa-calculator"></i><span></span></div>
             </section>
 
@@ -106,7 +106,7 @@
         <section class="support-grid"><article class="growth-card"><div class="section-header"><div><span class="section-kicker">מבט קדימה</span><h3>תרחישי צמיחה</h3></div><div class="year-segments" aria-label="בחירת תקופה"><button type="button" data-years="6">6</button><button type="button" data-years="10" class="is-active">10</button><button type="button" data-years="15">15</button><button type="button" data-years="20">20</button><span>שנים</span></div></div><div id="scenario-list" class="scenario-grid"></div><section id="growth-detail" class="growth-detail" hidden aria-live="polite"><div class="growth-detail-heading"><div><span class="section-kicker">פירוט התרחיש</span><h4 id="growth-detail-title"></h4></div><div class="growth-legend"><span><i></i> שווי משוער</span></div></div><svg id="growth-chart" class="growth-chart" viewBox="0 0 760 270" role="img" aria-label="גרף צמיחת שווי הקרן לפי שנים"></svg><div class="growth-table-wrap"><table><thead><tr><th>תקופה</th><th>צבירה התחלתית</th><th>הפקדות מצטברות</th><th>רווח משוער</th><th>שווי כולל</th></tr></thead><tbody id="growth-table-body"></tbody></table></div></section><p class="growth-notice">המחשה בלבד, ללא התחייבות לתשואה. הסכומים נומינליים, לפני דמי ניהול ובהנחת תשואה קבועה; תקרות עתידיות עשויות להשתנות.</p></article></section>
         <details class="calculation-details"><summary><i class="fas fa-calculator"></i> איך חישבנו את התוצאה?<i class="fas fa-chevron-down"></i></summary><div id="calculation-details"></div></details>
         <section class="secondary-cta"><div><span class="section-kicker">לפני שממשיכים הלאה</span><h3 id="dynamic-cta-secondary"></h3><p>שלח לי את הסיכום שכבר הכנת — ואעזור לך להבין מה הצעד שמתאים למצב שלך.</p></div><a id="whatsapp-secondary" class="btn btn-whatsapp" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> רוצה לבדוק את הצעד הבא</a></section>
-        <div class="result-actions"><button id="restart" type="button" class="btn btn-back"><i class="fas fa-rotate-right"></i> מתחילים מחדש</button><a class="btn btn-outline" href="../index.html">למחשבון המקצועי <i class="fas fa-arrow-left"></i></a></div>
+        <div class="result-actions"><button id="restart" type="button" class="btn btn-back"><i class="fas fa-rotate-right"></i> מתחילים מחדש</button><a id="share-benefits" class="btn btn-share" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> שתף את ההטבות עם עצמאים נוספים</a></div>
       </section>
     </div>
   </main>
@@ -129,6 +129,6 @@
     <div class="cookie-notice__actions"><button class="cookie-notice__btn cookie-notice__btn--accept" id="acceptCookies" type="button">מאשר/ת</button><button class="cookie-notice__btn cookie-notice__btn--close" id="closeCookies" type="button">סגירה</button></div>
   </div>
   <script defer src="./ui/compliance.js"></script>
-  <script defer src="./ui/app.bundle.js?v=20260718-15"></script>
+  <script defer src="./ui/app.bundle.js?v=20260718-16"></script>
 </body>
 </html>

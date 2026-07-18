@@ -105,9 +105,18 @@ test('מסך התוצאה מציג יתרה פעם אחת, טיימר חי ו-CT
   assert.match(source, /חלופה נוספת: לאחר פתיחת הקרן/);
   assert.match(source, /result\.overCeiling > 0/);
   assert.match(source, /להפקיד את מלוא התקרה כבר בתחילת השנה/);
+  assert.match(source, /לחילופין, /);
   assert.match(source, /מנהל ההשקעות מייצר תשואה טובה ועקבית ביחס למתחרים/);
   assert.doesNotMatch(source, /מצב הקרן ידוע/);
   assert.doesNotMatch(source, /dynamic-cta-secondary'\)\.textContent = ctaCopy/);
+});
+
+test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקדימה של המחשבון', async () => {
+  const check = await readFile(new URL('../check.html', import.meta.url), 'utf8');
+  const landing = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+  assert.match(check, /id="share-benefits"/);
+  assert.doesNotMatch(check, />למחשבון המקצועי/);
+  assert.match(landing, /property="og:image" content="https:\/\/romanoroei\.github\.io\/KerenHeshtalmut\/og-share\.jpg/);
 });
 
 test('דפי המדיניות מחזירים למחשבון שממנו הגיע המשתמש', async () => {

@@ -144,3 +144,11 @@ test('הודעת WhatsApp כוללת את כל נתוני החובה ונשלח�
   for (const removed of ['both', 'monthly', 'מצב הקרן', 'ציון ניצול', 'ביטוח לאומי', 'רווחי הון']) assert.doesNotMatch(message, new RegExp(removed));
   assert.match(buildWhatsAppUrl(result), /^https:\/\/wa\.me\/972528089808\?text=/);
 });
+
+test('בהיעדר צבירה מוזנת ההפקדות השנה משמשות כצבירה לתרחישים ול-WhatsApp', () => {
+  const result = calculateConsumerResult({ income: 200000, lumpSum: 10000, monthlyDeposit: 500, monthsDeposited: 4, existingBalance: '' });
+  assert.equal(result.depositedToDate, 12000);
+  assert.equal(result.existingBalance, 12000);
+  assert.equal(result.projections[0].nominalValue > 12000, true);
+  assert.match(buildWhatsAppMessage(result), /12,000 ₪/);
+});

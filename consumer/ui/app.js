@@ -1,7 +1,7 @@
 import { buildGrowthSchedule, calculateConsumerResult, normalizeMoney } from '../engine/calculator.js';
 import { calculateUtilizationScore } from '../engine/score.js';
 import { buildCta, buildRecommendation } from '../engine/recommendations.js';
-import { buildWhatsAppUrl } from '../messages/whatsapp.js';
+import { buildConsumerShareUrl, buildWhatsAppUrl } from '../messages/whatsapp.js';
 import { countUp } from './animations.js';
 
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -176,7 +176,7 @@ function collect(years = 10) {
       lumpSum: ['lump', 'both'].includes(method) ? data.get('lumpSum') : 0,
       monthlyDeposit: ['monthly', 'both'].includes(method) ? data.get('monthlyDeposit') : 0,
       monthsDeposited: ['monthly', 'both'].includes(method) ? data.get('monthsDeposited') : 0,
-      existingBalance: data.get('existingBalance') || 0,
+      existingBalance: data.get('existingBalance'),
       projectionYears: years,
     },
     profile: {
@@ -292,7 +292,7 @@ function renderRecommendationSteps(result, profile) {
     } else stepsForUser.push(buildRecommendation(result, profile));
     const wantsMonthlyPlan = profile.goals.includes('monthly');
     if (result.overCeiling > 0) {
-      stepsForUser.push(`לקבוע תזכורת ל־1.1.${result.taxYear + 1}: לאחר פרסום התקרה המעודכנת, לבדוק את הסכום החדש ולשקול להפקיד את מלוא התקרה כבר בתחילת השנה, כדי שהכסף יוכל לעבוד לאורך שנה ארוכה יותר.`);
+      stepsForUser.push(`לקבוע תזכורת ל־1.1.${result.taxYear + 1}: לאחר פרסום התקרה המעודכנת, להפקיד את מלוא התקרה כבר בתחילת השנה, כדי שהכסף יוכל לעבוד לאורך שנה ארוכה יותר.`);
     }
     if (wantsMonthlyPlan && result.remaining > 0) {
       stepsForUser.push(`חלופה נוספת: להשלים השנה את מלוא היתרה, ${money(result.remaining)}, בהפקדה חד־פעמית; ומ־1.1.${result.taxYear + 1} להתחיל הוראת קבע שוטפת של כ־${money(result.suggestedMonthly)} בחודש. הסכום החודשי מבוסס על תקרת ${result.taxYear} ויש לעדכנו לאחר פרסום התקרה החדשה.`);
@@ -300,7 +300,8 @@ function renderRecommendationSteps(result, profile) {
     if (profile.completionPreference === 'lump' && !wantsMonthlyPlan && result.overCeiling === 0) {
       stepsForUser.push(`לקבוע כבר עכשיו תזכורת ל־1.1.${result.taxYear + 1}. לאחר פרסום התקרה המעודכנת לשנה הבאה, ניתן לשקול להפקיד אותה בתחילת השנה — כך הכסף יוכל להיות מושקע ולעבוד לאורך שנה ארוכה יותר.`);
     } else if (result.nextYearRatePayments === 0 && (result.overCeiling === 0 || wantsMonthlyPlan) && !(wantsMonthlyPlan && result.remaining > 0 && result.currentMonthlyDeposit === 0)) {
-      stepsForUser.push(`להיערך לשנה הבאה עם הוראת קבע של כ־${money(result.suggestedMonthly)} בחודש, ולעדכן אותה כשהתקרה משתנה.`);
+      const alternativePrefix = result.overCeiling > 0 ? 'לחילופין, ' : '';
+      stepsForUser.push(`${alternativePrefix}להיערך לשנה הבאה עם הוראת קבע של כ־${money(result.suggestedMonthly)} בחודש, ולעדכן אותה כשהתקרה משתנה.`);
     }
     stepsForUser.push('לבדוק אחת לשנה שהמסלול ודמי הניהול עדיין מתאימים למטרות שבחרת.');
     stepsForUser.push('לבדוק שמנהל ההשקעות מייצר תשואה טובה ועקבית ביחס למתחרים לאורך תקופות זמן מתאימות.');
@@ -388,6 +389,7 @@ function renderResult(result, profile) {
   const whatsappUrl = buildWhatsAppUrl(result, profile);
   $('#whatsapp').href = whatsappUrl;
   $('#whatsapp-secondary').href = whatsappUrl;
+  $('#share-benefits').href = buildConsumerShareUrl();
   $('#calculation-details').innerHTML = `<p><strong>תקרת 2026:</strong> ${money(result.ceiling)} · <strong>הכנסה:</strong> ${money(result.income)} · <strong>הופקד השנה:</strong> ${money(result.depositedToDate)}${hasFutureProjection ? ` · <strong>צפוי עד סוף השנה כולל הוראת קבע:</strong> ${money(result.projectedAnnualDeposited)}` : ''}</p><p>אומדן ההטבות מחושב בהנחה של מיקסום ההפקדה השנתית עד התקרה, ולכן כולל גם את ההפקדות שכבר בוצעו ואת הוראת הקבע הצפויה עד סוף השנה — ולא רק את יתרת ההשלמה.</p><p><strong>מדרגת מס משוערת:</strong> ${result.taxRate * 100}% · <strong>שיעור ניכוי:</strong> ${result.deductibleRate * 100}%</p><p><strong>הטבה מיידית משוערת:</strong> מס הכנסה ${money(result.estimatedTotalTaxBenefit)} + ביטוח לאומי/בריאות ${money(result.estimatedNationalInsuranceBenefitTotal)}.</p><p><strong>שווי עתידי משוער:</strong> פטור ממס רווחי הון ${money(result.estimatedCapitalGainsExemptionValueTotal)}, בהנחת 8% לשנה ל־6 שנים ומס של 25% על הרווח.</p><p>מקורות: ספר הניכויים 2026 ושיעורי ביטוח לאומי לעצמאי 2026 כפי שתועדו באתר המקצועי. אימות: 15.07.2026. כל הרכיבים הם אומדן הדורש אימות אישי.</p>`;
 }
 

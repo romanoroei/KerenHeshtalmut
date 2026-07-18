@@ -94,9 +94,12 @@ export function projectedAnnualDeposits(input) {
 export function calculateConsumerResult(input, data = TAX_DATA_2026) {
   const income = normalizeMoney(input.income);
   const lumpSumDeposit = normalizeMoney(input.lumpSum ?? 0);
-  const existingBalance = normalizeMoney(input.existingBalance ?? 0);
   const depositedToDate = input.deposited === undefined ? totalDeposited(input) : normalizeMoney(input.deposited);
   const projectedDeposited = input.deposited === undefined ? projectedAnnualDeposits(input) : depositedToDate;
+  const enteredExistingBalance = normalizeMoney(input.existingBalance);
+  const existingBalance = input.existingBalance === '' || input.existingBalance === null || input.existingBalance === undefined || enteredExistingBalance === 0
+    ? depositedToDate
+    : enteredExistingBalance;
   if (!Number.isFinite(income) || income <= 0) throw new TypeError('Income must be greater than zero');
   if (![depositedToDate, projectedDeposited, existingBalance].every(Number.isFinite)) throw new TypeError('Deposited amount must be zero or greater');
 

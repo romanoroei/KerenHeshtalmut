@@ -124,12 +124,6 @@
     if (date.getFullYear() > taxYear) return 0;
     return Math.max(0, 12 - date.getMonth());
   }
-  function daysRemainingInTaxYear(date = /* @__PURE__ */ new Date(), taxYear = 2026) {
-    if (!(date instanceof Date) || Number.isNaN(date.getTime())) throw new TypeError("Invalid date");
-    const end = new Date(taxYear, 11, 31, 23, 59, 59, 999);
-    if (date > end) return 0;
-    return Math.max(0, Math.ceil((end.getTime() - date.getTime()) / 864e5));
-  }
   function totalDeposited(input) {
     var _a, _b, _c;
     const lumpSum = normalizeMoney((_a = input.lumpSum) != null ? _a : 0);
@@ -151,12 +145,13 @@
     return lumpSum + monthlyDeposit * 12;
   }
   function calculateConsumerResult(input, data = TAX_DATA_2026) {
-    var _a, _b;
+    var _a, _b, _c, _d;
     const income = normalizeMoney(input.income);
     const lumpSumDeposit = normalizeMoney((_a = input.lumpSum) != null ? _a : 0);
-    const existingBalance = normalizeMoney(input.existingBalance != null ? input.existingBalance : 0);
     const depositedToDate = input.deposited === void 0 ? totalDeposited(input) : normalizeMoney(input.deposited);
     const projectedDeposited = input.deposited === void 0 ? projectedAnnualDeposits(input) : depositedToDate;
+    const enteredExistingBalance = normalizeMoney(input.existingBalance);
+    const existingBalance = input.existingBalance === "" || input.existingBalance === null || input.existingBalance === void 0 || enteredExistingBalance === 0 ? depositedToDate : enteredExistingBalance;
     if (!Number.isFinite(income) || income <= 0) throw new TypeError("Income must be greater than zero");
     if (![depositedToDate, projectedDeposited, existingBalance].every(Number.isFinite)) throw new TypeError("Deposited amount must be zero or greater");
     const ceiling = data.contributionCeiling.value;
@@ -189,8 +184,8 @@
     const estimatedCombinedBenefitAdditional = estimatedAdditionalTaxBenefit + estimatedNationalInsuranceBenefitAdditional + estimatedCapitalGainsExemptionValueAdditional;
     const calculationDate = (_b = input.today) != null ? _b : /* @__PURE__ */ new Date();
     const monthsRemaining = monthsRemainingInTaxYear(calculationDate, data.taxYear);
-    const monthlyDeposit = normalizeMoney(input.monthlyDeposit === void 0 ? 0 : input.monthlyDeposit);
-    const monthsDeposited = normalizeMoney(input.monthsDeposited === void 0 ? 0 : input.monthsDeposited);
+    const monthlyDeposit = normalizeMoney((_c = input.monthlyDeposit) != null ? _c : 0);
+    const monthsDeposited = normalizeMoney((_d = input.monthsDeposited) != null ? _d : 0);
     const scheduledMonthsRemaining = input.deposited === void 0 && monthlyDeposit > 0 ? Math.max(0, 12 - monthsDeposited) : calculationDate.getFullYear() === data.taxYear ? Math.max(0, 11 - calculationDate.getMonth()) : monthsRemaining;
     const suggestedMonthlyToYearEnd = remaining > 0 && scheduledMonthsRemaining > 0 ? Math.ceil(remaining / scheduledMonthsRemaining) : 0;
     const suggestedTotalMonthlyToYearEnd = monthlyDeposit + suggestedMonthlyToYearEnd;
@@ -265,7 +260,8 @@
     if (result.remaining === 0) return "\u05DB\u05D1\u05E8 \u05E0\u05D9\u05E6\u05DC\u05EA \u05D0\u05EA \u05DE\u05DC\u05D5\u05D0 \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA \u05D4\u05E9\u05E0\u05D4. \u05E2\u05DB\u05E9\u05D9\u05D5 \u05DB\u05D3\u05D0\u05D9 \u05DC\u05D1\u05D3\u05D5\u05E7 \u05E9\u05D4\u05DE\u05E1\u05DC\u05D5\u05DC \u05D5\u05D3\u05DE\u05D9 \u05D4\u05E0\u05D9\u05D4\u05D5\u05DC \u05D1\u05E7\u05E8\u05DF \u05DE\u05EA\u05D0\u05D9\u05DE\u05D9\u05DD \u05DC\u05DA \u05D5\u05DC\u05D4\u05D9\u05E2\u05E8\u05DA \u05DC\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05DC \u05D4\u05E9\u05E0\u05D4 \u05D4\u05D1\u05D0\u05D4.";
     if (result.deposited === 0) return "\u05DC\u05E4\u05D9 \u05D4\u05E0\u05EA\u05D5\u05E0\u05D9\u05DD \u05E9\u05D4\u05D6\u05E0\u05EA, \u05E0\u05D9\u05EA\u05DF \u05DC\u05E9\u05E7\u05D5\u05DC \u05DC\u05D4\u05EA\u05D7\u05D9\u05DC \u05D1\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D4\u05E9\u05E0\u05D4. \u05D0\u05DD \u05D4\u05EA\u05D6\u05E8\u05D9\u05DD \u05DE\u05D0\u05E4\u05E9\u05E8, \u05D0\u05E4\u05E9\u05E8 \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 \u05E1\u05DB\u05D5\u05DD \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9 \u05D0\u05D5 \u05DC\u05D4\u05EA\u05D7\u05D9\u05DC \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2 \u05D5\u05DC\u05D1\u05D7\u05D5\u05DF \u05D4\u05E9\u05DC\u05DE\u05D4 \u05DC\u05E7\u05E8\u05D0\u05EA \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4.";
     if (profile.completionPreference === "lump") return `\u05DB\u05D3\u05D9 \u05DC\u05E0\u05E6\u05DC \u05D0\u05EA \u05DE\u05DC\u05D5\u05D0 \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA, \u05E0\u05D9\u05EA\u05DF \u05DC\u05E9\u05E7\u05D5\u05DC \u05DC\u05D4\u05E9\u05DC\u05D9\u05DD \u05D4\u05E9\u05E0\u05D4 \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9\u05EA \u05E9\u05DC ${Math.round(result.remaining).toLocaleString("he-IL")} \u20AA.`;
-    if (profile.completionPreference === "monthly") return `\u05DB\u05D3\u05D9 \u05DC\u05D4\u05E9\u05DC\u05D9\u05DD \u05D0\u05EA \u05D4\u05EA\u05E7\u05E8\u05D4 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4, \u05E0\u05D9\u05EA\u05DF \u05DC\u05E9\u05E7\u05D5\u05DC \u05DC\u05E2\u05D3\u05DB\u05DF \u05D0\u05EA \u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05DC\u05DB\u05BE${Math.round(result.suggestedMonthlyToYearEnd).toLocaleString("he-IL")} \u20AA \u05D1\u05D7\u05D5\u05D3\u05E9.`;
+    if (profile.completionPreference === "monthly" && result.currentMonthlyDeposit > 0) return `\u05DB\u05D3\u05D9 \u05DC\u05D4\u05E9\u05DC\u05D9\u05DD \u05D0\u05EA \u05D4\u05EA\u05E7\u05E8\u05D4 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4, \u05E0\u05D9\u05EA\u05DF \u05DC\u05E9\u05E7\u05D5\u05DC \u05DC\u05D4\u05D5\u05E1\u05D9\u05E3 \u05DB\u05BE${Math.round(result.suggestedMonthlyToYearEnd).toLocaleString("he-IL")} \u20AA \u05DC\u05DB\u05DC \u05D4\u05E4\u05E7\u05D3\u05D4 \u05E9\u05E0\u05D5\u05EA\u05E8\u05D4 \u05D5\u05DC\u05D4\u05D2\u05D3\u05D9\u05DC \u05D0\u05EA \u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05DC\u05DB\u05BE${Math.round(result.suggestedTotalMonthlyToYearEnd).toLocaleString("he-IL")} \u20AA \u05D1\u05D7\u05D5\u05D3\u05E9.`;
+    if (profile.completionPreference === "monthly") return `\u05DB\u05D3\u05D9 \u05DC\u05D4\u05E9\u05DC\u05D9\u05DD \u05D0\u05EA \u05D4\u05EA\u05E7\u05E8\u05D4 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4, \u05E0\u05D9\u05EA\u05DF \u05DC\u05E9\u05E7\u05D5\u05DC \u05DC\u05D4\u05EA\u05D7\u05D9\u05DC \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D5\u05D3\u05E9\u05D9\u05EA \u05E9\u05DC \u05DB\u05BE${Math.round(result.suggestedMonthlyToYearEnd).toLocaleString("he-IL")} \u20AA \u05D1\u05D7\u05D5\u05D3\u05E9.`;
     return "\u05E0\u05E9\u05D0\u05E8\u05D4 \u05D9\u05EA\u05E8\u05D4 \u05DC\u05E0\u05D9\u05E6\u05D5\u05DC \u05D4\u05E9\u05E0\u05D4. \u05D0\u05E4\u05E9\u05E8 \u05DC\u05E9\u05E7\u05D5\u05DC \u05E9\u05D9\u05DC\u05D5\u05D1 \u05D1\u05D9\u05DF \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9\u05EA \u05DC\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D5\u05D3\u05E9\u05D9\u05EA, \u05D1\u05D4\u05EA\u05D0\u05DD \u05DC\u05EA\u05D6\u05E8\u05D9\u05DD \u05E9\u05DC\u05DA.";
   }
   function buildCta(result, profile) {
@@ -278,32 +274,42 @@
 
   // consumer/messages/whatsapp.js
   var PHONE = "972528089808";
+  var CONSUMER_URL = "https://romanoroei.github.io/KerenHeshtalmut/consumer/";
   var money = (value) => new Intl.NumberFormat("he-IL", { maximumFractionDigits: 0 }).format(Math.round(value));
   function buildWhatsAppMessage(result, profile = {}) {
+    var _a, _b, _c, _d, _e, _f, _g;
     const goalLabels = {
-      tax: "לנצל את הטבת המס",
-      saving: "להגדיל את החיסכון",
-      monthly: "לבנות הוראת קבע",
-      check: "לבדוק אם אני בדרך הנכונה"
+      tax: "\u05DC\u05E0\u05E6\u05DC \u05D0\u05EA \u05D4\u05D8\u05D1\u05EA \u05D4\u05DE\u05E1",
+      saving: "\u05DC\u05D4\u05D2\u05D3\u05D9\u05DC \u05D0\u05EA \u05D4\u05D7\u05D9\u05E1\u05DB\u05D5\u05DF",
+      monthly: "\u05DC\u05D1\u05E0\u05D5\u05EA \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2",
+      check: "\u05DC\u05D1\u05D3\u05D5\u05E7 \u05D0\u05DD \u05D0\u05E0\u05D9 \u05D1\u05D3\u05E8\u05DA \u05D4\u05E0\u05DB\u05D5\u05E0\u05D4"
     };
-    const goals = (profile.goals || String(profile.goal || "").split(",").map((goal) => goal.trim()).filter(Boolean)).map((goal) => goalLabels[goal] || goal).join(", ");
+    const goals = ((_b = profile.goals) != null ? _b : String((_a = profile.goal) != null ? _a : "").split(",").map((goal) => goal.trim()).filter(Boolean)).map((goal) => {
+      var _a2;
+      return (_a2 = goalLabels[goal]) != null ? _a2 : goal;
+    }).join(", ");
     return [
-      "היי רועי, ביצעתי את בדיקת קרן ההשתלמות לעצמאים באתר:",
+      "\u05D4\u05D9\u05D9 \u05E8\u05D5\u05E2\u05D9, \u05D1\u05D9\u05E6\u05E2\u05EA\u05D9 \u05D0\u05EA \u05D1\u05D3\u05D9\u05E7\u05EA \u05E7\u05E8\u05DF \u05D4\u05D4\u05E9\u05EA\u05DC\u05DE\u05D5\u05EA \u05DC\u05E2\u05E6\u05DE\u05D0\u05D9\u05DD \u05D1\u05D0\u05EA\u05E8:",
       `\u05D4\u05DB\u05E0\u05E1\u05D4 \u05E9\u05E0\u05EA\u05D9\u05EA \u05D7\u05D9\u05D9\u05D1\u05EA \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA: ${money(result.income)} \u20AA`,
-      `סך הפקדה חד־פעמית שביצעתי השנה: ${money(result.currentLumpSumDeposit || 0)} ₪`,
-      `הוראת קבע קיימת: ${money(result.currentMonthlyDeposit || 0)} ₪`,
-      `צבירה נוכחית בקרן: ${money(result.existingBalance || 0)} ₪`,
-      `סכום מומלץ להפקדה עד סוף ${result.taxYear || 2026}: ${money(result.remaining)} ₪`,
+      `\u05E1\u05DA \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9\u05EA \u05E9\u05D1\u05D9\u05E6\u05E2\u05EA\u05D9 \u05D4\u05E9\u05E0\u05D4: ${money((_c = result.currentLumpSumDeposit) != null ? _c : 0)} \u20AA`,
+      `\u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2 \u05E7\u05D9\u05D9\u05DE\u05EA: ${money((_d = result.currentMonthlyDeposit) != null ? _d : 0)} \u20AA`,
+      `\u05E6\u05D1\u05D9\u05E8\u05D4 \u05E0\u05D5\u05DB\u05D7\u05D9\u05EA \u05D1\u05E7\u05E8\u05DF: ${money((_e = result.existingBalance) != null ? _e : 0)} \u20AA`,
+      `\u05E1\u05DB\u05D5\u05DD \u05DE\u05D5\u05DE\u05DC\u05E5 \u05DC\u05D4\u05E4\u05E7\u05D3\u05D4 \u05E2\u05D3 \u05E1\u05D5\u05E3 ${(_f = result.taxYear) != null ? _f : 2026}: ${money(result.remaining)} \u20AA`,
       "",
-      `הכי חשוב לי: ${goals || "לא צוין"}`,
+      `\u05D4\u05DB\u05D9 \u05D7\u05E9\u05D5\u05D1 \u05DC\u05D9: ${goals || "\u05DC\u05D0 \u05E6\u05D5\u05D9\u05DF"}`,
       "",
-      `שווי הטבות המס הכולל (אומדן): ${money(result.estimatedCombinedBenefitTotal != null ? result.estimatedCombinedBenefitTotal : result.estimatedTotalTaxBenefit)} ₪`,
+      `\u05E9\u05D5\u05D5\u05D9 \u05D4\u05D8\u05D1\u05D5\u05EA \u05D4\u05DE\u05E1 \u05D4\u05DB\u05D5\u05DC\u05DC (\u05D0\u05D5\u05DE\u05D3\u05DF): ${money((_g = result.estimatedCombinedBenefitTotal) != null ? _g : result.estimatedTotalTaxBenefit)} \u20AA`,
       "",
-      "אשמח שתבדוק איתי מה הצעד הבא שמתאים למצב שלי"
+      "\u05D0\u05E9\u05DE\u05D7 \u05E9\u05EA\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D9\u05EA\u05D9 \u05DE\u05D4 \u05D4\u05E6\u05E2\u05D3 \u05D4\u05D1\u05D0 \u05E9\u05DE\u05EA\u05D0\u05D9\u05DD \u05DC\u05DE\u05E6\u05D1 \u05E9\u05DC\u05D9"
     ].join("\n");
   }
   function buildWhatsAppUrl(result, profile) {
     return `https://wa.me/${PHONE}?text=${encodeURIComponent(buildWhatsAppMessage(result, profile))}`;
+  }
+  function buildConsumerShareUrl() {
+    const message = `\u05D1\u05D3\u05E7\u05EA\u05D9 \u05DB\u05DE\u05D4 \u05DB\u05D3\u05D0\u05D9 \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 \u05DC\u05E7\u05E8\u05DF \u05D4\u05E9\u05EA\u05DC\u05DE\u05D5\u05EA \u05D5\u05DE\u05D4 \u05E9\u05D5\u05D5\u05D9 \u05D4\u05D8\u05D1\u05D5\u05EA \u05D4\u05DE\u05E1 \u05D4\u05D0\u05E4\u05E9\u05E8\u05D9\u05D5\u05EA. \u05D0\u05E4\u05E9\u05E8 \u05DC\u05D1\u05E6\u05E2 \u05DB\u05D0\u05DF \u05D1\u05D3\u05D9\u05E7\u05D4 \u05D0\u05D9\u05E9\u05D9\u05EA \u05D5\u05E7\u05E6\u05E8\u05D4:
+${CONSUMER_URL}`;
+    return `https://wa.me/?text=${encodeURIComponent(message)}`;
   }
 
   // consumer/ui/animations.js
@@ -341,6 +347,7 @@
   var lastProfile;
   var lastResult;
   var advanceTimer;
+  var countdownTimer;
   var isTransitioning = false;
   var isSubmitting = false;
   var stepHistory = [0];
@@ -373,7 +380,7 @@
     const months = Number(field.value);
     const valid = !relevant || Number.isInteger(months) && months >= 1 && months <= 12;
     field.setAttribute("aria-invalid", String(!valid));
-    if (showError) $("#months-deposited-error").textContent = valid ? "" : "יש להזין מספר חודשים שלם בין 1 ל־12.";
+    if (showError) $("#months-deposited-error").textContent = valid ? "" : "\u05D9\u05E9 \u05DC\u05D4\u05D6\u05D9\u05DF \u05DE\u05E1\u05E4\u05E8 \u05D7\u05D5\u05D3\u05E9\u05D9\u05DD \u05E9\u05DC\u05DD \u05D1\u05D9\u05DF 1 \u05DC\u05BE12.";
     return valid;
   }
   function updateSummary() {
@@ -381,7 +388,7 @@
     $("#summary-income").textContent = Number.isFinite(income) && income > 0 ? money2(income) : "\u05D8\u05E8\u05DD \u05D4\u05D5\u05D6\u05E0\u05D4";
     const depositMethod = form.elements.depositMethod.value;
     const depositedTotal = depositTotalFromForm();
-    $("#summary-deposited").textContent = depositMethod ? Number.isFinite(depositedTotal) ? money2(depositedTotal) : "יש לתקן את מספר החודשים" : "\u05D8\u05E8\u05DD \u05D4\u05D5\u05D6\u05DF";
+    $("#summary-deposited").textContent = depositMethod ? Number.isFinite(depositedTotal) ? money2(depositedTotal) : "\u05D9\u05E9 \u05DC\u05EA\u05E7\u05DF \u05D0\u05EA \u05DE\u05E1\u05E4\u05E8 \u05D4\u05D7\u05D5\u05D3\u05E9\u05D9\u05DD" : "\u05D8\u05E8\u05DD \u05D4\u05D5\u05D6\u05DF";
     const balance = normalizeMoney(form.elements.existingBalance.value);
     const fundStatus = form.elements.fundStatus.value;
     $("#summary-balance").textContent = fundStatus === "none" ? "\u05DC\u05D0 \u05E8\u05DC\u05D5\u05D5\u05E0\u05D8\u05D9" : fundStatus && Number.isFinite(balance) ? money2(balance) : "\u05D8\u05E8\u05DD \u05D4\u05D5\u05D6\u05E0\u05D4";
@@ -390,7 +397,7 @@
     if (depositMethod) {
       preview.hidden = false;
       preview.classList.toggle("is-error", !Number.isFinite(depositedTotal));
-      $("span", preview).textContent = Number.isFinite(depositedTotal) ? `\u05E2\u05D3 \u05DB\u05D4 \u05D4\u05D5\u05D6\u05E0\u05D5 \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05D1\u05E1\u05DA ${money2(depositedTotal)}.` : "מספר החודשים אינו הגיוני. יש להזין מספר שלם בין 1 ל־12.";
+      $("span", preview).textContent = Number.isFinite(depositedTotal) ? `\u05E2\u05D3 \u05DB\u05D4 \u05D4\u05D5\u05D6\u05E0\u05D5 \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05D1\u05E1\u05DA ${money2(depositedTotal)}.` : "\u05DE\u05E1\u05E4\u05E8 \u05D4\u05D7\u05D5\u05D3\u05E9\u05D9\u05DD \u05D0\u05D9\u05E0\u05D5 \u05D4\u05D2\u05D9\u05D5\u05E0\u05D9. \u05D9\u05E9 \u05DC\u05D4\u05D6\u05D9\u05DF \u05DE\u05E1\u05E4\u05E8 \u05E9\u05DC\u05DD \u05D1\u05D9\u05DF 1 \u05DC\u05BE12.";
     }
   }
   function updateDepositFields() {
@@ -434,7 +441,7 @@
   function validateStep() {
     const active = steps[currentStep];
     if (currentStep === 2 && !validateMonthsDeposited()) {
-      $("#form-error").textContent = "יש לתקן את מספר החודשים: מספר שלם בין 1 ל־12.";
+      $("#form-error").textContent = "\u05D9\u05E9 \u05DC\u05EA\u05E7\u05DF \u05D0\u05EA \u05DE\u05E1\u05E4\u05E8 \u05D4\u05D7\u05D5\u05D3\u05E9\u05D9\u05DD: \u05DE\u05E1\u05E4\u05E8 \u05E9\u05DC\u05DD \u05D1\u05D9\u05DF 1 \u05DC\u05BE12.";
       form.elements.monthsDeposited.focus();
       return false;
     }
@@ -486,7 +493,7 @@
         lumpSum: ["lump", "both"].includes(method) ? data.get("lumpSum") : 0,
         monthlyDeposit: ["monthly", "both"].includes(method) ? data.get("monthlyDeposit") : 0,
         monthsDeposited: ["monthly", "both"].includes(method) ? data.get("monthsDeposited") : 0,
-        existingBalance: data.get("existingBalance") || 0,
+        existingBalance: data.get("existingBalance"),
         projectionYears: years
       },
       profile: {
@@ -562,7 +569,7 @@
     $("#score-components").innerHTML = components.map(([label, done]) => `<li><i class="fas fa-${done ? "circle-check" : "circle"}"></i>${label}</li>`).join("");
   }
   function renderRecommendationSteps(result, profile) {
-    const monthNames = ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"];
+    const monthNames = ["\u05D9\u05E0\u05D5\u05D0\u05E8", "\u05E4\u05D1\u05E8\u05D5\u05D0\u05E8", "\u05DE\u05E8\u05E5", "\u05D0\u05E4\u05E8\u05D9\u05DC", "\u05DE\u05D0\u05D9", "\u05D9\u05D5\u05E0\u05D9", "\u05D9\u05D5\u05DC\u05D9", "\u05D0\u05D5\u05D2\u05D5\u05E1\u05D8", "\u05E1\u05E4\u05D8\u05DE\u05D1\u05E8", "\u05D0\u05D5\u05E7\u05D8\u05D5\u05D1\u05E8", "\u05E0\u05D5\u05D1\u05DE\u05D1\u05E8", "\u05D3\u05E6\u05DE\u05D1\u05E8"];
     const stepsForUser = [];
     if (profile.fundStatus === "none") {
       stepsForUser.push(buildRecommendation(result, profile));
@@ -570,45 +577,46 @@
       if (profile.goals.includes("monthly")) {
         const targetPayments = Math.min(result.scheduledMonthsRemaining, Math.floor(result.remaining / result.suggestedMonthly));
         const setupLumpSum = result.remaining - targetPayments * result.suggestedMonthly;
-        const setupMonth = targetPayments > 0 ? monthNames[12 - targetPayments] : `ינואר ${result.taxYear + 1}`;
-        const lumpCopy = setupLumpSum > 0 ? `להפקיד ${money2(setupLumpSum)} בהפקדה חד־פעמית, ובמקביל ` : "";
-        stepsForUser.push(`לאחר פתיחת הקרן: ${lumpCopy}להגדיר הוראת קבע של ${money2(result.suggestedMonthly)} החל מחודש ${setupMonth}, ולהמשיך איתה גם בשנת ${result.taxYear + 1}.`);
-        stepsForUser.push(`חלופה נוספת: לאחר פתיחת הקרן, להפקיד השנה את מלוא התקרה, ${money2(result.remaining)}, בהפקדה חד־פעמית; ומ־1.1.${result.taxYear + 1} להתחיל הוראת קבע שוטפת של כ־${money2(result.suggestedMonthly)} בחודש. הסכום החודשי מבוסס על תקרת ${result.taxYear} ויש לעדכנו לאחר פרסום התקרה החדשה.`);
+        const setupMonth = targetPayments > 0 ? monthNames[12 - targetPayments] : `\u05D9\u05E0\u05D5\u05D0\u05E8 ${result.taxYear + 1}`;
+        const lumpCopy = setupLumpSum > 0 ? `\u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 ${money2(setupLumpSum)} \u05D1\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9\u05EA, \u05D5\u05D1\u05DE\u05E7\u05D1\u05D9\u05DC ` : "";
+        stepsForUser.push(`\u05DC\u05D0\u05D7\u05E8 \u05E4\u05EA\u05D9\u05D7\u05EA \u05D4\u05E7\u05E8\u05DF: ${lumpCopy}\u05DC\u05D4\u05D2\u05D3\u05D9\u05E8 \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2 \u05E9\u05DC ${money2(result.suggestedMonthly)} \u05D4\u05D7\u05DC \u05DE\u05D7\u05D5\u05D3\u05E9 ${setupMonth}, \u05D5\u05DC\u05D4\u05DE\u05E9\u05D9\u05DA \u05D0\u05D9\u05EA\u05D4 \u05D2\u05DD \u05D1\u05E9\u05E0\u05EA ${result.taxYear + 1}.`);
+        stepsForUser.push(`\u05D7\u05DC\u05D5\u05E4\u05D4 \u05E0\u05D5\u05E1\u05E4\u05EA: \u05DC\u05D0\u05D7\u05E8 \u05E4\u05EA\u05D9\u05D7\u05EA \u05D4\u05E7\u05E8\u05DF, \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 \u05D4\u05E9\u05E0\u05D4 \u05D0\u05EA \u05DE\u05DC\u05D5\u05D0 \u05D4\u05EA\u05E7\u05E8\u05D4, ${money2(result.remaining)}, \u05D1\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9\u05EA; \u05D5\u05DE\u05BE1.1.${result.taxYear + 1} \u05DC\u05D4\u05EA\u05D7\u05D9\u05DC \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2 \u05E9\u05D5\u05D8\u05E4\u05EA \u05E9\u05DC \u05DB\u05BE${money2(result.suggestedMonthly)} \u05D1\u05D7\u05D5\u05D3\u05E9. \u05D4\u05E1\u05DB\u05D5\u05DD \u05D4\u05D7\u05D5\u05D3\u05E9\u05D9 \u05DE\u05D1\u05D5\u05E1\u05E1 \u05E2\u05DC \u05EA\u05E7\u05E8\u05EA ${result.taxYear} \u05D5\u05D9\u05E9 \u05DC\u05E2\u05D3\u05DB\u05E0\u05D5 \u05DC\u05D0\u05D7\u05E8 \u05E4\u05E8\u05E1\u05D5\u05DD \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05D7\u05D3\u05E9\u05D4.`);
       } else {
         stepsForUser.push(`\u05DC\u05D0\u05D7\u05E8 \u05E4\u05EA\u05D9\u05D7\u05EA \u05D4\u05E7\u05E8\u05DF, \u05DC\u05D1\u05D7\u05D5\u05DF \u05D4\u05E4\u05E7\u05D3\u05D4 \u05E9\u05E0\u05EA\u05D9\u05EA \u05E2\u05D3 ${money2(result.ceiling)} \u05D1\u05D4\u05EA\u05D0\u05DD \u05DC\u05D4\u05DB\u05E0\u05E1\u05D4 \u05D5\u05DC\u05EA\u05D6\u05E8\u05D9\u05DD.`);
       }
     } else {
       if (result.remaining > 0) {
-        const keepMonthly = result.currentMonthlyDeposit > 0 ? `, ללא שינוי הוראת הקבע הקיימת בסך ${money2(result.currentMonthlyDeposit)}` : "";
-        stepsForUser.push(`אפשרות ראשונה: להפקיד ${money2(result.remaining)} בהפקדה חד־פעמית${keepMonthly}.`);
+        const keepMonthly = result.currentMonthlyDeposit > 0 ? `, \u05DC\u05DC\u05D0 \u05E9\u05D9\u05E0\u05D5\u05D9 \u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05D4\u05E7\u05D9\u05D9\u05DE\u05EA \u05D1\u05E1\u05DA ${money2(result.currentMonthlyDeposit)}` : "";
+        stepsForUser.push(`\u05D0\u05E4\u05E9\u05E8\u05D5\u05EA \u05E8\u05D0\u05E9\u05D5\u05E0\u05D4: \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 ${money2(result.remaining)} \u05D1\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9\u05EA${keepMonthly}.`);
         if (result.currentMonthlyDeposit > 0) {
-          stepsForUser.push(`אפשרות שנייה: לעדכן את הוראת הקבע ל־${money2(result.suggestedTotalMonthlyToYearEnd)} בחודש, לכל אחת מ־${result.scheduledMonthsRemaining} ההפקדות שנותרו השנה.`);
+          stepsForUser.push(`\u05D0\u05E4\u05E9\u05E8\u05D5\u05EA \u05E9\u05E0\u05D9\u05D9\u05D4: \u05DC\u05E2\u05D3\u05DB\u05DF \u05D0\u05EA \u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05DC\u05BE${money2(result.suggestedTotalMonthlyToYearEnd)} \u05D1\u05D7\u05D5\u05D3\u05E9, \u05DC\u05DB\u05DC \u05D0\u05D7\u05EA \u05DE\u05BE${result.scheduledMonthsRemaining} \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05E0\u05D5\u05EA\u05E8\u05D5 \u05D4\u05E9\u05E0\u05D4.`);
           if (result.nextYearRatePayments > 0) {
-            const lumpPart = result.nextYearRateLumpSum > 0 ? `, ובנוסף להפקיד ${money2(result.nextYearRateLumpSum)} בהפקדה חד־פעמית` : "";
-            stepsForUser.push(`אפשרות שלישית: להשאיר את הוראת הקבע הקיימת עד חודש ${monthNames[result.nextYearRateStartMonthIndex - 1]}, ולעדכן אותה ל־${money2(result.suggestedMonthly)} החל מחודש ${monthNames[result.nextYearRateStartMonthIndex]}${lumpPart}. כך הוראת הקבע כבר תהיה מותאמת בקירוב לתקרת השנה הבאה.`);
+            const lumpPart = result.nextYearRateLumpSum > 0 ? `, \u05D5\u05D1\u05E0\u05D5\u05E1\u05E3 \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 ${money2(result.nextYearRateLumpSum)} \u05D1\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9\u05EA` : "";
+            stepsForUser.push(`\u05D0\u05E4\u05E9\u05E8\u05D5\u05EA \u05E9\u05DC\u05D9\u05E9\u05D9\u05EA: \u05DC\u05D4\u05E9\u05D0\u05D9\u05E8 \u05D0\u05EA \u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05D4\u05E7\u05D9\u05D9\u05DE\u05EA \u05E2\u05D3 \u05D7\u05D5\u05D3\u05E9 ${monthNames[result.nextYearRateStartMonthIndex - 1]}, \u05D5\u05DC\u05E2\u05D3\u05DB\u05DF \u05D0\u05D5\u05EA\u05D4 \u05DC\u05BE${money2(result.suggestedMonthly)} \u05D4\u05D7\u05DC \u05DE\u05D7\u05D5\u05D3\u05E9 ${monthNames[result.nextYearRateStartMonthIndex]}${lumpPart}. \u05DB\u05DA \u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05DB\u05D1\u05E8 \u05EA\u05D4\u05D9\u05D4 \u05DE\u05D5\u05EA\u05D0\u05DE\u05EA \u05D1\u05E7\u05D9\u05E8\u05D5\u05D1 \u05DC\u05EA\u05E7\u05E8\u05EA \u05D4\u05E9\u05E0\u05D4 \u05D4\u05D1\u05D0\u05D4.`);
           }
         } else {
           stepsForUser.push(`\u05D0\u05D5 \u05DC\u05D7\u05DC\u05D5\u05E4\u05D9\u05DF: \u05DC\u05D4\u05EA\u05D7\u05D9\u05DC \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D5\u05D3\u05E9\u05D9\u05EA \u05E9\u05DC \u05DB\u05BE${money2(result.suggestedMonthlyToYearEnd)} \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4.`);
           if (profile.goals.includes("monthly")) {
             const targetPayments = Math.min(result.scheduledMonthsRemaining, Math.floor(result.remaining / result.suggestedMonthly));
             const setupLumpSum = result.remaining - targetPayments * result.suggestedMonthly;
-            const setupMonth = targetPayments > 0 ? monthNames[12 - targetPayments] : `ינואר ${result.taxYear + 1}`;
-            const lumpCopy = setupLumpSum > 0 ? `להפקיד ${money2(setupLumpSum)} בהפקדה חד־פעמית, ובמקביל ` : "";
-            stepsForUser.push(`אפשרות נוספת לבניית הוראת קבע: ${lumpCopy}לעדכן את הוראת הקבע ל־${money2(result.suggestedMonthly)} החל מחודש ${setupMonth}, ולהמשיך איתה גם בשנת ${result.taxYear + 1}.`);
+            const setupMonth = targetPayments > 0 ? monthNames[12 - targetPayments] : `\u05D9\u05E0\u05D5\u05D0\u05E8 ${result.taxYear + 1}`;
+            const lumpCopy = setupLumpSum > 0 ? `\u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 ${money2(setupLumpSum)} \u05D1\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9\u05EA, \u05D5\u05D1\u05DE\u05E7\u05D1\u05D9\u05DC ` : "";
+            stepsForUser.push(`\u05D0\u05E4\u05E9\u05E8\u05D5\u05EA \u05E0\u05D5\u05E1\u05E4\u05EA \u05DC\u05D1\u05E0\u05D9\u05D9\u05EA \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2: ${lumpCopy}\u05DC\u05E2\u05D3\u05DB\u05DF \u05D0\u05EA \u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05DC\u05BE${money2(result.suggestedMonthly)} \u05D4\u05D7\u05DC \u05DE\u05D7\u05D5\u05D3\u05E9 ${setupMonth}, \u05D5\u05DC\u05D4\u05DE\u05E9\u05D9\u05DA \u05D0\u05D9\u05EA\u05D4 \u05D2\u05DD \u05D1\u05E9\u05E0\u05EA ${result.taxYear + 1}.`);
           }
         }
       } else stepsForUser.push(buildRecommendation(result, profile));
       const wantsMonthlyPlan = profile.goals.includes("monthly");
       if (result.overCeiling > 0) {
-        stepsForUser.push(`לקבוע תזכורת ל־1.1.${result.taxYear + 1}: לאחר פרסום התקרה המעודכנת, לבדוק את הסכום החדש ולשקול להפקיד את מלוא התקרה כבר בתחילת השנה, כדי שהכסף יוכל לעבוד לאורך שנה ארוכה יותר.`);
+        stepsForUser.push(`\u05DC\u05E7\u05D1\u05D5\u05E2 \u05EA\u05D6\u05DB\u05D5\u05E8\u05EA \u05DC\u05BE1.1.${result.taxYear + 1}: \u05DC\u05D0\u05D7\u05E8 \u05E4\u05E8\u05E1\u05D5\u05DD \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05E2\u05D5\u05D3\u05DB\u05E0\u05EA, \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 \u05D0\u05EA \u05DE\u05DC\u05D5\u05D0 \u05D4\u05EA\u05E7\u05E8\u05D4 \u05DB\u05D1\u05E8 \u05D1\u05EA\u05D7\u05D9\u05DC\u05EA \u05D4\u05E9\u05E0\u05D4, \u05DB\u05D3\u05D9 \u05E9\u05D4\u05DB\u05E1\u05E3 \u05D9\u05D5\u05DB\u05DC \u05DC\u05E2\u05D1\u05D5\u05D3 \u05DC\u05D0\u05D5\u05E8\u05DA \u05E9\u05E0\u05D4 \u05D0\u05E8\u05D5\u05DB\u05D4 \u05D9\u05D5\u05EA\u05E8.`);
       }
       if (wantsMonthlyPlan && result.remaining > 0) {
-        stepsForUser.push(`חלופה נוספת: להשלים השנה את מלוא היתרה, ${money2(result.remaining)}, בהפקדה חד־פעמית; ומ־1.1.${result.taxYear + 1} להתחיל הוראת קבע שוטפת של כ־${money2(result.suggestedMonthly)} בחודש. הסכום החודשי מבוסס על תקרת ${result.taxYear} ויש לעדכנו לאחר פרסום התקרה החדשה.`);
+        stepsForUser.push(`\u05D7\u05DC\u05D5\u05E4\u05D4 \u05E0\u05D5\u05E1\u05E4\u05EA: \u05DC\u05D4\u05E9\u05DC\u05D9\u05DD \u05D4\u05E9\u05E0\u05D4 \u05D0\u05EA \u05DE\u05DC\u05D5\u05D0 \u05D4\u05D9\u05EA\u05E8\u05D4, ${money2(result.remaining)}, \u05D1\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9\u05EA; \u05D5\u05DE\u05BE1.1.${result.taxYear + 1} \u05DC\u05D4\u05EA\u05D7\u05D9\u05DC \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2 \u05E9\u05D5\u05D8\u05E4\u05EA \u05E9\u05DC \u05DB\u05BE${money2(result.suggestedMonthly)} \u05D1\u05D7\u05D5\u05D3\u05E9. \u05D4\u05E1\u05DB\u05D5\u05DD \u05D4\u05D7\u05D5\u05D3\u05E9\u05D9 \u05DE\u05D1\u05D5\u05E1\u05E1 \u05E2\u05DC \u05EA\u05E7\u05E8\u05EA ${result.taxYear} \u05D5\u05D9\u05E9 \u05DC\u05E2\u05D3\u05DB\u05E0\u05D5 \u05DC\u05D0\u05D7\u05E8 \u05E4\u05E8\u05E1\u05D5\u05DD \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05D7\u05D3\u05E9\u05D4.`);
       }
       if (profile.completionPreference === "lump" && !wantsMonthlyPlan && result.overCeiling === 0) {
-        stepsForUser.push(`לקבוע כבר עכשיו תזכורת ל־1.1.${result.taxYear + 1}. לאחר פרסום התקרה המעודכנת לשנה הבאה, ניתן לשקול להפקיד אותה בתחילת השנה — כך הכסף יוכל להיות מושקע ולעבוד לאורך שנה ארוכה יותר.`);
+        stepsForUser.push(`\u05DC\u05E7\u05D1\u05D5\u05E2 \u05DB\u05D1\u05E8 \u05E2\u05DB\u05E9\u05D9\u05D5 \u05EA\u05D6\u05DB\u05D5\u05E8\u05EA \u05DC\u05BE1.1.${result.taxYear + 1}. \u05DC\u05D0\u05D7\u05E8 \u05E4\u05E8\u05E1\u05D5\u05DD \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05E2\u05D5\u05D3\u05DB\u05E0\u05EA \u05DC\u05E9\u05E0\u05D4 \u05D4\u05D1\u05D0\u05D4, \u05E0\u05D9\u05EA\u05DF \u05DC\u05E9\u05E7\u05D5\u05DC \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 \u05D0\u05D5\u05EA\u05D4 \u05D1\u05EA\u05D7\u05D9\u05DC\u05EA \u05D4\u05E9\u05E0\u05D4 \u2014 \u05DB\u05DA \u05D4\u05DB\u05E1\u05E3 \u05D9\u05D5\u05DB\u05DC \u05DC\u05D4\u05D9\u05D5\u05EA \u05DE\u05D5\u05E9\u05E7\u05E2 \u05D5\u05DC\u05E2\u05D1\u05D5\u05D3 \u05DC\u05D0\u05D5\u05E8\u05DA \u05E9\u05E0\u05D4 \u05D0\u05E8\u05D5\u05DB\u05D4 \u05D9\u05D5\u05EA\u05E8.`);
       } else if (result.nextYearRatePayments === 0 && (result.overCeiling === 0 || wantsMonthlyPlan) && !(wantsMonthlyPlan && result.remaining > 0 && result.currentMonthlyDeposit === 0)) {
-        stepsForUser.push(`\u05DC\u05D4\u05D9\u05E2\u05E8\u05DA \u05DC\u05E9\u05E0\u05D4 \u05D4\u05D1\u05D0\u05D4 \u05E2\u05DD \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2 \u05E9\u05DC \u05DB\u05BE${money2(result.suggestedMonthly)} \u05D1\u05D7\u05D5\u05D3\u05E9, \u05D5\u05DC\u05E2\u05D3\u05DB\u05DF \u05D0\u05D5\u05EA\u05D4 \u05DB\u05E9\u05D4\u05EA\u05E7\u05E8\u05D4 \u05DE\u05E9\u05EA\u05E0\u05D4.`);
+        const alternativePrefix = result.overCeiling > 0 ? "\u05DC\u05D7\u05D9\u05DC\u05D5\u05E4\u05D9\u05DF, " : "";
+        stepsForUser.push(`${alternativePrefix}\u05DC\u05D4\u05D9\u05E2\u05E8\u05DA \u05DC\u05E9\u05E0\u05D4 \u05D4\u05D1\u05D0\u05D4 \u05E2\u05DD \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2 \u05E9\u05DC \u05DB\u05BE${money2(result.suggestedMonthly)} \u05D1\u05D7\u05D5\u05D3\u05E9, \u05D5\u05DC\u05E2\u05D3\u05DB\u05DF \u05D0\u05D5\u05EA\u05D4 \u05DB\u05E9\u05D4\u05EA\u05E7\u05E8\u05D4 \u05DE\u05E9\u05EA\u05E0\u05D4.`);
       }
       stepsForUser.push("\u05DC\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D7\u05EA \u05DC\u05E9\u05E0\u05D4 \u05E9\u05D4\u05DE\u05E1\u05DC\u05D5\u05DC \u05D5\u05D3\u05DE\u05D9 \u05D4\u05E0\u05D9\u05D4\u05D5\u05DC \u05E2\u05D3\u05D9\u05D9\u05DF \u05DE\u05EA\u05D0\u05D9\u05DE\u05D9\u05DD \u05DC\u05DE\u05D8\u05E8\u05D5\u05EA \u05E9\u05D1\u05D7\u05E8\u05EA.");
       stepsForUser.push("\u05DC\u05D1\u05D3\u05D5\u05E7 \u05E9\u05DE\u05E0\u05D4\u05DC \u05D4\u05D4\u05E9\u05E7\u05E2\u05D5\u05EA \u05DE\u05D9\u05D9\u05E6\u05E8 \u05EA\u05E9\u05D5\u05D0\u05D4 \u05D8\u05D5\u05D1\u05D4 \u05D5\u05E2\u05E7\u05D1\u05D9\u05EA \u05D1\u05D9\u05D7\u05E1 \u05DC\u05DE\u05EA\u05D7\u05E8\u05D9\u05DD \u05DC\u05D0\u05D5\u05E8\u05DA \u05EA\u05E7\u05D5\u05E4\u05D5\u05EA \u05D6\u05DE\u05DF \u05DE\u05EA\u05D0\u05D9\u05DE\u05D5\u05EA.");
@@ -618,7 +626,6 @@
       return `<li${isWarning ? ' class="is-warning"' : ""}><span>${index + 1}</span><p>${isWarning ? '<i class="fas fa-triangle-exclamation" aria-hidden="true"></i>' : ""}${step}</p></li>`;
     }).join("");
   }
-  var countdownTimer;
   function renderLiveCountdown(taxYear) {
     clearInterval(countdownTimer);
     const target = new Date(taxYear, 11, 31, 23, 59, 59, 999);
@@ -651,20 +658,20 @@
     const message = $("#result-message");
     intro.classList.toggle("is-over-ceiling", result.overCeiling > 0);
     if (result.overCeiling > 0) {
-      $("#result-title").textContent = "ההפקדות הצפויות השנה גבוהות מהתקרה המוטבת";
-      message.textContent = `הסכום הצפוי שמעל התקרה הוא ${money2(result.overCeiling)}. כדאי לבדוק אותו לפני ביצוע הפקדות נוספות.`;
+      $("#result-title").textContent = "\u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05D4\u05E6\u05E4\u05D5\u05D9\u05D5\u05EA \u05D4\u05E9\u05E0\u05D4 \u05D2\u05D1\u05D5\u05D4\u05D5\u05EA \u05DE\u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA";
+      message.textContent = `\u05D4\u05E1\u05DB\u05D5\u05DD \u05D4\u05E6\u05E4\u05D5\u05D9 \u05E9\u05DE\u05E2\u05DC \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05D5\u05D0 ${money2(result.overCeiling)}. \u05DB\u05D3\u05D0\u05D9 \u05DC\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D5\u05EA\u05D5 \u05DC\u05E4\u05E0\u05D9 \u05D1\u05D9\u05E6\u05D5\u05E2 \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E0\u05D5\u05E1\u05E4\u05D5\u05EA.`;
       message.hidden = false;
       countdown.hidden = true;
       return;
     }
     if (result.remaining === 0) {
-      $("#result-title").textContent = `ניצלת את מלוא התקרה המוטבת לשנת ${result.taxYear}`;
-      message.textContent = "אין צורך לבצע הפקדה נוספת כדי לנצל את התקרה השנה.";
+      $("#result-title").textContent = `\u05E0\u05D9\u05E6\u05DC\u05EA \u05D0\u05EA \u05DE\u05DC\u05D5\u05D0 \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA \u05DC\u05E9\u05E0\u05EA ${result.taxYear}`;
+      message.textContent = "\u05D0\u05D9\u05DF \u05E6\u05D5\u05E8\u05DA \u05DC\u05D1\u05E6\u05E2 \u05D4\u05E4\u05E7\u05D3\u05D4 \u05E0\u05D5\u05E1\u05E4\u05EA \u05DB\u05D3\u05D9 \u05DC\u05E0\u05E6\u05DC \u05D0\u05EA \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05E9\u05E0\u05D4.";
       message.hidden = false;
       countdown.hidden = true;
       return;
     }
-    $("#result-title").textContent = "ההזדמנות לנצל את ההטבה מסתיימת בסוף השנה";
+    $("#result-title").textContent = "\u05D4\u05D4\u05D6\u05D3\u05DE\u05E0\u05D5\u05EA \u05DC\u05E0\u05E6\u05DC \u05D0\u05EA \u05D4\u05D4\u05D8\u05D1\u05D4 \u05DE\u05E1\u05EA\u05D9\u05D9\u05DE\u05EA \u05D1\u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4";
     message.hidden = true;
     renderLiveCountdown(result.taxYear);
   }
@@ -693,9 +700,8 @@
     const whatsappUrl = buildWhatsAppUrl(result, profile);
     $("#whatsapp").href = whatsappUrl;
     $("#whatsapp-secondary").href = whatsappUrl;
-    $("#calculation-details").innerHTML = `<p><strong>\u05EA\u05E7\u05E8\u05EA 2026:</strong> ${money2(result.ceiling)} \xB7 <strong>\u05D4\u05DB\u05E0\u05E1\u05D4:</strong> ${money2(result.income)} \xB7 <strong>\u05D4\u05D5\u05E4\u05E7\u05D3 \u05E2\u05D3 \u05D4\u05D9\u05D5\u05DD:</strong> ${money2(result.depositedToDate)} \xB7 <strong>\u05E6\u05E4\u05D9 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4:</strong> ${money2(result.projectedAnnualDeposited)}</p><p>\u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D4\u05D8\u05D1\u05D5\u05EA \u05DE\u05D7\u05D5\u05E9\u05D1 \u05D1\u05D4\u05E0\u05D7\u05D4 \u05E9\u05DC \u05DE\u05D9\u05E7\u05E1\u05D5\u05DD \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D4\u05E9\u05E0\u05EA\u05D9\u05EA \u05E2\u05D3 \u05D4\u05EA\u05E7\u05E8\u05D4, \u05D5\u05DC\u05DB\u05DF \u05DB\u05D5\u05DC\u05DC \u05D2\u05DD \u05D0\u05EA \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05DB\u05D1\u05E8 \u05D1\u05D5\u05E6\u05E2\u05D5 \u05D5\u05D0\u05EA \u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05D4\u05E6\u05E4\u05D5\u05D9\u05D4 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4 \u2014 \u05D5\u05DC\u05D0 \u05E8\u05E7 \u05D0\u05EA \u05D9\u05EA\u05E8\u05EA \u05D4\u05D4\u05E9\u05DC\u05DE\u05D4.</p><p><strong>\u05DE\u05D3\u05E8\u05D2\u05EA \u05DE\u05E1 \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA:</strong> ${result.taxRate * 100}% \xB7 <strong>\u05E9\u05D9\u05E2\u05D5\u05E8 \u05E0\u05D9\u05DB\u05D5\u05D9:</strong> ${result.deductibleRate * 100}%</p><p><strong>\u05D4\u05D8\u05D1\u05D4 \u05DE\u05D9\u05D9\u05D3\u05D9\u05EA \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA:</strong> \u05DE\u05E1 \u05D4\u05DB\u05E0\u05E1\u05D4 ${money2(result.estimatedTotalTaxBenefit)} + \u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9/\u05D1\u05E8\u05D9\u05D0\u05D5\u05EA ${money2(result.estimatedNationalInsuranceBenefitTotal)}.</p><p><strong>\u05E9\u05D5\u05D5\u05D9 \u05E2\u05EA\u05D9\u05D3\u05D9 \u05DE\u05E9\u05D5\u05E2\u05E8:</strong> \u05E4\u05D8\u05D5\u05E8 \u05DE\u05DE\u05E1 \u05E8\u05D5\u05D5\u05D7\u05D9 \u05D4\u05D5\u05DF ${money2(result.estimatedCapitalGainsExemptionValueTotal)}, \u05D1\u05D4\u05E0\u05D7\u05EA 8% \u05DC\u05E9\u05E0\u05D4 \u05DC\u05BE6 \u05E9\u05E0\u05D9\u05DD \u05D5\u05DE\u05E1 \u05E9\u05DC 25% \u05E2\u05DC \u05D4\u05E8\u05D5\u05D5\u05D7.</p><p>\u05DE\u05E7\u05D5\u05E8\u05D5\u05EA: \u05E1\u05E4\u05E8 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9\u05D9\u05DD 2026 \u05D5\u05E9\u05D9\u05E2\u05D5\u05E8\u05D9 \u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9 \u05DC\u05E2\u05E6\u05DE\u05D0\u05D9 2026 \u05DB\u05E4\u05D9 \u05E9\u05EA\u05D5\u05E2\u05D3\u05D5 \u05D1\u05D0\u05EA\u05E8 \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2\u05D9. \u05D0\u05D9\u05DE\u05D5\u05EA: 15.07.2026. \u05DB\u05DC \u05D4\u05E8\u05DB\u05D9\u05D1\u05D9\u05DD \u05D4\u05DD \u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D3\u05D5\u05E8\u05E9 \u05D0\u05D9\u05DE\u05D5\u05EA \u05D0\u05D9\u05E9\u05D9.</p>`;
-    $("#calculation-details").innerHTML = `<p><strong>\u05EA\u05E7\u05E8\u05EA 2026:</strong> ${money2(result.ceiling)} \xB7 <strong>\u05D4\u05DB\u05E0\u05E1\u05D4:</strong> ${money2(result.income)} \xB7 <strong>\u05D4\u05D5\u05E4\u05E7\u05D3 \u05D4\u05E9\u05E0\u05D4:</strong> ${money2(result.depositedToDate)}${hasFutureProjection ? ` \xB7 <strong>\u05E6\u05E4\u05D5\u05D9 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4 \u05DB\u05D5\u05DC\u05DC \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2:</strong> ${money2(result.projectedAnnualDeposited)}` : ""}</p><p>\u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D4\u05D8\u05D1\u05D5\u05EA \u05DE\u05D7\u05D5\u05E9\u05D1 \u05D1\u05D4\u05E0\u05D7\u05D4 \u05E9\u05DC \u05DE\u05D9\u05E7\u05E1\u05D5\u05DD \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D4\u05E9\u05E0\u05EA\u05D9\u05EA \u05E2\u05D3 \u05D4\u05EA\u05E7\u05E8\u05D4, \u05D5\u05DC\u05DB\u05DF \u05DB\u05D5\u05DC\u05DC \u05D2\u05DD \u05D0\u05EA \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05DB\u05D1\u05E8 \u05D1\u05D5\u05E6\u05E2\u05D5 \u05D5\u05D0\u05EA \u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05D4\u05E6\u05E4\u05D5\u05D9\u05D4 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4 \u2014 \u05D5\u05DC\u05D0 \u05E8\u05E7 \u05D0\u05EA \u05D9\u05EA\u05E8\u05EA \u05D4\u05D4\u05E9\u05DC\u05DE\u05D4.</p>`;
-    $("#calculation-details").innerHTML = `<p><strong>תקרת 2026:</strong> ${money2(result.ceiling)} · <strong>הכנסה:</strong> ${money2(result.income)} · <strong>הופקד השנה:</strong> ${money2(result.depositedToDate)}${hasFutureProjection ? ` · <strong>צפוי עד סוף השנה כולל הוראת קבע:</strong> ${money2(result.projectedAnnualDeposited)}` : ""}</p><p>אומדן ההטבות מחושב בהנחה של מיקסום ההפקדה השנתית עד התקרה, ולכן כולל גם את ההפקדות שכבר בוצעו ואת הוראת הקבע הצפויה עד סוף השנה — ולא רק את יתרת ההשלמה.</p><p><strong>מדרגת מס משוערת:</strong> ${result.taxRate * 100}% · <strong>שיעור ניכוי:</strong> ${result.deductibleRate * 100}%</p><p><strong>הטבה מיידית משוערת:</strong> מס הכנסה ${money2(result.estimatedTotalTaxBenefit)} + ביטוח לאומי/בריאות ${money2(result.estimatedNationalInsuranceBenefitTotal)}.</p><p><strong>שווי עתידי משוער:</strong> פטור ממס רווחי הון ${money2(result.estimatedCapitalGainsExemptionValueTotal)}, בהנחת 8% לשנה ל־6 שנים ומס של 25% על הרווח.</p><p>מקורות: ספר הניכויים 2026 ושיעורי ביטוח לאומי לעצמאי 2026 כפי שתועדו באתר המקצועי. אימות: 15.07.2026. כל הרכיבים הם אומדן הדורש אימות אישי.</p>`;
+    $("#share-benefits").href = buildConsumerShareUrl();
+    $("#calculation-details").innerHTML = `<p><strong>\u05EA\u05E7\u05E8\u05EA 2026:</strong> ${money2(result.ceiling)} \xB7 <strong>\u05D4\u05DB\u05E0\u05E1\u05D4:</strong> ${money2(result.income)} \xB7 <strong>\u05D4\u05D5\u05E4\u05E7\u05D3 \u05D4\u05E9\u05E0\u05D4:</strong> ${money2(result.depositedToDate)}${hasFutureProjection ? ` \xB7 <strong>\u05E6\u05E4\u05D5\u05D9 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4 \u05DB\u05D5\u05DC\u05DC \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2:</strong> ${money2(result.projectedAnnualDeposited)}` : ""}</p><p>\u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D4\u05D8\u05D1\u05D5\u05EA \u05DE\u05D7\u05D5\u05E9\u05D1 \u05D1\u05D4\u05E0\u05D7\u05D4 \u05E9\u05DC \u05DE\u05D9\u05E7\u05E1\u05D5\u05DD \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D4\u05E9\u05E0\u05EA\u05D9\u05EA \u05E2\u05D3 \u05D4\u05EA\u05E7\u05E8\u05D4, \u05D5\u05DC\u05DB\u05DF \u05DB\u05D5\u05DC\u05DC \u05D2\u05DD \u05D0\u05EA \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05DB\u05D1\u05E8 \u05D1\u05D5\u05E6\u05E2\u05D5 \u05D5\u05D0\u05EA \u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05D4\u05E6\u05E4\u05D5\u05D9\u05D4 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4 \u2014 \u05D5\u05DC\u05D0 \u05E8\u05E7 \u05D0\u05EA \u05D9\u05EA\u05E8\u05EA \u05D4\u05D4\u05E9\u05DC\u05DE\u05D4.</p><p><strong>\u05DE\u05D3\u05E8\u05D2\u05EA \u05DE\u05E1 \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA:</strong> ${result.taxRate * 100}% \xB7 <strong>\u05E9\u05D9\u05E2\u05D5\u05E8 \u05E0\u05D9\u05DB\u05D5\u05D9:</strong> ${result.deductibleRate * 100}%</p><p><strong>\u05D4\u05D8\u05D1\u05D4 \u05DE\u05D9\u05D9\u05D3\u05D9\u05EA \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA:</strong> \u05DE\u05E1 \u05D4\u05DB\u05E0\u05E1\u05D4 ${money2(result.estimatedTotalTaxBenefit)} + \u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9/\u05D1\u05E8\u05D9\u05D0\u05D5\u05EA ${money2(result.estimatedNationalInsuranceBenefitTotal)}.</p><p><strong>\u05E9\u05D5\u05D5\u05D9 \u05E2\u05EA\u05D9\u05D3\u05D9 \u05DE\u05E9\u05D5\u05E2\u05E8:</strong> \u05E4\u05D8\u05D5\u05E8 \u05DE\u05DE\u05E1 \u05E8\u05D5\u05D5\u05D7\u05D9 \u05D4\u05D5\u05DF ${money2(result.estimatedCapitalGainsExemptionValueTotal)}, \u05D1\u05D4\u05E0\u05D7\u05EA 8% \u05DC\u05E9\u05E0\u05D4 \u05DC\u05BE6 \u05E9\u05E0\u05D9\u05DD \u05D5\u05DE\u05E1 \u05E9\u05DC 25% \u05E2\u05DC \u05D4\u05E8\u05D5\u05D5\u05D7.</p><p>\u05DE\u05E7\u05D5\u05E8\u05D5\u05EA: \u05E1\u05E4\u05E8 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9\u05D9\u05DD 2026 \u05D5\u05E9\u05D9\u05E2\u05D5\u05E8\u05D9 \u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9 \u05DC\u05E2\u05E6\u05DE\u05D0\u05D9 2026 \u05DB\u05E4\u05D9 \u05E9\u05EA\u05D5\u05E2\u05D3\u05D5 \u05D1\u05D0\u05EA\u05E8 \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2\u05D9. \u05D0\u05D9\u05DE\u05D5\u05EA: 15.07.2026. \u05DB\u05DC \u05D4\u05E8\u05DB\u05D9\u05D1\u05D9\u05DD \u05D4\u05DD \u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D3\u05D5\u05E8\u05E9 \u05D0\u05D9\u05DE\u05D5\u05EA \u05D0\u05D9\u05E9\u05D9.</p>`;
   }
   form.addEventListener("click", (event) => {
     var _a;

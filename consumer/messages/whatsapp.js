@@ -1,4 +1,5 @@
 const PHONE = '972528089808';
+const CONSUMER_URL = 'https://romanoroei.github.io/KerenHeshtalmut/consumer/';
 const money = (value) => new Intl.NumberFormat('he-IL', { maximumFractionDigits: 0 }).format(Math.round(value));
 
 export function buildWhatsAppMessage(result, profile = {}) {
@@ -29,4 +30,9 @@ export function buildWhatsAppMessage(result, profile = {}) {
 
 export function buildWhatsAppUrl(result, profile) {
   return `https://wa.me/${PHONE}?text=${encodeURIComponent(buildWhatsAppMessage(result, profile))}`;
+}
+
+export function buildConsumerShareUrl() {
+  const message = `בדקתי כמה כדאי להפקיד לקרן השתלמות ומה שווי הטבות המס האפשריות. אפשר לבצע כאן בדיקה אישית וקצרה:\n${CONSUMER_URL}`;
+  return `https://wa.me/?text=${encodeURIComponent(message)}`;
 }
