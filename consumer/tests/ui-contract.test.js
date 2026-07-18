@@ -117,6 +117,8 @@ test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקד
   assert.match(check, /id="share-benefits"/);
   assert.doesNotMatch(check, />למחשבון המקצועי/);
   assert.match(landing, /property="og:image" content="https:\/\/romanoroei\.github\.io\/KerenHeshtalmut\/og-share\.jpg/);
+  assert.match(landing, /property="og:image:secure_url"/);
+  assert.match(landing, /property="og:image:type" content="image\/jpeg"/);
 });
 
 test('דפי המדיניות מחזירים למחשבון שממנו הגיע המשתמש', async () => {

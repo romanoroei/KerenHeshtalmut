@@ -274,7 +274,7 @@
 
   // consumer/messages/whatsapp.js
   var PHONE = "972528089808";
-  var CONSUMER_URL = "https://romanoroei.github.io/KerenHeshtalmut/consumer/";
+  var CONSUMER_URL = "https://romanoroei.github.io/KerenHeshtalmut/consumer/?share=20260718-2";
   var money = (value) => new Intl.NumberFormat("he-IL", { maximumFractionDigits: 0 }).format(Math.round(value));
   function buildWhatsAppMessage(result, profile = {}) {
     var _a, _b, _c, _d, _e, _f, _g;

@@ -1,5 +1,5 @@
 const PHONE = '972528089808';
-const CONSUMER_URL = 'https://romanoroei.github.io/KerenHeshtalmut/consumer/';
+const CONSUMER_URL = 'https://romanoroei.github.io/KerenHeshtalmut/consumer/?share=20260718-2';
 const money = (value) => new Intl.NumberFormat('he-IL', { maximumFractionDigits: 0 }).format(Math.round(value));
 
 export function buildWhatsAppMessage(result, profile = {}) {
