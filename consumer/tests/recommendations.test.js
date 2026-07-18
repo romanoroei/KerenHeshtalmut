@@ -6,3 +6,9 @@ test('המלצה חודשית',()=>assert.match(buildRecommendation(base,{fundSt
 test('המלצה לניצול מלא',()=>assert.match(buildRecommendation({...base,remaining:0},{fundStatus:'liquid'}),/מלוא התקרה/));
 test('המלצה מעל התקרה',()=>assert.match(buildRecommendation({...base,overCeiling:1000},{fundStatus:'liquid'}),/מעל התקרה/));
 test('CTA ללא קרן',()=>assert.match(buildCta(base,{fundStatus:'none'}),/לפתוח קרן/));
+test('CTA להשלמה קטנה אינו מדבר על הכבדה בתזרים',()=>{
+  const copy=buildCta({...base,remaining:4999},{fundStatus:'existing'});
+  assert.doesNotMatch(copy,/להכביד על התזרים/);
+  assert.match(copy,/מנוהלת נכון/);
+});
+test('CTA להשלמה של 5,000 ומעלה מתייחס לתזרים',()=>assert.match(buildCta({...base,remaining:5000},{fundStatus:'existing'}),/תזרים/));

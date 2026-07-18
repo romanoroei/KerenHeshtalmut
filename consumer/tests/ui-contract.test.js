@@ -7,7 +7,7 @@ test('הכפתורים נטענים מ-bundle רגיל ללא script inline', as
   const check = await readFile(new URL('../check.html', import.meta.url), 'utf8');
   assert.match(landing, /href="\.\/check\.html"/);
   assert.doesNotMatch(landing, /href="\.\.\/index\.html"/);
-  assert.match(check, /script defer src="\.\/ui\/app\.bundle\.js"/);
+  assert.match(check, /script defer src="\.\/ui\/app\.bundle\.js\?v=\d+-\d+"/);
   assert.doesNotMatch(check, /script type="module"/);
   assert.doesNotMatch(check, /<script>(?!\s*<\/script>)/);
 });
@@ -41,6 +41,8 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   assert.match(html, /id="recommendation-steps"/);
   assert.match(html, /id="existingBalance"/);
   assert.match(html, /class="deposit-mini"/);
+  assert.match(html, /הופקד השנה/);
+  assert.match(html, /צפוי עד סוף השנה כולל הוראת קבע/);
   assert.doesNotMatch(html, /הפקדה חודשית להמחשה/);
   assert.match(html, /id="growth-detail"/);
   assert.match(html, /id="growth-chart"/);
@@ -86,6 +88,9 @@ test('מסך התוצאה מציג יתרה פעם אחת, טיימר חי ו-CT
   assert.ok(html.indexOf('id="countdown-seconds"') < html.indexOf('id="countdown-days"'));
   assert.match(source, /setInterval\(update, 1000\)/);
   assert.match(source, /buildSecondaryCta/);
+  assert.match(source, /hasFutureProjection/);
+  assert.match(source, /מנהל ההשקעות מייצר תשואה טובה ועקבית ביחס למתחרים/);
+  assert.doesNotMatch(source, /מצב הקרן ידוע/);
   assert.doesNotMatch(source, /dynamic-cta-secondary'\)\.textContent = ctaCopy/);
 });
 

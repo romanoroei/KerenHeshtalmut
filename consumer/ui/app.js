@@ -229,7 +229,6 @@ function renderScore(result, profile) {
   const components = [
     ['ניצול תקרה', Math.min(result.deposited / result.ceiling, 1) > 0],
     ['תוכנית חודשית', ['monthly', 'both'].includes(profile.depositMethod)],
-    ['מצב הקרן ידוע', profile.fundStatus !== 'unknown'],
     ['הוגדרו מטרות', profile.goals.length > 0],
   ];
   $('#score-components').innerHTML = components.map(([label, done]) => `<li><i class="fas fa-${done ? 'circle-check' : 'circle'}"></i>${label}</li>`).join('');
@@ -248,6 +247,7 @@ function renderRecommendationSteps(result, profile) {
     } else stepsForUser.push(buildRecommendation(result, profile));
     stepsForUser.push(`להיערך לשנה הבאה עם הוראת קבע של כ־${money(result.suggestedMonthly)} בחודש, ולעדכן אותה כשהתקרה משתנה.`);
     stepsForUser.push('לבדוק אחת לשנה שהמסלול ודמי הניהול עדיין מתאימים למטרות שבחרת.');
+    stepsForUser.push('לבדוק שמנהל ההשקעות מייצר תשואה טובה ועקבית ביחס למתחרים לאורך תקופות זמן מתאימות.');
   }
   $('#recommendation-steps').innerHTML = stepsForUser.map((step, index) => `<li><span>${index + 1}</span><p>${step}</p></li>`).join('');
 }
@@ -286,7 +286,11 @@ function renderResult(result, profile) {
   renderLiveCountdown(result.taxYear);
   countUp($('#deposited-to-date'), result.depositedToDate, money);
   countUp($('#projected-annual'), result.projectedAnnualDeposited, money);
-  $('#future-scheduled').textContent = result.futureScheduledDeposits > 0 ? `מתוכם ${money(result.futureScheduledDeposits)} צפויים בהוראת הקבע עד סוף השנה` : 'לא הוזנו הפקדות חודשיות עתידיות';
+  const hasFutureProjection = result.projectedAnnualDeposited > result.depositedToDate;
+  $('#projected-deposit-row').hidden = !hasFutureProjection;
+  $('#future-scheduled').hidden = !hasFutureProjection;
+  $('#deposit-mini').classList.toggle('is-single', !hasFutureProjection);
+  $('#future-scheduled').textContent = hasFutureProjection ? `מתוכם ${money(result.futureScheduledDeposits)} צפויים בהוראת הקבע עד סוף השנה` : '';
   countUp($('#income-tax-benefit'), result.estimatedTotalTaxBenefit, money);
   countUp($('#insurance-benefit'), result.estimatedNationalInsuranceBenefitTotal, money);
   countUp($('#capital-gains-benefit'), result.estimatedCapitalGainsExemptionValueTotal, money);
@@ -300,7 +304,7 @@ function renderResult(result, profile) {
   const whatsappUrl = buildWhatsAppUrl(result, profile);
   $('#whatsapp').href = whatsappUrl;
   $('#whatsapp-secondary').href = whatsappUrl;
-  $('#calculation-details').innerHTML = `<p><strong>תקרת 2026:</strong> ${money(result.ceiling)} · <strong>הכנסה:</strong> ${money(result.income)} · <strong>הופקד עד היום:</strong> ${money(result.depositedToDate)} · <strong>צפי עד סוף השנה:</strong> ${money(result.projectedAnnualDeposited)}</p><p>אומדן ההטבות מחושב בהנחה של מיקסום ההפקדה השנתית עד התקרה, ולכן כולל גם את ההפקדות שכבר בוצעו ואת הוראת הקבע הצפויה עד סוף השנה — ולא רק את יתרת ההשלמה.</p><p><strong>מדרגת מס משוערת:</strong> ${result.taxRate * 100}% · <strong>שיעור ניכוי:</strong> ${result.deductibleRate * 100}%</p><p><strong>הטבה מיידית משוערת:</strong> מס הכנסה ${money(result.estimatedTotalTaxBenefit)} + ביטוח לאומי/בריאות ${money(result.estimatedNationalInsuranceBenefitTotal)}.</p><p><strong>שווי עתידי משוער:</strong> פטור ממס רווחי הון ${money(result.estimatedCapitalGainsExemptionValueTotal)}, בהנחת 8% לשנה ל־6 שנים ומס של 25% על הרווח.</p><p>מקורות: ספר הניכויים 2026 ושיעורי ביטוח לאומי לעצמאי 2026 כפי שתועדו באתר המקצועי. אימות: 15.07.2026. כל הרכיבים הם אומדן הדורש אימות אישי.</p>`;
+  $('#calculation-details').innerHTML = `<p><strong>תקרת 2026:</strong> ${money(result.ceiling)} · <strong>הכנסה:</strong> ${money(result.income)} · <strong>הופקד השנה:</strong> ${money(result.depositedToDate)}${hasFutureProjection ? ` · <strong>צפוי עד סוף השנה כולל הוראת קבע:</strong> ${money(result.projectedAnnualDeposited)}` : ''}</p><p>אומדן ההטבות מחושב בהנחה של מיקסום ההפקדה השנתית עד התקרה, ולכן כולל גם את ההפקדות שכבר בוצעו ואת הוראת הקבע הצפויה עד סוף השנה — ולא רק את יתרת ההשלמה.</p><p><strong>מדרגת מס משוערת:</strong> ${result.taxRate * 100}% · <strong>שיעור ניכוי:</strong> ${result.deductibleRate * 100}%</p><p><strong>הטבה מיידית משוערת:</strong> מס הכנסה ${money(result.estimatedTotalTaxBenefit)} + ביטוח לאומי/בריאות ${money(result.estimatedNationalInsuranceBenefitTotal)}.</p><p><strong>שווי עתידי משוער:</strong> פטור ממס רווחי הון ${money(result.estimatedCapitalGainsExemptionValueTotal)}, בהנחת 8% לשנה ל־6 שנים ומס של 25% על הרווח.</p><p>מקורות: ספר הניכויים 2026 ושיעורי ביטוח לאומי לעצמאי 2026 כפי שתועדו באתר המקצועי. אימות: 15.07.2026. כל הרכיבים הם אומדן הדורש אימות אישי.</p>`;
 }
 
 form.addEventListener('click', (event) => {
