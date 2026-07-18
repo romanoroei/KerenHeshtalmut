@@ -361,14 +361,26 @@
     const method = form.elements.depositMethod.value;
     const lump = ["lump", "both"].includes(method) ? normalizeMoney(form.elements.lumpSum.value) || 0 : 0;
     const monthly = ["monthly", "both"].includes(method) ? normalizeMoney(form.elements.monthlyDeposit.value) || 0 : 0;
-    const months = ["monthly", "both"].includes(method) ? Number(form.elements.monthsDeposited.value) || 0 : 0;
+    const months = ["monthly", "both"].includes(method) ? Number(form.elements.monthsDeposited.value) : 0;
+    if (["monthly", "both"].includes(method) && (!Number.isInteger(months) || months < 1 || months > 12)) return NaN;
     return lump + monthly * months;
+  }
+  function validateMonthsDeposited(showError = true) {
+    const method = form.elements.depositMethod.value;
+    const field = form.elements.monthsDeposited;
+    const relevant = ["monthly", "both"].includes(method);
+    const months = Number(field.value);
+    const valid = !relevant || Number.isInteger(months) && months >= 1 && months <= 12;
+    field.setAttribute("aria-invalid", String(!valid));
+    if (showError) $("#months-deposited-error").textContent = valid ? "" : "יש להזין מספר חודשים שלם בין 1 ל־12.";
+    return valid;
   }
   function updateSummary() {
     const income = normalizeMoney(form.elements.income.value);
     $("#summary-income").textContent = Number.isFinite(income) && income > 0 ? money2(income) : "\u05D8\u05E8\u05DD \u05D4\u05D5\u05D6\u05E0\u05D4";
     const depositMethod = form.elements.depositMethod.value;
-    $("#summary-deposited").textContent = depositMethod ? money2(depositTotalFromForm()) : "\u05D8\u05E8\u05DD \u05D4\u05D5\u05D6\u05DF";
+    const depositedTotal = depositTotalFromForm();
+    $("#summary-deposited").textContent = depositMethod ? Number.isFinite(depositedTotal) ? money2(depositedTotal) : "יש לתקן את מספר החודשים" : "\u05D8\u05E8\u05DD \u05D4\u05D5\u05D6\u05DF";
     const balance = normalizeMoney(form.elements.existingBalance.value);
     const fundStatus = form.elements.fundStatus.value;
     $("#summary-balance").textContent = fundStatus === "none" ? "\u05DC\u05D0 \u05E8\u05DC\u05D5\u05D5\u05E0\u05D8\u05D9" : fundStatus && Number.isFinite(balance) ? money2(balance) : "\u05D8\u05E8\u05DD \u05D4\u05D5\u05D6\u05E0\u05D4";
@@ -376,7 +388,8 @@
     const preview = $("#deposit-preview");
     if (depositMethod) {
       preview.hidden = false;
-      $("span", preview).textContent = `\u05E2\u05D3 \u05DB\u05D4 \u05D4\u05D5\u05D6\u05E0\u05D5 \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05D1\u05E1\u05DA ${money2(depositTotalFromForm())}.`;
+      preview.classList.toggle("is-error", !Number.isFinite(depositedTotal));
+      $("span", preview).textContent = Number.isFinite(depositedTotal) ? `\u05E2\u05D3 \u05DB\u05D4 \u05D4\u05D5\u05D6\u05E0\u05D5 \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05D1\u05E1\u05DA ${money2(depositedTotal)}.` : "מספר החודשים אינו הגיוני. יש להזין מספר שלם בין 1 ל־12.";
     }
   }
   function updateDepositFields() {
@@ -392,8 +405,8 @@
     const months = Number(form.elements.monthsDeposited.value);
     if (method === "none") return true;
     if (method === "lump") return lump > 0;
-    if (method === "monthly") return monthly > 0 && months > 0;
-    if (method === "both") return lump > 0 && monthly > 0 && months > 0;
+    if (method === "monthly") return monthly > 0 && validateMonthsDeposited();
+    if (method === "both") return lump > 0 && monthly > 0 && validateMonthsDeposited();
     return false;
   }
   function renderStep(index, animate = true) {
@@ -419,6 +432,11 @@
   }
   function validateStep() {
     const active = steps[currentStep];
+    if (currentStep === 2 && !validateMonthsDeposited()) {
+      $("#form-error").textContent = "יש לתקן את מספר החודשים: מספר שלם בין 1 ל־12.";
+      form.elements.monthsDeposited.focus();
+      return false;
+    }
     if (currentStep === 2 && !depositDetailsComplete()) {
       $("#form-error").textContent = "\u05D9\u05E9 \u05DC\u05D4\u05E9\u05DC\u05D9\u05DD \u05D0\u05EA \u05E4\u05E8\u05D8\u05D9 \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D1\u05E1\u05DB\u05D5\u05DD \u05D2\u05D3\u05D5\u05DC \u05DE\u05D0\u05E4\u05E1.";
       return false;
@@ -688,6 +706,7 @@
     }
   });
   form.addEventListener("input", (event) => {
+    if (event.target.name === "monthsDeposited") validateMonthsDeposited();
     if (event.target.matches('[inputmode="numeric"], input[type="number"]')) updateSummary();
   });
   form.addEventListener("focusout", (event) => {

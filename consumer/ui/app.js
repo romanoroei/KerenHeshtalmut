@@ -44,8 +44,20 @@ function depositTotalFromForm() {
   const method = form.elements.depositMethod.value;
   const lump = ['lump', 'both'].includes(method) ? normalizeMoney(form.elements.lumpSum.value) || 0 : 0;
   const monthly = ['monthly', 'both'].includes(method) ? normalizeMoney(form.elements.monthlyDeposit.value) || 0 : 0;
-  const months = ['monthly', 'both'].includes(method) ? Number(form.elements.monthsDeposited.value) || 0 : 0;
+  const months = ['monthly', 'both'].includes(method) ? Number(form.elements.monthsDeposited.value) : 0;
+  if (['monthly', 'both'].includes(method) && (!Number.isInteger(months) || months < 1 || months > 12)) return NaN;
   return lump + monthly * months;
+}
+
+function validateMonthsDeposited(showError = true) {
+  const method = form.elements.depositMethod.value;
+  const field = form.elements.monthsDeposited;
+  const relevant = ['monthly', 'both'].includes(method);
+  const months = Number(field.value);
+  const valid = !relevant || (Number.isInteger(months) && months >= 1 && months <= 12);
+  field.setAttribute('aria-invalid', String(!valid));
+  if (showError) $('#months-deposited-error').textContent = valid ? '' : 'יש להזין מספר חודשים שלם בין 1 ל־12.';
+  return valid;
 }
 
 function projectedDepositFromForm() {
@@ -59,7 +71,8 @@ function updateSummary() {
   const income = normalizeMoney(form.elements.income.value);
   $('#summary-income').textContent = Number.isFinite(income) && income > 0 ? money(income) : 'טרם הוזנה';
   const depositMethod = form.elements.depositMethod.value;
-  $('#summary-deposited').textContent = depositMethod ? money(depositTotalFromForm()) : 'טרם הוזן';
+  const depositedTotal = depositTotalFromForm();
+  $('#summary-deposited').textContent = depositMethod ? (Number.isFinite(depositedTotal) ? money(depositedTotal) : 'יש לתקן את מספר החודשים') : 'טרם הוזן';
   const balance = normalizeMoney(form.elements.existingBalance.value);
   const fundStatus = form.elements.fundStatus.value;
   $('#summary-balance').textContent = fundStatus === 'none' ? 'לא רלוונטי' : fundStatus && Number.isFinite(balance) ? money(balance) : 'טרם הוזנה';
@@ -67,7 +80,8 @@ function updateSummary() {
   const preview = $('#deposit-preview');
   if (depositMethod) {
     preview.hidden = false;
-    $('span', preview).textContent = `עד כה הוזנו הפקדות בסך ${money(depositTotalFromForm())}.`;
+    preview.classList.toggle('is-error', !Number.isFinite(depositedTotal));
+    $('span', preview).textContent = Number.isFinite(depositedTotal) ? `עד כה הוזנו הפקדות בסך ${money(depositedTotal)}.` : 'מספר החודשים אינו הגיוני. יש להזין מספר שלם בין 1 ל־12.';
   }
 }
 
@@ -85,8 +99,8 @@ function depositDetailsComplete() {
   const months = Number(form.elements.monthsDeposited.value);
   if (method === 'none') return true;
   if (method === 'lump') return lump > 0;
-  if (method === 'monthly') return monthly > 0 && months > 0;
-  if (method === 'both') return lump > 0 && monthly > 0 && months > 0;
+  if (method === 'monthly') return monthly > 0 && validateMonthsDeposited();
+  if (method === 'both') return lump > 0 && monthly > 0 && validateMonthsDeposited();
   return false;
 }
 
@@ -110,6 +124,11 @@ function renderStep(index, animate = true) {
 
 function validateStep() {
   const active = steps[currentStep];
+  if (currentStep === 2 && !validateMonthsDeposited()) {
+    $('#form-error').textContent = 'יש לתקן את מספר החודשים: מספר שלם בין 1 ל־12.';
+    form.elements.monthsDeposited.focus();
+    return false;
+  }
   if (currentStep === 2 && !depositDetailsComplete()) {
     $('#form-error').textContent = 'יש להשלים את פרטי ההפקדה בסכום גדול מאפס.';
     return false;
@@ -378,6 +397,7 @@ form.addEventListener('change', (event) => {
 });
 
 form.addEventListener('input', (event) => {
+  if (event.target.name === 'monthsDeposited') validateMonthsDeposited();
   if (event.target.matches('[inputmode="numeric"], input[type="number"]')) updateSummary();
 });
 

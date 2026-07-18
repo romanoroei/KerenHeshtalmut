@@ -92,6 +92,10 @@ test('מסך התוצאה מציג יתרה פעם אחת, טיימר חי ו-CT
   assert.match(source, /countdown\.hidden = true/);
   assert.match(source, /buildSecondaryCta/);
   assert.match(source, /hasFutureProjection/);
+  assert.match(html, /כמה חודשים הופקדו מתחילת השנה\?/);
+  assert.match(html, /id="months-deposited-error"/);
+  assert.match(source, /מספר חודשים שלם בין 1 ל־12/);
+  assert.match(source, /יש לתקן את מספר החודשים/);
   assert.match(source, /מנהל ההשקעות מייצר תשואה טובה ועקבית ביחס למתחרים/);
   assert.doesNotMatch(source, /מצב הקרן ידוע/);
   assert.doesNotMatch(source, /dynamic-cta-secondary'\)\.textContent = ctaCopy/);
