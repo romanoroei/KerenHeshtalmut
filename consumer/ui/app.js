@@ -235,6 +235,7 @@ function renderScore(result, profile) {
 }
 
 function renderRecommendationSteps(result, profile) {
+  const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
   const stepsForUser = [];
   if (profile.fundStatus === 'none') {
     stepsForUser.push(buildRecommendation(result, profile));
@@ -242,14 +243,19 @@ function renderRecommendationSteps(result, profile) {
     stepsForUser.push(`לאחר פתיחת הקרן, לבחון הפקדה שנתית עד ${money(result.ceiling)} בהתאם להכנסה ולתזרים.`);
   } else {
     if (result.remaining > 0) {
-      stepsForUser.push(`אפשרות ראשונה: לשקול הפקדה חד־פעמית של ${money(result.remaining)} עד סוף שנת המס.`);
+      const keepMonthly = result.currentMonthlyDeposit > 0 ? `, ללא שינוי הוראת הקבע הקיימת בסך ${money(result.currentMonthlyDeposit)}` : '';
+      stepsForUser.push(`אפשרות ראשונה: להפקיד ${money(result.remaining)} בהפקדה חד־פעמית${keepMonthly}.`);
       if (result.currentMonthlyDeposit > 0) {
-        stepsForUser.push(`או לחלופין: להוסיף כ־${money(result.suggestedMonthlyToYearEnd)} לכל אחת מ־${result.scheduledMonthsRemaining} ההפקדות שנותרו, ולהגדיל את הוראת הקבע לכ־${money(result.suggestedTotalMonthlyToYearEnd)} בחודש.`);
+        stepsForUser.push(`אפשרות שנייה: לעדכן את הוראת הקבע ל־${money(result.suggestedTotalMonthlyToYearEnd)} בחודש, לכל אחת מ־${result.scheduledMonthsRemaining} ההפקדות שנותרו השנה.`);
+        if (result.nextYearRatePayments > 0) {
+          const lumpPart = result.nextYearRateLumpSum > 0 ? `, ובנוסף להפקיד ${money(result.nextYearRateLumpSum)} בהפקדה חד־פעמית` : '';
+          stepsForUser.push(`אפשרות שלישית: להשאיר את הוראת הקבע הקיימת עד חודש ${monthNames[result.nextYearRateStartMonthIndex - 1]}, ולעדכן אותה ל־${money(result.suggestedMonthly)} החל מחודש ${monthNames[result.nextYearRateStartMonthIndex]}${lumpPart}. כך הוראת הקבע כבר תהיה מותאמת בקירוב לתקרת השנה הבאה.`);
+        }
       } else {
         stepsForUser.push(`או לחלופין: להתחיל הפקדה חודשית של כ־${money(result.suggestedMonthlyToYearEnd)} עד סוף השנה.`);
       }
     } else stepsForUser.push(buildRecommendation(result, profile));
-    stepsForUser.push(`להיערך לשנה הבאה עם הוראת קבע של כ־${money(result.suggestedMonthly)} בחודש, ולעדכן אותה כשהתקרה משתנה.`);
+    if (result.nextYearRatePayments === 0) stepsForUser.push(`להיערך לשנה הבאה עם הוראת קבע של כ־${money(result.suggestedMonthly)} בחודש, ולעדכן אותה כשהתקרה משתנה.`);
     stepsForUser.push('לבדוק אחת לשנה שהמסלול ודמי הניהול עדיין מתאימים למטרות שבחרת.');
     stepsForUser.push('לבדוק שמנהל ההשקעות מייצר תשואה טובה ועקבית ביחס למתחרים לאורך תקופות זמן מתאימות.');
   }

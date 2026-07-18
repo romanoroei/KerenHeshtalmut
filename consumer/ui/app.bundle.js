@@ -193,6 +193,17 @@
     const suggestedMonthlyToYearEnd = remaining > 0 && scheduledMonthsRemaining > 0 ? Math.ceil(remaining / scheduledMonthsRemaining) : 0;
     const suggestedTotalMonthlyToYearEnd = monthlyDeposit + suggestedMonthlyToYearEnd;
     const suggestedMonthly = Math.ceil(ceiling / 12);
+    const capacityFromToday = Math.max(0, ceiling - depositedToDate);
+    let nextYearRatePayments = 0;
+    if (monthlyDeposit > 0 && suggestedMonthly > monthlyDeposit) {
+      for (let payments = 1; payments <= scheduledMonthsRemaining; payments += 1) {
+        const oldRatePayments = scheduledMonthsRemaining - payments;
+        if (oldRatePayments * monthlyDeposit + payments * suggestedMonthly <= capacityFromToday) nextYearRatePayments = payments;
+      }
+    }
+    const oldRatePaymentsBeforeChange = scheduledMonthsRemaining - nextYearRatePayments;
+    const nextYearRateLumpSum = nextYearRatePayments > 0 ? Math.max(0, capacityFromToday - oldRatePaymentsBeforeChange * monthlyDeposit - nextYearRatePayments * suggestedMonthly) : 0;
+    const nextYearRateStartMonthIndex = nextYearRatePayments > 0 ? Math.min(11, monthsDeposited + oldRatePaymentsBeforeChange) : null;
     const projectionYears = [6, 10, 15, 20].includes(Number(input.projectionYears)) ? Number(input.projectionYears) : 10;
     const projections = RETURN_SCENARIOS.map((scenario) => {
       const schedule = buildGrowthSchedule(existingBalance, suggestedMonthly, scenario.annualRate, projectionYears);
@@ -226,6 +237,9 @@
       suggestedMonthlyToYearEnd,
       suggestedTotalMonthlyToYearEnd,
       suggestedMonthly,
+      nextYearRatePayments,
+      nextYearRateLumpSum,
+      nextYearRateStartMonthIndex,
       projections
     };
   }
@@ -527,6 +541,7 @@
     $("#score-components").innerHTML = components.map(([label, done]) => `<li><i class="fas fa-${done ? "circle-check" : "circle"}"></i>${label}</li>`).join("");
   }
   function renderRecommendationSteps(result, profile) {
+    const monthNames = ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"];
     const stepsForUser = [];
     if (profile.fundStatus === "none") {
       stepsForUser.push(buildRecommendation(result, profile));
@@ -534,14 +549,19 @@
       stepsForUser.push(`\u05DC\u05D0\u05D7\u05E8 \u05E4\u05EA\u05D9\u05D7\u05EA \u05D4\u05E7\u05E8\u05DF, \u05DC\u05D1\u05D7\u05D5\u05DF \u05D4\u05E4\u05E7\u05D3\u05D4 \u05E9\u05E0\u05EA\u05D9\u05EA \u05E2\u05D3 ${money2(result.ceiling)} \u05D1\u05D4\u05EA\u05D0\u05DD \u05DC\u05D4\u05DB\u05E0\u05E1\u05D4 \u05D5\u05DC\u05EA\u05D6\u05E8\u05D9\u05DD.`);
     } else {
       if (result.remaining > 0) {
-        stepsForUser.push(`\u05D0\u05E4\u05E9\u05E8\u05D5\u05EA \u05E8\u05D0\u05E9\u05D5\u05E0\u05D4: \u05DC\u05E9\u05E7\u05D5\u05DC \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9\u05EA \u05E9\u05DC ${money2(result.remaining)} \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05E9\u05E0\u05EA \u05D4\u05DE\u05E1.`);
+        const keepMonthly = result.currentMonthlyDeposit > 0 ? `, ללא שינוי הוראת הקבע הקיימת בסך ${money2(result.currentMonthlyDeposit)}` : "";
+        stepsForUser.push(`אפשרות ראשונה: להפקיד ${money2(result.remaining)} בהפקדה חד־פעמית${keepMonthly}.`);
         if (result.currentMonthlyDeposit > 0) {
-          stepsForUser.push(`\u05D0\u05D5 \u05DC\u05D7\u05DC\u05D5\u05E4\u05D9\u05DF: \u05DC\u05D4\u05D5\u05E1\u05D9\u05E3 \u05DB\u05BE${money2(result.suggestedMonthlyToYearEnd)} \u05DC\u05DB\u05DC \u05D0\u05D7\u05EA \u05DE\u05BE${result.scheduledMonthsRemaining} \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05E0\u05D5\u05EA\u05E8\u05D5, \u05D5\u05DC\u05D4\u05D2\u05D3\u05D9\u05DC \u05D0\u05EA \u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05DC\u05DB\u05BE${money2(result.suggestedTotalMonthlyToYearEnd)} \u05D1\u05D7\u05D5\u05D3\u05E9.`);
+          stepsForUser.push(`אפשרות שנייה: לעדכן את הוראת הקבע ל־${money2(result.suggestedTotalMonthlyToYearEnd)} בחודש, לכל אחת מ־${result.scheduledMonthsRemaining} ההפקדות שנותרו השנה.`);
+          if (result.nextYearRatePayments > 0) {
+            const lumpPart = result.nextYearRateLumpSum > 0 ? `, ובנוסף להפקיד ${money2(result.nextYearRateLumpSum)} בהפקדה חד־פעמית` : "";
+            stepsForUser.push(`אפשרות שלישית: להשאיר את הוראת הקבע הקיימת עד חודש ${monthNames[result.nextYearRateStartMonthIndex - 1]}, ולעדכן אותה ל־${money2(result.suggestedMonthly)} החל מחודש ${monthNames[result.nextYearRateStartMonthIndex]}${lumpPart}. כך הוראת הקבע כבר תהיה מותאמת בקירוב לתקרת השנה הבאה.`);
+          }
         } else {
           stepsForUser.push(`\u05D0\u05D5 \u05DC\u05D7\u05DC\u05D5\u05E4\u05D9\u05DF: \u05DC\u05D4\u05EA\u05D7\u05D9\u05DC \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D5\u05D3\u05E9\u05D9\u05EA \u05E9\u05DC \u05DB\u05BE${money2(result.suggestedMonthlyToYearEnd)} \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4.`);
         }
       } else stepsForUser.push(buildRecommendation(result, profile));
-      stepsForUser.push(`\u05DC\u05D4\u05D9\u05E2\u05E8\u05DA \u05DC\u05E9\u05E0\u05D4 \u05D4\u05D1\u05D0\u05D4 \u05E2\u05DD \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2 \u05E9\u05DC \u05DB\u05BE${money2(result.suggestedMonthly)} \u05D1\u05D7\u05D5\u05D3\u05E9, \u05D5\u05DC\u05E2\u05D3\u05DB\u05DF \u05D0\u05D5\u05EA\u05D4 \u05DB\u05E9\u05D4\u05EA\u05E7\u05E8\u05D4 \u05DE\u05E9\u05EA\u05E0\u05D4.`);
+      if (result.nextYearRatePayments === 0) stepsForUser.push(`\u05DC\u05D4\u05D9\u05E2\u05E8\u05DA \u05DC\u05E9\u05E0\u05D4 \u05D4\u05D1\u05D0\u05D4 \u05E2\u05DD \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2 \u05E9\u05DC \u05DB\u05BE${money2(result.suggestedMonthly)} \u05D1\u05D7\u05D5\u05D3\u05E9, \u05D5\u05DC\u05E2\u05D3\u05DB\u05DF \u05D0\u05D5\u05EA\u05D4 \u05DB\u05E9\u05D4\u05EA\u05E7\u05E8\u05D4 \u05DE\u05E9\u05EA\u05E0\u05D4.`);
       stepsForUser.push("\u05DC\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D7\u05EA \u05DC\u05E9\u05E0\u05D4 \u05E9\u05D4\u05DE\u05E1\u05DC\u05D5\u05DC \u05D5\u05D3\u05DE\u05D9 \u05D4\u05E0\u05D9\u05D4\u05D5\u05DC \u05E2\u05D3\u05D9\u05D9\u05DF \u05DE\u05EA\u05D0\u05D9\u05DE\u05D9\u05DD \u05DC\u05DE\u05D8\u05E8\u05D5\u05EA \u05E9\u05D1\u05D7\u05E8\u05EA.");
       stepsForUser.push("\u05DC\u05D1\u05D3\u05D5\u05E7 \u05E9\u05DE\u05E0\u05D4\u05DC \u05D4\u05D4\u05E9\u05E7\u05E2\u05D5\u05EA \u05DE\u05D9\u05D9\u05E6\u05E8 \u05EA\u05E9\u05D5\u05D0\u05D4 \u05D8\u05D5\u05D1\u05D4 \u05D5\u05E2\u05E7\u05D1\u05D9\u05EA \u05D1\u05D9\u05D7\u05E1 \u05DC\u05DE\u05EA\u05D7\u05E8\u05D9\u05DD \u05DC\u05D0\u05D5\u05E8\u05DA \u05EA\u05E7\u05D5\u05E4\u05D5\u05EA \u05D6\u05DE\u05DF \u05DE\u05EA\u05D0\u05D9\u05DE\u05D5\u05EA.");
     }

@@ -138,6 +138,17 @@ export function calculateConsumerResult(input, data = TAX_DATA_2026) {
     : 0;
   const suggestedTotalMonthlyToYearEnd = monthlyDeposit + suggestedMonthlyToYearEnd;
   const suggestedMonthly = Math.ceil(ceiling / 12);
+  const capacityFromToday = Math.max(0, ceiling - depositedToDate);
+  let nextYearRatePayments = 0;
+  if (monthlyDeposit > 0 && suggestedMonthly > monthlyDeposit) {
+    for (let payments = 1; payments <= scheduledMonthsRemaining; payments += 1) {
+      const oldRatePayments = scheduledMonthsRemaining - payments;
+      if ((oldRatePayments * monthlyDeposit) + (payments * suggestedMonthly) <= capacityFromToday) nextYearRatePayments = payments;
+    }
+  }
+  const oldRatePaymentsBeforeChange = scheduledMonthsRemaining - nextYearRatePayments;
+  const nextYearRateLumpSum = nextYearRatePayments > 0 ? Math.max(0, capacityFromToday - (oldRatePaymentsBeforeChange * monthlyDeposit) - (nextYearRatePayments * suggestedMonthly)) : 0;
+  const nextYearRateStartMonthIndex = nextYearRatePayments > 0 ? Math.min(11, monthsDeposited + oldRatePaymentsBeforeChange) : null;
   const projectionYears = [6, 10, 15, 20].includes(Number(input.projectionYears)) ? Number(input.projectionYears) : 10;
   const projections = RETURN_SCENARIOS.map((scenario) => {
     const schedule = buildGrowthSchedule(existingBalance, suggestedMonthly, scenario.annualRate, projectionYears);
@@ -172,6 +183,9 @@ export function calculateConsumerResult(input, data = TAX_DATA_2026) {
     suggestedMonthlyToYearEnd,
     suggestedTotalMonthlyToYearEnd,
     suggestedMonthly,
+    nextYearRatePayments,
+    nextYearRateLumpSum,
+    nextYearRateStartMonthIndex,
     projections,
   };
 }
