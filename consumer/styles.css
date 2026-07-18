@@ -254,3 +254,14 @@ input[aria-invalid="true"] { border-color: #dc2626; background: #fef2f2; box-sha
   .share-prompt span { font-size: 10.5px; }
   .share-link { min-height: 36px; padding: 6px 8px; font-size: 11.5px; }
 }
+
+.whatsapp-card + .action-plan-card { margin-top: 30px; }
+.score-summary li i { margin-left: 7px; font-size: 15px; }
+.recommendation-disclaimer { color: var(--slate-900) !important; }
+.share-link { min-height: 0; padding: 2px 0; border: 0; border-radius: 0; color: var(--blue-dark); background: transparent; }
+.share-link:hover { color: var(--blue); background: transparent; text-decoration: underline; }
+
+@media (max-width: 640px) {
+  .tax-countdown { border-radius: 13px; }
+  .share-link { justify-content: flex-start; width: auto; min-height: 0; padding: 2px 0; font-size: 11.5px; }
+}
