@@ -128,7 +128,15 @@ export function calculateConsumerResult(input, data = TAX_DATA_2026) {
   const estimatedCombinedBenefitAdditional = estimatedAdditionalTaxBenefit
     + estimatedNationalInsuranceBenefitAdditional + estimatedCapitalGainsExemptionValueAdditional;
   const monthsRemaining = monthsRemainingInTaxYear(input.today ?? new Date(), data.taxYear);
-  const suggestedMonthlyToYearEnd = remaining > 0 && monthsRemaining > 0 ? Math.ceil(remaining / monthsRemaining) : 0;
+  const monthlyDeposit = normalizeMoney(input.monthlyDeposit ?? 0);
+  const monthsDeposited = normalizeMoney(input.monthsDeposited ?? 0);
+  const scheduledMonthsRemaining = input.deposited === undefined && monthlyDeposit > 0
+    ? Math.max(0, 12 - monthsDeposited)
+    : monthsRemaining;
+  const suggestedMonthlyToYearEnd = remaining > 0 && scheduledMonthsRemaining > 0
+    ? Math.ceil(remaining / scheduledMonthsRemaining)
+    : 0;
+  const suggestedTotalMonthlyToYearEnd = monthlyDeposit + suggestedMonthlyToYearEnd;
   const suggestedMonthly = Math.ceil(ceiling / 12);
   const projectionYears = [6, 10, 15, 20].includes(Number(input.projectionYears)) ? Number(input.projectionYears) : 10;
   const projections = RETURN_SCENARIOS.map((scenario) => {
@@ -159,7 +167,10 @@ export function calculateConsumerResult(input, data = TAX_DATA_2026) {
     estimatedCombinedBenefitTotal,
     estimatedCombinedBenefitAdditional,
     monthsRemaining,
+    scheduledMonthsRemaining,
+    currentMonthlyDeposit: monthlyDeposit,
     suggestedMonthlyToYearEnd,
+    suggestedTotalMonthlyToYearEnd,
     suggestedMonthly,
     projections,
   };

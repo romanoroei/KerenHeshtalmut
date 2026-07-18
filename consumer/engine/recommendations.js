@@ -4,7 +4,8 @@ export function buildRecommendation(result, profile) {
   if (result.remaining === 0) return 'כבר ניצלת את מלוא התקרה המוטבת השנה. עכשיו כדאי לבדוק שהמסלול ודמי הניהול בקרן מתאימים לך ולהיערך להפקדות של השנה הבאה.';
   if (result.deposited === 0) return 'לפי הנתונים שהזנת, ניתן לשקול להתחיל בהפקדה השנה. אם התזרים מאפשר, אפשר להפקיד סכום חד־פעמי או להתחיל הוראת קבע ולבחון השלמה לקראת סוף השנה.';
   if (profile.completionPreference === 'lump') return `כדי לנצל את מלוא התקרה המוטבת, ניתן לשקול להשלים השנה הפקדה חד־פעמית של ${Math.round(result.remaining).toLocaleString('he-IL')} ₪.`;
-  if (profile.completionPreference === 'monthly') return `כדי להשלים את התקרה עד סוף השנה, ניתן לשקול לעדכן את הוראת הקבע לכ־${Math.round(result.suggestedMonthlyToYearEnd).toLocaleString('he-IL')} ₪ בחודש.`;
+  if (profile.completionPreference === 'monthly' && result.currentMonthlyDeposit > 0) return `כדי להשלים את התקרה עד סוף השנה, ניתן לשקול להוסיף כ־${Math.round(result.suggestedMonthlyToYearEnd).toLocaleString('he-IL')} ₪ לכל הפקדה שנותרה ולהגדיל את הוראת הקבע לכ־${Math.round(result.suggestedTotalMonthlyToYearEnd).toLocaleString('he-IL')} ₪ בחודש.`;
+  if (profile.completionPreference === 'monthly') return `כדי להשלים את התקרה עד סוף השנה, ניתן לשקול להתחיל הפקדה חודשית של כ־${Math.round(result.suggestedMonthlyToYearEnd).toLocaleString('he-IL')} ₪ בחודש.`;
   return 'נשארה יתרה לניצול השנה. אפשר לשקול שילוב בין הפקדה חד־פעמית להפקדה חודשית, בהתאם לתזרים שלך.';
 }
 

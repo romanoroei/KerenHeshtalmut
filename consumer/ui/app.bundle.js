@@ -187,7 +187,11 @@
     const estimatedCombinedBenefitTotal = estimatedTotalTaxBenefit + estimatedNationalInsuranceBenefitTotal + estimatedCapitalGainsExemptionValueTotal;
     const estimatedCombinedBenefitAdditional = estimatedAdditionalTaxBenefit + estimatedNationalInsuranceBenefitAdditional + estimatedCapitalGainsExemptionValueAdditional;
     const monthsRemaining = monthsRemainingInTaxYear((_b = input.today) != null ? _b : /* @__PURE__ */ new Date(), data.taxYear);
-    const suggestedMonthlyToYearEnd = remaining > 0 && monthsRemaining > 0 ? Math.ceil(remaining / monthsRemaining) : 0;
+    const monthlyDeposit = normalizeMoney(input.monthlyDeposit === void 0 ? 0 : input.monthlyDeposit);
+    const monthsDeposited = normalizeMoney(input.monthsDeposited === void 0 ? 0 : input.monthsDeposited);
+    const scheduledMonthsRemaining = input.deposited === void 0 && monthlyDeposit > 0 ? Math.max(0, 12 - monthsDeposited) : monthsRemaining;
+    const suggestedMonthlyToYearEnd = remaining > 0 && scheduledMonthsRemaining > 0 ? Math.ceil(remaining / scheduledMonthsRemaining) : 0;
+    const suggestedTotalMonthlyToYearEnd = monthlyDeposit + suggestedMonthlyToYearEnd;
     const suggestedMonthly = Math.ceil(ceiling / 12);
     const projectionYears = [6, 10, 15, 20].includes(Number(input.projectionYears)) ? Number(input.projectionYears) : 10;
     const projections = RETURN_SCENARIOS.map((scenario) => {
@@ -217,7 +221,10 @@
       estimatedCombinedBenefitTotal,
       estimatedCombinedBenefitAdditional,
       monthsRemaining,
+      scheduledMonthsRemaining,
+      currentMonthlyDeposit: monthlyDeposit,
       suggestedMonthlyToYearEnd,
+      suggestedTotalMonthlyToYearEnd,
       suggestedMonthly,
       projections
     };
@@ -528,13 +535,20 @@
     } else {
       if (result.remaining > 0) {
         stepsForUser.push(`\u05D0\u05E4\u05E9\u05E8\u05D5\u05EA \u05E8\u05D0\u05E9\u05D5\u05E0\u05D4: \u05DC\u05E9\u05E7\u05D5\u05DC \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9\u05EA \u05E9\u05DC ${money2(result.remaining)} \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05E9\u05E0\u05EA \u05D4\u05DE\u05E1.`);
-        stepsForUser.push(`\u05D0\u05D5 \u05DC\u05D7\u05DC\u05D5\u05E4\u05D9\u05DF: \u05DC\u05D4\u05D2\u05D3\u05D9\u05DC \u05D0\u05EA \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D4\u05D7\u05D5\u05D3\u05E9\u05D9\u05EA \u05DC\u05DB\u05BE${money2(result.suggestedMonthlyToYearEnd)} \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4.`);
+        if (result.currentMonthlyDeposit > 0) {
+          stepsForUser.push(`\u05D0\u05D5 \u05DC\u05D7\u05DC\u05D5\u05E4\u05D9\u05DF: \u05DC\u05D4\u05D5\u05E1\u05D9\u05E3 \u05DB\u05BE${money2(result.suggestedMonthlyToYearEnd)} \u05DC\u05DB\u05DC \u05D0\u05D7\u05EA \u05DE\u05BE${result.scheduledMonthsRemaining} \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05E0\u05D5\u05EA\u05E8\u05D5, \u05D5\u05DC\u05D4\u05D2\u05D3\u05D9\u05DC \u05D0\u05EA \u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05DC\u05DB\u05BE${money2(result.suggestedTotalMonthlyToYearEnd)} \u05D1\u05D7\u05D5\u05D3\u05E9.`);
+        } else {
+          stepsForUser.push(`\u05D0\u05D5 \u05DC\u05D7\u05DC\u05D5\u05E4\u05D9\u05DF: \u05DC\u05D4\u05EA\u05D7\u05D9\u05DC \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D5\u05D3\u05E9\u05D9\u05EA \u05E9\u05DC \u05DB\u05BE${money2(result.suggestedMonthlyToYearEnd)} \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4.`);
+        }
       } else stepsForUser.push(buildRecommendation(result, profile));
       stepsForUser.push(`\u05DC\u05D4\u05D9\u05E2\u05E8\u05DA \u05DC\u05E9\u05E0\u05D4 \u05D4\u05D1\u05D0\u05D4 \u05E2\u05DD \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2 \u05E9\u05DC \u05DB\u05BE${money2(result.suggestedMonthly)} \u05D1\u05D7\u05D5\u05D3\u05E9, \u05D5\u05DC\u05E2\u05D3\u05DB\u05DF \u05D0\u05D5\u05EA\u05D4 \u05DB\u05E9\u05D4\u05EA\u05E7\u05E8\u05D4 \u05DE\u05E9\u05EA\u05E0\u05D4.`);
       stepsForUser.push("\u05DC\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D7\u05EA \u05DC\u05E9\u05E0\u05D4 \u05E9\u05D4\u05DE\u05E1\u05DC\u05D5\u05DC \u05D5\u05D3\u05DE\u05D9 \u05D4\u05E0\u05D9\u05D4\u05D5\u05DC \u05E2\u05D3\u05D9\u05D9\u05DF \u05DE\u05EA\u05D0\u05D9\u05DE\u05D9\u05DD \u05DC\u05DE\u05D8\u05E8\u05D5\u05EA \u05E9\u05D1\u05D7\u05E8\u05EA.");
       stepsForUser.push("\u05DC\u05D1\u05D3\u05D5\u05E7 \u05E9\u05DE\u05E0\u05D4\u05DC \u05D4\u05D4\u05E9\u05E7\u05E2\u05D5\u05EA \u05DE\u05D9\u05D9\u05E6\u05E8 \u05EA\u05E9\u05D5\u05D0\u05D4 \u05D8\u05D5\u05D1\u05D4 \u05D5\u05E2\u05E7\u05D1\u05D9\u05EA \u05D1\u05D9\u05D7\u05E1 \u05DC\u05DE\u05EA\u05D7\u05E8\u05D9\u05DD \u05DC\u05D0\u05D5\u05E8\u05DA \u05EA\u05E7\u05D5\u05E4\u05D5\u05EA \u05D6\u05DE\u05DF \u05DE\u05EA\u05D0\u05D9\u05DE\u05D5\u05EA.");
     }
-    $("#recommendation-steps").innerHTML = stepsForUser.map((step, index) => `<li><span>${index + 1}</span><p>${step}</p></li>`).join("");
+    $("#recommendation-steps").innerHTML = stepsForUser.map((step, index) => {
+      const isWarning = result.overCeiling > 0 && index === 0;
+      return `<li${isWarning ? ' class="is-warning"' : ""}><span>${index + 1}</span><p>${isWarning ? '<i class="fas fa-triangle-exclamation" aria-hidden="true"></i>' : ""}${step}</p></li>`;
+    }).join("");
   }
   var countdownTimer;
   function renderLiveCountdown(taxYear) {

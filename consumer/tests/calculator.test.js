@@ -95,6 +95,22 @@ test('קלט ריק או לא תקין', () => {
   assert.throws(() => calculateConsumerResult({ income: '', deposited: 0 }), TypeError);
   assert.throws(() => calculateConsumerResult({ income: 100000, deposited: '-1' }), TypeError);
 });
+test('השלמה חודשית מתחשבת במספר ההפקדות שנותרו ולא בחודשי לוח השנה', () => {
+  const result = calculateConsumerResult({
+    income: 200000,
+    lumpSum: 12000,
+    monthlyDeposit: 500,
+    monthsDeposited: 7,
+    today: new Date('2026-07-18'),
+  });
+  assert.equal(result.depositedToDate, 15500);
+  assert.equal(result.projectedAnnualDeposited, 18000);
+  assert.equal(result.futureScheduledDeposits, 2500);
+  assert.equal(result.remaining, 2566);
+  assert.equal(result.scheduledMonthsRemaining, 5);
+  assert.equal(result.suggestedMonthlyToYearEnd, 514);
+  assert.equal(result.suggestedTotalMonthlyToYearEnd, 1014);
+});
 test('לכל נתון מס יש מקור, שנת מס, תאריך אימות וסטטוס', () => {
   for (const datum of Object.values(TAX_DATA_2026).filter((value) => value && typeof value === 'object')) {
     assert.ok(datum.source); assert.equal(datum.taxYear, 2026); assert.ok(datum.verifiedAt);

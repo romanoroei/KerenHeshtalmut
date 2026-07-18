@@ -243,13 +243,20 @@ function renderRecommendationSteps(result, profile) {
   } else {
     if (result.remaining > 0) {
       stepsForUser.push(`אפשרות ראשונה: לשקול הפקדה חד־פעמית של ${money(result.remaining)} עד סוף שנת המס.`);
-      stepsForUser.push(`או לחלופין: להגדיל את ההפקדה החודשית לכ־${money(result.suggestedMonthlyToYearEnd)} עד סוף השנה.`);
+      if (result.currentMonthlyDeposit > 0) {
+        stepsForUser.push(`או לחלופין: להוסיף כ־${money(result.suggestedMonthlyToYearEnd)} לכל אחת מ־${result.scheduledMonthsRemaining} ההפקדות שנותרו, ולהגדיל את הוראת הקבע לכ־${money(result.suggestedTotalMonthlyToYearEnd)} בחודש.`);
+      } else {
+        stepsForUser.push(`או לחלופין: להתחיל הפקדה חודשית של כ־${money(result.suggestedMonthlyToYearEnd)} עד סוף השנה.`);
+      }
     } else stepsForUser.push(buildRecommendation(result, profile));
     stepsForUser.push(`להיערך לשנה הבאה עם הוראת קבע של כ־${money(result.suggestedMonthly)} בחודש, ולעדכן אותה כשהתקרה משתנה.`);
     stepsForUser.push('לבדוק אחת לשנה שהמסלול ודמי הניהול עדיין מתאימים למטרות שבחרת.');
     stepsForUser.push('לבדוק שמנהל ההשקעות מייצר תשואה טובה ועקבית ביחס למתחרים לאורך תקופות זמן מתאימות.');
   }
-  $('#recommendation-steps').innerHTML = stepsForUser.map((step, index) => `<li><span>${index + 1}</span><p>${step}</p></li>`).join('');
+  $('#recommendation-steps').innerHTML = stepsForUser.map((step, index) => {
+    const isWarning = result.overCeiling > 0 && index === 0;
+    return `<li${isWarning ? ' class="is-warning"' : ''}><span>${index + 1}</span><p>${isWarning ? '<i class="fas fa-triangle-exclamation" aria-hidden="true"></i>' : ''}${step}</p></li>`;
+  }).join('');
 }
 
 function renderLiveCountdown(taxYear) {
