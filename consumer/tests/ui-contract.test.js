@@ -96,6 +96,8 @@ test('מסך התוצאה מציג יתרה פעם אחת, טיימר חי ו-CT
   assert.match(html, /id="months-deposited-error"/);
   assert.match(source, /מספר חודשים שלם בין 1 ל־12/);
   assert.match(source, /יש לתקן את מספר החודשים/);
+  assert.match(source, /תזכורת ל־1\.1\./);
+  assert.match(source, /לאחר פרסום התקרה המעודכנת/);
   assert.match(source, /מנהל ההשקעות מייצר תשואה טובה ועקבית ביחס למתחרים/);
   assert.doesNotMatch(source, /מצב הקרן ידוע/);
   assert.doesNotMatch(source, /dynamic-cta-secondary'\)\.textContent = ctaCopy/);

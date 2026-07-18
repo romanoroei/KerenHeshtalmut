@@ -274,7 +274,11 @@ function renderRecommendationSteps(result, profile) {
         stepsForUser.push(`או לחלופין: להתחיל הפקדה חודשית של כ־${money(result.suggestedMonthlyToYearEnd)} עד סוף השנה.`);
       }
     } else stepsForUser.push(buildRecommendation(result, profile));
-    if (result.nextYearRatePayments === 0) stepsForUser.push(`להיערך לשנה הבאה עם הוראת קבע של כ־${money(result.suggestedMonthly)} בחודש, ולעדכן אותה כשהתקרה משתנה.`);
+    if (profile.completionPreference === 'lump') {
+      stepsForUser.push(`לקבוע כבר עכשיו תזכורת ל־1.1.${result.taxYear + 1}. לאחר פרסום התקרה המעודכנת לשנה הבאה, ניתן לשקול להפקיד אותה בתחילת השנה — כך הכסף יוכל להיות מושקע ולעבוד לאורך שנה ארוכה יותר.`);
+    } else if (result.nextYearRatePayments === 0) {
+      stepsForUser.push(`להיערך לשנה הבאה עם הוראת קבע של כ־${money(result.suggestedMonthly)} בחודש, ולעדכן אותה כשהתקרה משתנה.`);
+    }
     stepsForUser.push('לבדוק אחת לשנה שהמסלול ודמי הניהול עדיין מתאימים למטרות שבחרת.');
     stepsForUser.push('לבדוק שמנהל ההשקעות מייצר תשואה טובה ועקבית ביחס למתחרים לאורך תקופות זמן מתאימות.');
   }
