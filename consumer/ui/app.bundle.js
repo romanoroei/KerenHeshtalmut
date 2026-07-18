@@ -187,10 +187,11 @@
     const estimatedCapitalGainsExemptionValueAdditional = capitalGainsExemptionValue(protectedAdditional, data.capitalGainsExemption.value);
     const estimatedCombinedBenefitTotal = estimatedTotalTaxBenefit + estimatedNationalInsuranceBenefitTotal + estimatedCapitalGainsExemptionValueTotal;
     const estimatedCombinedBenefitAdditional = estimatedAdditionalTaxBenefit + estimatedNationalInsuranceBenefitAdditional + estimatedCapitalGainsExemptionValueAdditional;
-    const monthsRemaining = monthsRemainingInTaxYear((_b = input.today) != null ? _b : /* @__PURE__ */ new Date(), data.taxYear);
+    const calculationDate = (_b = input.today) != null ? _b : /* @__PURE__ */ new Date();
+    const monthsRemaining = monthsRemainingInTaxYear(calculationDate, data.taxYear);
     const monthlyDeposit = normalizeMoney(input.monthlyDeposit === void 0 ? 0 : input.monthlyDeposit);
     const monthsDeposited = normalizeMoney(input.monthsDeposited === void 0 ? 0 : input.monthsDeposited);
-    const scheduledMonthsRemaining = input.deposited === void 0 && monthlyDeposit > 0 ? Math.max(0, 12 - monthsDeposited) : monthsRemaining;
+    const scheduledMonthsRemaining = input.deposited === void 0 && monthlyDeposit > 0 ? Math.max(0, 12 - monthsDeposited) : calculationDate.getFullYear() === data.taxYear ? Math.max(0, 11 - calculationDate.getMonth()) : monthsRemaining;
     const suggestedMonthlyToYearEnd = remaining > 0 && scheduledMonthsRemaining > 0 ? Math.ceil(remaining / scheduledMonthsRemaining) : 0;
     const suggestedTotalMonthlyToYearEnd = monthlyDeposit + suggestedMonthlyToYearEnd;
     const suggestedMonthly = Math.ceil(ceiling / 12);
@@ -572,6 +573,7 @@
         const setupMonth = targetPayments > 0 ? monthNames[12 - targetPayments] : `ינואר ${result.taxYear + 1}`;
         const lumpCopy = setupLumpSum > 0 ? `להפקיד ${money2(setupLumpSum)} בהפקדה חד־פעמית, ובמקביל ` : "";
         stepsForUser.push(`לאחר פתיחת הקרן: ${lumpCopy}להגדיר הוראת קבע של ${money2(result.suggestedMonthly)} החל מחודש ${setupMonth}, ולהמשיך איתה גם בשנת ${result.taxYear + 1}.`);
+        stepsForUser.push(`חלופה נוספת: לאחר פתיחת הקרן, להפקיד השנה את מלוא התקרה, ${money2(result.remaining)}, בהפקדה חד־פעמית; ומ־1.1.${result.taxYear + 1} להתחיל הוראת קבע שוטפת של כ־${money2(result.suggestedMonthly)} בחודש. הסכום החודשי מבוסס על תקרת ${result.taxYear} ויש לעדכנו לאחר פרסום התקרה החדשה.`);
       } else {
         stepsForUser.push(`\u05DC\u05D0\u05D7\u05E8 \u05E4\u05EA\u05D9\u05D7\u05EA \u05D4\u05E7\u05E8\u05DF, \u05DC\u05D1\u05D7\u05D5\u05DF \u05D4\u05E4\u05E7\u05D3\u05D4 \u05E9\u05E0\u05EA\u05D9\u05EA \u05E2\u05D3 ${money2(result.ceiling)} \u05D1\u05D4\u05EA\u05D0\u05DD \u05DC\u05D4\u05DB\u05E0\u05E1\u05D4 \u05D5\u05DC\u05EA\u05D6\u05E8\u05D9\u05DD.`);
       }
@@ -597,6 +599,9 @@
         }
       } else stepsForUser.push(buildRecommendation(result, profile));
       const wantsMonthlyPlan = profile.goals.includes("monthly");
+      if (wantsMonthlyPlan && result.remaining > 0) {
+        stepsForUser.push(`חלופה נוספת: להשלים השנה את מלוא היתרה, ${money2(result.remaining)}, בהפקדה חד־פעמית; ומ־1.1.${result.taxYear + 1} להתחיל הוראת קבע שוטפת של כ־${money2(result.suggestedMonthly)} בחודש. הסכום החודשי מבוסס על תקרת ${result.taxYear} ויש לעדכנו לאחר פרסום התקרה החדשה.`);
+      }
       if (profile.completionPreference === "lump" && !wantsMonthlyPlan) {
         stepsForUser.push(`לקבוע כבר עכשיו תזכורת ל־1.1.${result.taxYear + 1}. לאחר פרסום התקרה המעודכנת לשנה הבאה, ניתן לשקול להפקיד אותה בתחילת השנה — כך הכסף יוכל להיות מושקע ולעבוד לאורך שנה ארוכה יותר.`);
       } else if (result.nextYearRatePayments === 0 && !(wantsMonthlyPlan && result.remaining > 0 && result.currentMonthlyDeposit === 0)) {

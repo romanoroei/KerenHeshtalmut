@@ -122,6 +122,11 @@ test('חלופת מעבר השנה להוראת הקבע של השנה הבאה 
   assert.equal(result.nextYearRateLumpSum, 924);
   assert.equal(result.depositedToDate + (2 * 500) + (3 * 1714) + 924, result.ceiling);
 });
+test('תוכנית חדשה מתחילה בחודש הבא ואינה כוללת את החודש הנוכחי', () => {
+  const result = calculateConsumerResult({ income: 200000, deposited: 0, today: new Date('2026-07-18') });
+  assert.equal(result.scheduledMonthsRemaining, 5);
+  assert.equal(result.suggestedMonthlyToYearEnd, Math.ceil(20566 / 5));
+});
 test('לכל נתון מס יש מקור, שנת מס, תאריך אימות וסטטוס', () => {
   for (const datum of Object.values(TAX_DATA_2026).filter((value) => value && typeof value === 'object')) {
     assert.ok(datum.source); assert.equal(datum.taxYear, 2026); assert.ok(datum.verifiedAt);

@@ -101,6 +101,8 @@ test('מסך התוצאה מציג יתרה פעם אחת, טיימר חי ו-CT
   assert.match(source, /אפשרות נוספת לבניית הוראת קבע/);
   assert.match(source, /profile\.goals\.includes\('monthly'\)/);
   assert.match(source, /לאחר פתיחת הקרן:/);
+  assert.match(source, /חלופה נוספת: להשלים השנה את מלוא היתרה/);
+  assert.match(source, /חלופה נוספת: לאחר פתיחת הקרן/);
   assert.match(source, /מנהל ההשקעות מייצר תשואה טובה ועקבית ביחס למתחרים/);
   assert.doesNotMatch(source, /מצב הקרן ידוע/);
   assert.doesNotMatch(source, /dynamic-cta-secondary'\)\.textContent = ctaCopy/);

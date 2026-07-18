@@ -128,12 +128,13 @@ export function calculateConsumerResult(input, data = TAX_DATA_2026) {
     + estimatedNationalInsuranceBenefitTotal + estimatedCapitalGainsExemptionValueTotal;
   const estimatedCombinedBenefitAdditional = estimatedAdditionalTaxBenefit
     + estimatedNationalInsuranceBenefitAdditional + estimatedCapitalGainsExemptionValueAdditional;
-  const monthsRemaining = monthsRemainingInTaxYear(input.today ?? new Date(), data.taxYear);
+  const calculationDate = input.today ?? new Date();
+  const monthsRemaining = monthsRemainingInTaxYear(calculationDate, data.taxYear);
   const monthlyDeposit = normalizeMoney(input.monthlyDeposit ?? 0);
   const monthsDeposited = normalizeMoney(input.monthsDeposited ?? 0);
   const scheduledMonthsRemaining = input.deposited === undefined && monthlyDeposit > 0
     ? Math.max(0, 12 - monthsDeposited)
-    : monthsRemaining;
+    : calculationDate.getFullYear() === data.taxYear ? Math.max(0, 11 - calculationDate.getMonth()) : monthsRemaining;
   const suggestedMonthlyToYearEnd = remaining > 0 && scheduledMonthsRemaining > 0
     ? Math.ceil(remaining / scheduledMonthsRemaining)
     : 0;

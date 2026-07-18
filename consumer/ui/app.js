@@ -265,6 +265,7 @@ function renderRecommendationSteps(result, profile) {
       const setupMonth = targetPayments > 0 ? monthNames[12 - targetPayments] : `ינואר ${result.taxYear + 1}`;
       const lumpCopy = setupLumpSum > 0 ? `להפקיד ${money(setupLumpSum)} בהפקדה חד־פעמית, ובמקביל ` : '';
       stepsForUser.push(`לאחר פתיחת הקרן: ${lumpCopy}להגדיר הוראת קבע של ${money(result.suggestedMonthly)} החל מחודש ${setupMonth}, ולהמשיך איתה גם בשנת ${result.taxYear + 1}.`);
+      stepsForUser.push(`חלופה נוספת: לאחר פתיחת הקרן, להפקיד השנה את מלוא התקרה, ${money(result.remaining)}, בהפקדה חד־פעמית; ומ־1.1.${result.taxYear + 1} להתחיל הוראת קבע שוטפת של כ־${money(result.suggestedMonthly)} בחודש. הסכום החודשי מבוסס על תקרת ${result.taxYear} ויש לעדכנו לאחר פרסום התקרה החדשה.`);
     } else {
       stepsForUser.push(`לאחר פתיחת הקרן, לבחון הפקדה שנתית עד ${money(result.ceiling)} בהתאם להכנסה ולתזרים.`);
     }
@@ -290,6 +291,9 @@ function renderRecommendationSteps(result, profile) {
       }
     } else stepsForUser.push(buildRecommendation(result, profile));
     const wantsMonthlyPlan = profile.goals.includes('monthly');
+    if (wantsMonthlyPlan && result.remaining > 0) {
+      stepsForUser.push(`חלופה נוספת: להשלים השנה את מלוא היתרה, ${money(result.remaining)}, בהפקדה חד־פעמית; ומ־1.1.${result.taxYear + 1} להתחיל הוראת קבע שוטפת של כ־${money(result.suggestedMonthly)} בחודש. הסכום החודשי מבוסס על תקרת ${result.taxYear} ויש לעדכנו לאחר פרסום התקרה החדשה.`);
+    }
     if (profile.completionPreference === 'lump' && !wantsMonthlyPlan) {
       stepsForUser.push(`לקבוע כבר עכשיו תזכורת ל־1.1.${result.taxYear + 1}. לאחר פרסום התקרה המעודכנת לשנה הבאה, ניתן לשקול להפקיד אותה בתחילת השנה — כך הכסף יוכל להיות מושקע ולעבוד לאורך שנה ארוכה יותר.`);
     } else if (result.nextYearRatePayments === 0 && !(wantsMonthlyPlan && result.remaining > 0 && result.currentMonthlyDeposit === 0)) {
