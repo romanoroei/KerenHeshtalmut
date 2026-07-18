@@ -1,0 +1,89 @@
+[
+  {
+    "name": "ללא קרן וללא הפקדות",
+    "overflow": false,
+    "primaryActions": 2,
+    "resultTitle": "ההזדמנות לנצל את ההטבה מסתיימת בסוף השנה",
+    "errors": []
+  },
+  {
+    "name": "קרן והפקדה חד פעמית",
+    "overflow": false,
+    "primaryActions": 2,
+    "resultTitle": "ההזדמנות לנצל את ההטבה מסתיימת בסוף השנה",
+    "errors": []
+  },
+  {
+    "name": "הוראת קבע",
+    "overflow": false,
+    "primaryActions": 2,
+    "resultTitle": "ההזדמנות לנצל את ההטבה מסתיימת בסוף השנה",
+    "errors": []
+  },
+  {
+    "name": "שילוב",
+    "overflow": false,
+    "primaryActions": 2,
+    "resultTitle": "ההזדמנות לנצל את ההטבה מסתיימת בסוף השנה",
+    "errors": []
+  },
+  {
+    "name": "ניצול מלא",
+    "overflow": false,
+    "primaryActions": 2,
+    "resultTitle": "ניצלת את מלוא התקרה המוטבת לשנת 2026",
+    "errors": []
+  },
+  {
+    "name": "מעל התקרה",
+    "overflow": false,
+    "primaryActions": 2,
+    "resultTitle": "ההפקדות הצפויות השנה גבוהות מהתקרה המוטבת",
+    "errors": []
+  },
+  {
+    "name": "ללא צבירה",
+    "overflow": false,
+    "primaryActions": 2,
+    "resultTitle": "ההזדמנות לנצל את ההטבה מסתיימת בסוף השנה",
+    "errors": []
+  },
+  {
+    "name": "עם צבירה",
+    "overflow": false,
+    "primaryActions": 2,
+    "resultTitle": "ההזדמנות לנצל את ההטבה מסתיימת בסוף השנה",
+    "errors": []
+  },
+  {
+    "name": "viewport-768",
+    "overflow": false,
+    "primaryActions": 2,
+    "resultTitle": "ההזדמנות לנצל את ההטבה מסתיימת בסוף השנה"
+  },
+  {
+    "name": "viewport-1440",
+    "overflow": false,
+    "primaryActions": 2,
+    "resultTitle": "ההזדמנות לנצל את ההטבה מסתיימת בסוף השנה"
+  },
+  {
+    "name": "attribution",
+    "value": "{\"source\":\"whatsapp\",\"medium\":\"organic\",\"campaign\":\"launch-2026\",\"referrerCode\":\"accountant-test\"}"
+  },
+  {
+    "name": "essential-only",
+    "value": "essential_only",
+    "gaLoaded": 0
+  },
+  {
+    "name": "accepted-no-id",
+    "value": "accepted",
+    "gaLoaded": 0
+  },
+  {
+    "name": "refresh-restore",
+    "restoredIncome": "200,000",
+    "restoredStep": "שלב 2 מתוך 4"
+  }
+]

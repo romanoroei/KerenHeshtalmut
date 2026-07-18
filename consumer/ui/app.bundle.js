@@ -272,11 +272,86 @@
     return "\u05E8\u05D5\u05E6\u05D4 \u05DC\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D9\u05DA \u05DC\u05D4\u05E9\u05DC\u05D9\u05DD \u05D0\u05EA \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D1\u05DC\u05D9 \u05DC\u05D4\u05DB\u05D1\u05D9\u05D3 \u05E2\u05DC \u05D4\u05EA\u05D6\u05E8\u05D9\u05DD?";
   }
 
+  // consumer/config.js
+  var SITE_CONFIG = Object.freeze({
+    publicBaseUrl: "https://romanoroei.github.io/KerenHeshtalmut/consumer/",
+    professionalCalculatorUrl: "../index.html",
+    whatsappNumber: "972528089808",
+    gaMeasurementId: "",
+    analyticsDebug: false
+  });
+
+  // consumer/analytics/attribution.js
+  var ATTRIBUTION_KEY = "consumer_attribution";
+  var MAX_VALUE_LENGTH = 80;
+  var PARAMETER_MAP = {
+    utm_source: "source",
+    utm_medium: "medium",
+    utm_campaign: "campaign",
+    utm_content: "content",
+    utm_term: "term",
+    ref: "referrerCode"
+  };
+  function sanitizeAttributionValue(value, maxLength = MAX_VALUE_LENGTH) {
+    return String(value != null ? value : "").normalize("NFKC").replace(/[^\p{L}\p{N}_. -]/gu, "").trim().slice(0, maxLength);
+  }
+  function generalReferrer(referrer = "") {
+    if (!referrer) return "direct";
+    try {
+      const host = new URL(referrer).hostname.toLowerCase();
+      if (host.includes("whatsapp")) return "whatsapp";
+      if (host.includes("tiktok")) return "tiktok";
+      if (host.includes("facebook") || host.includes("instagram")) return "facebook";
+      if (host.includes("google")) return "google";
+      return "referral";
+    } catch (e) {
+      return "direct";
+    }
+  }
+  function readAttribution(url = ((_b) => (_b = ((_a) => (_a = globalThis.location) == null ? void 0 : _a.href)()) != null ? _b : "")(), referrer = ((_d) => (_d = ((_c) => (_c = globalThis.document) == null ? void 0 : _c.referrer)()) != null ? _d : "")()) {
+    let params;
+    try {
+      params = new URL(url, "https://example.invalid").searchParams;
+    } catch (e) {
+      params = new URLSearchParams();
+    }
+    const result = {};
+    for (const [parameter, key] of Object.entries(PARAMETER_MAP)) {
+      const value = sanitizeAttributionValue(params.get(parameter));
+      if (value) result[key] = value;
+    }
+    if (!result.source) result.source = generalReferrer(referrer);
+    if (!result.medium) result.medium = result.source === "direct" ? "none" : "organic";
+    return result;
+  }
+  function saveInitialAttribution({ storage = globalThis.sessionStorage, url, referrer } = {}) {
+    try {
+      const existing = storage == null ? void 0 : storage.getItem(ATTRIBUTION_KEY);
+      if (existing) return JSON.parse(existing);
+      const attribution2 = readAttribution(url, referrer);
+      storage == null ? void 0 : storage.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution2));
+      return attribution2;
+    } catch (e) {
+      return readAttribution(url, referrer);
+    }
+  }
+  function getAttribution(storage = globalThis.sessionStorage) {
+    try {
+      return JSON.parse((storage == null ? void 0 : storage.getItem(ATTRIBUTION_KEY)) || "null") || saveInitialAttribution({ storage });
+    } catch (e) {
+      return readAttribution();
+    }
+  }
+  function attributionLabel(attribution2 = {}) {
+    var _a;
+    const labels2 = { whatsapp: "WhatsApp", tiktok: "TikTok", facebook: "Facebook", accountant: "\u05E8\u05D5\u05D0\u05D4 \u05D7\u05E9\u05D1\u05D5\u05DF", direct: "\u05D9\u05E9\u05D9\u05E8", google: "Google", referral: "\u05D0\u05EA\u05E8 \u05DE\u05E4\u05E0\u05D4" };
+    if ((_a = attribution2.referrerCode) == null ? void 0 : _a.toLowerCase().includes("accountant")) return "\u05E8\u05D5\u05D0\u05D4 \u05D7\u05E9\u05D1\u05D5\u05DF";
+    return labels2[String(attribution2.source || "").toLowerCase()] || sanitizeAttributionValue(attribution2.source) || "\u05D9\u05E9\u05D9\u05E8";
+  }
+
   // consumer/messages/whatsapp.js
-  var PHONE = "972528089808";
-  var CONSUMER_URL = "https://romanoroei.github.io/KerenHeshtalmut/consumer/?share=20260718-2";
   var money = (value) => new Intl.NumberFormat("he-IL", { maximumFractionDigits: 0 }).format(Math.round(value));
-  function buildWhatsAppMessage(result, profile = {}) {
+  function buildWhatsAppMessage(result, profile = {}, attribution2 = getAttribution()) {
     var _a, _b, _c, _d, _e, _f, _g;
     const goalLabels = {
       tax: "\u05DC\u05E0\u05E6\u05DC \u05D0\u05EA \u05D4\u05D8\u05D1\u05EA \u05D4\u05DE\u05E1",
@@ -300,16 +375,83 @@
       "",
       `\u05E9\u05D5\u05D5\u05D9 \u05D4\u05D8\u05D1\u05D5\u05EA \u05D4\u05DE\u05E1 \u05D4\u05DB\u05D5\u05DC\u05DC (\u05D0\u05D5\u05DE\u05D3\u05DF): ${money((_g = result.estimatedCombinedBenefitTotal) != null ? _g : result.estimatedTotalTaxBenefit)} \u20AA`,
       "",
+      `\u05DE\u05E7\u05D5\u05E8 \u05D4\u05D4\u05D2\u05E2\u05D4: ${attributionLabel(attribution2)}`,
+      ...attribution2.referrerCode ? [`\u05E7\u05D5\u05D3 \u05DE\u05E4\u05E0\u05D4: ${attribution2.referrerCode}`] : [],
+      "",
       "\u05D0\u05E9\u05DE\u05D7 \u05E9\u05EA\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D9\u05EA\u05D9 \u05DE\u05D4 \u05D4\u05E6\u05E2\u05D3 \u05D4\u05D1\u05D0 \u05E9\u05DE\u05EA\u05D0\u05D9\u05DD \u05DC\u05DE\u05E6\u05D1 \u05E9\u05DC\u05D9"
     ].join("\n");
   }
   function buildWhatsAppUrl(result, profile) {
-    return `https://wa.me/${PHONE}?text=${encodeURIComponent(buildWhatsAppMessage(result, profile))}`;
+    return `https://wa.me/${SITE_CONFIG.whatsappNumber}?text=${encodeURIComponent(buildWhatsAppMessage(result, profile))}`;
   }
-  function buildConsumerShareUrl() {
-    const message = `\u05D1\u05D3\u05E7\u05EA\u05D9 \u05DB\u05DE\u05D4 \u05DB\u05D3\u05D0\u05D9 \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 \u05DC\u05E7\u05E8\u05DF \u05D4\u05E9\u05EA\u05DC\u05DE\u05D5\u05EA \u05D5\u05DE\u05D4 \u05E9\u05D5\u05D5\u05D9 \u05D4\u05D8\u05D1\u05D5\u05EA \u05D4\u05DE\u05E1 \u05D4\u05D0\u05E4\u05E9\u05E8\u05D9\u05D5\u05EA. \u05D0\u05E4\u05E9\u05E8 \u05DC\u05D1\u05E6\u05E2 \u05DB\u05D0\u05DF \u05D1\u05D3\u05D9\u05E7\u05D4 \u05D0\u05D9\u05E9\u05D9\u05EA \u05D5\u05E7\u05E6\u05E8\u05D4:
-${CONSUMER_URL}`;
+  function buildShareMessage(url = SITE_CONFIG.publicBaseUrl) {
+    return `\u05E2\u05E6\u05DE\u05D0\u05D9? \u05DE\u05E6\u05D0\u05EA\u05D9 \u05D1\u05D3\u05D9\u05E7\u05D4 \u05E7\u05E6\u05E8\u05D4 \u05E9\u05E2\u05D5\u05D6\u05E8\u05EA \u05DC\u05D4\u05D1\u05D9\u05DF \u05DB\u05DE\u05D4 \u05E0\u05D9\u05EA\u05DF \u05DC\u05E9\u05E7\u05D5\u05DC \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 \u05DC\u05E7\u05E8\u05DF \u05D4\u05D4\u05E9\u05EA\u05DC\u05DE\u05D5\u05EA \u05D4\u05E9\u05E0\u05D4 \u05D5\u05DE\u05D4 \u05E9\u05D5\u05D5\u05D9 \u05D4\u05D8\u05D1\u05D5\u05EA \u05D4\u05DE\u05E1 \u05D4\u05D0\u05E4\u05E9\u05E8\u05D9\u05D5\u05EA.
+
+\u05D4\u05D1\u05D3\u05D9\u05E7\u05D4 \u05DC\u05DC\u05D0 \u05D4\u05E8\u05E9\u05DE\u05D4 \u05D5\u05DC\u05DC\u05D0 \u05D4\u05EA\u05D7\u05D9\u05D9\u05D1\u05D5\u05EA:
+${url}`;
+  }
+  function buildConsumerShareUrl(url = SITE_CONFIG.publicBaseUrl) {
+    const message = buildShareMessage(url);
     return `https://wa.me/?text=${encodeURIComponent(message)}`;
+  }
+
+  // consumer/analytics/consent.js
+  var CONSENT_KEY = "consumer_analytics_consent";
+  var VALID_STATUSES = /* @__PURE__ */ new Set(["accepted", "essential_only"]);
+  function getConsentStatus(storage = globalThis.localStorage) {
+    try {
+      const value = storage == null ? void 0 : storage.getItem(CONSENT_KEY);
+      return VALID_STATUSES.has(value) ? value : "unknown";
+    } catch (e) {
+      return "unknown";
+    }
+  }
+  function canUseAnalytics(storage = globalThis.localStorage) {
+    return getConsentStatus(storage) === "accepted";
+  }
+
+  // consumer/analytics/tracking.js
+  var FORBIDDEN_KEYS = /income|amount|deposit|balance|phone|whatsapp.*(?:message|content)|message|content_text/i;
+  var gaLoadingPromise;
+  function sanitizeEventParameters(parameters = {}) {
+    return Object.fromEntries(Object.entries(parameters).filter(([key, value]) => !FORBIDDEN_KEYS.test(key) && ["string", "number", "boolean"].includes(typeof value)));
+  }
+  function loadAnalytics({ measurementId = SITE_CONFIG.gaMeasurementId, documentRef = globalThis.document } = {}) {
+    if (!measurementId || !canUseAnalytics() || !documentRef) return Promise.resolve(false);
+    if (gaLoadingPromise) return gaLoadingPromise;
+    globalThis.dataLayer = globalThis.dataLayer || [];
+    globalThis.gtag = globalThis.gtag || function gtag() {
+      globalThis.dataLayer.push(arguments);
+    };
+    globalThis.gtag("js", /* @__PURE__ */ new Date());
+    globalThis.gtag("config", measurementId, { anonymize_ip: true });
+    gaLoadingPromise = new Promise((resolve) => {
+      const script = documentRef.createElement("script");
+      script.async = true;
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      documentRef.head.append(script);
+    });
+    return gaLoadingPromise;
+  }
+  function trackEvent(eventName, parameters = {}) {
+    var _a;
+    const safeParameters = sanitizeEventParameters(parameters);
+    if (SITE_CONFIG.analyticsDebug) console.debug("[consumer analytics]", eventName, safeParameters);
+    if (!canUseAnalytics() || !SITE_CONFIG.gaMeasurementId) return false;
+    loadAnalytics();
+    (_a = globalThis.gtag) == null ? void 0 : _a.call(globalThis, "event", eventName, safeParameters);
+    return true;
+  }
+  function trackOnce(eventName, parameters = {}, storage = globalThis.sessionStorage) {
+    const key = `consumer_event_${eventName}`;
+    try {
+      if (storage == null ? void 0 : storage.getItem(key)) return false;
+      storage == null ? void 0 : storage.setItem(key, "1");
+    } catch (e) {
+    }
+    return trackEvent(eventName, parameters);
   }
 
   // consumer/ui/animations.js
@@ -351,6 +493,42 @@ ${CONSUMER_URL}`;
   var isTransitioning = false;
   var isSubmitting = false;
   var stepHistory = [0];
+  var FORM_STATE_KEY = "consumer_calculator_state";
+  var attribution = getAttribution();
+  function saveFormState() {
+    try {
+      const values = {};
+      new FormData(form).forEach((value, key) => {
+        values[key] = key === "goal" ? [...values[key] || [], value] : value;
+      });
+      sessionStorage.setItem(FORM_STATE_KEY, JSON.stringify({ currentStep, stepHistory, values }));
+    } catch (e) {
+    }
+  }
+  function restoreFormState() {
+    try {
+      const state = JSON.parse(sessionStorage.getItem(FORM_STATE_KEY) || "null");
+      if (!(state == null ? void 0 : state.values)) return false;
+      for (const [name, value] of Object.entries(state.values)) {
+        const fields = $$(`[name="${name}"]`, form);
+        fields.forEach((field) => {
+          if (field.type === "radio" || field.type === "checkbox") field.checked = (Array.isArray(value) ? value : [value]).includes(field.value);
+          else field.value = value;
+        });
+      }
+      stepHistory.splice(0, stepHistory.length, ...Array.isArray(state.stepHistory) ? state.stepHistory : [0]);
+      currentStep = Number.isInteger(state.currentStep) ? state.currentStep : 0;
+      updateDepositFields();
+      updateSelectedCards();
+      updateSummary();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  function resultStatus(result) {
+    return result.overCeiling > 0 ? "over_ceiling" : result.remaining === 0 ? "ceiling_reached" : "remaining";
+  }
   function scheduleAdvance(action, expectedStep = currentStep, delay = 220) {
     clearTimeout(advanceTimer);
     advanceTimer = setTimeout(() => {
@@ -438,6 +616,7 @@ ${CONSUMER_URL}`;
     if (animate) steps[currentStep].classList.add("is-entering");
     (_a = steps[currentStep].querySelector("input")) == null ? void 0 : _a.focus({ preventScroll: true });
     if (innerWidth <= 640 && currentStep > 0) form.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    saveFormState();
   }
   function validateStep() {
     const active = steps[currentStep];
@@ -476,6 +655,8 @@ ${CONSUMER_URL}`;
     if (isTransitioning || index === currentStep || index < 0 || index >= steps.length) return;
     isTransitioning = true;
     if (recordHistory) stepHistory.push(index);
+    const profile = collect().profile;
+    trackEvent("step_completed", { step_number: currentStep + 1, step_name: steps[currentStep].dataset.title, ...currentStep === 1 ? { fund_status: profile.fundStatus } : {}, ...currentStep === 2 ? { deposit_method: profile.depositMethod } : {} });
     const current = steps[currentStep];
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced) {
@@ -622,10 +803,14 @@ ${CONSUMER_URL}`;
       stepsForUser.push("\u05DC\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D7\u05EA \u05DC\u05E9\u05E0\u05D4 \u05E9\u05D4\u05DE\u05E1\u05DC\u05D5\u05DC \u05D5\u05D3\u05DE\u05D9 \u05D4\u05E0\u05D9\u05D4\u05D5\u05DC \u05E2\u05D3\u05D9\u05D9\u05DF \u05DE\u05EA\u05D0\u05D9\u05DE\u05D9\u05DD \u05DC\u05DE\u05D8\u05E8\u05D5\u05EA \u05E9\u05D1\u05D7\u05E8\u05EA.");
       stepsForUser.push("\u05DC\u05D1\u05D3\u05D5\u05E7 \u05E9\u05DE\u05E0\u05D4\u05DC \u05D4\u05D4\u05E9\u05E7\u05E2\u05D5\u05EA \u05DE\u05D9\u05D9\u05E6\u05E8 \u05EA\u05E9\u05D5\u05D0\u05D4 \u05D8\u05D5\u05D1\u05D4 \u05D5\u05E2\u05E7\u05D1\u05D9\u05EA \u05D1\u05D9\u05D7\u05E1 \u05DC\u05DE\u05EA\u05D7\u05E8\u05D9\u05DD \u05DC\u05D0\u05D5\u05E8\u05DA \u05EA\u05E7\u05D5\u05E4\u05D5\u05EA \u05D6\u05DE\u05DF \u05DE\u05EA\u05D0\u05D9\u05DE\u05D5\u05EA.");
     }
-    $("#recommendation-steps").innerHTML = stepsForUser.map((step, index) => {
+    const itemHtml = (step, index) => {
       const isWarning = result.overCeiling > 0 && index === 0;
       return `<li${isWarning ? ' class="is-warning"' : ""}><span>${index + 1}</span><p>${isWarning ? '<i class="fas fa-triangle-exclamation" aria-hidden="true"></i>' : ""}${step}</p></li>`;
-    }).join("");
+    };
+    $("#recommendation-steps").innerHTML = stepsForUser.slice(0, 2).map(itemHtml).join("");
+    const additional = stepsForUser.slice(2);
+    $("#additional-recommendation-steps").innerHTML = additional.map((step, index) => itemHtml(step, index + 2)).join("");
+    $("#more-recommendations").hidden = additional.length === 0;
   }
   function renderLiveCountdown(taxYear) {
     clearInterval(countdownTimer);
@@ -717,6 +902,7 @@ ${CONSUMER_URL}`;
       clearTimeout(advanceTimer);
       if (stepHistory.length > 1) {
         stepHistory.pop();
+        trackEvent("step_back_clicked", { from_step: currentStep + 1, to_step: stepHistory[stepHistory.length - 1] + 1 });
         transitionTo(stepHistory[stepHistory.length - 1], false);
       }
       return;
@@ -736,6 +922,7 @@ ${CONSUMER_URL}`;
       });
     }
     updateSummary();
+    saveFormState();
     if (event.target.name === "fundStatus") {
       const destination = event.target.value === "none" ? 3 : 2;
       scheduleAdvance(() => transitionTo(destination));
@@ -744,6 +931,7 @@ ${CONSUMER_URL}`;
   form.addEventListener("input", (event) => {
     if (event.target.name === "monthsDeposited") validateMonthsDeposited();
     if (event.target.matches('[inputmode="numeric"], input[type="number"]')) updateSummary();
+    saveFormState();
   });
   form.addEventListener("focusout", (event) => {
     if (event.target.matches('[inputmode="numeric"]')) formatMoneyInput(event.target);
@@ -757,6 +945,7 @@ ${CONSUMER_URL}`;
     try {
       const { input, profile } = collect();
       const result = calculateConsumerResult(input);
+      trackOnce("calculator_completed", { fund_status: profile.fundStatus, deposit_method: profile.depositMethod, goals: profile.goals.join("|"), result_status: resultStatus(result) });
       $(".wizard-layout").hidden = true;
       $(".check-heading").hidden = true;
       $("#loading").hidden = false;
@@ -787,14 +976,50 @@ ${CONSUMER_URL}`;
     const card = event.target.closest("[data-scenario-index]");
     if (!card || !lastResult) return;
     renderGrowthDetail(lastResult, Number(card.dataset.scenarioIndex));
+    trackEvent("details_opened", { details_type: "growth_scenario" });
+  });
+  $$(".calculation-details, #more-recommendations").forEach((details) => details.addEventListener("toggle", () => {
+    if (details.open) trackEvent("details_opened", { details_type: details.classList.contains("calculation-details") ? "calculation_method" : "additional_actions" });
+  }));
+  $$("#whatsapp, #whatsapp-secondary").forEach((link) => link.addEventListener("click", () => {
+    trackEvent("whatsapp_clicked", { result_status: resultStatus(lastResult), fund_status: (lastProfile == null ? void 0 : lastProfile.fundStatus) || "", entry_source: attribution.source, referrer_code: attribution.referrerCode || "" });
+    const notice = $("#whatsapp-status");
+    if (notice) notice.textContent = "WhatsApp \u05E0\u05E4\u05EA\u05D7 \u05D1\u05D7\u05DC\u05D5\u05DF \u05D7\u05D3\u05E9. \u05DC\u05D0\u05D7\u05E8 \u05E9\u05DC\u05D9\u05D7\u05EA \u05D4\u05D4\u05D5\u05D3\u05E2\u05D4 \u05E8\u05D5\u05E2\u05D9 \u05D9\u05D5\u05DB\u05DC \u05DC\u05D7\u05D6\u05D5\u05E8 \u05D0\u05DC\u05D9\u05DA.";
+  }));
+  $("#share-benefits").addEventListener("click", () => trackEvent("share_clicked", { share_method: "whatsapp", entry_source: attribution.source }));
+  $("#copy-share-link").addEventListener("click", async () => {
+    await navigator.clipboard.writeText(SITE_CONFIG.publicBaseUrl);
+    $("#share-feedback").textContent = "\u05D4\u05E7\u05D9\u05E9\u05D5\u05E8 \u05D4\u05D5\u05E2\u05EA\u05E7";
+    trackEvent("share_clicked", { share_method: "copy_link", entry_source: attribution.source });
+  });
+  var nativeShare = $("#native-share");
+  nativeShare.hidden = typeof navigator.share !== "function";
+  nativeShare.addEventListener("click", async () => {
+    try {
+      await navigator.share({ title: "\u05D1\u05D3\u05D9\u05E7\u05EA \u05E7\u05E8\u05DF \u05D4\u05E9\u05EA\u05DC\u05DE\u05D5\u05EA \u05DC\u05E2\u05E6\u05DE\u05D0\u05D9\u05DD", text: buildShareMessage(""), url: SITE_CONFIG.publicBaseUrl });
+      trackEvent("share_clicked", { share_method: "native_share", entry_source: attribution.source });
+    } catch (e) {
+    }
   });
   $("#restart").addEventListener("click", () => {
+    try {
+      sessionStorage.removeItem(FORM_STATE_KEY);
+      sessionStorage.removeItem("consumer_event_calculator_completed");
+      sessionStorage.removeItem("consumer_event_calculator_started");
+    } catch (e) {
+    }
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     location.assign("./check.html?restart=1");
   });
   if (new URLSearchParams(location.search).has("restart")) {
+    try {
+      sessionStorage.removeItem(FORM_STATE_KEY);
+    } catch (e) {
+    }
     history.replaceState(null, "", "./check.html");
     scrollTo(0, 0);
   }
-  renderStep(0, false);
+  trackOnce("calculator_started", { entry_source: attribution.source, referrer_code: attribution.referrerCode || "" });
+  restoreFormState();
+  renderStep(currentStep, false);
 })();

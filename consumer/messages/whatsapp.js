@@ -1,8 +1,9 @@
-const PHONE = '972528089808';
-const CONSUMER_URL = 'https://romanoroei.github.io/KerenHeshtalmut/consumer/?share=20260718-2';
+import { SITE_CONFIG } from '../config.js';
+import { attributionLabel, getAttribution } from '../analytics/attribution.js';
+
 const money = (value) => new Intl.NumberFormat('he-IL', { maximumFractionDigits: 0 }).format(Math.round(value));
 
-export function buildWhatsAppMessage(result, profile = {}) {
+export function buildWhatsAppMessage(result, profile = {}, attribution = getAttribution()) {
   const goalLabels = {
     tax: 'לנצל את הטבת המס',
     saving: 'להגדיל את החיסכון',
@@ -24,15 +25,22 @@ export function buildWhatsAppMessage(result, profile = {}) {
     '',
     `שווי הטבות המס הכולל (אומדן): ${money(result.estimatedCombinedBenefitTotal ?? result.estimatedTotalTaxBenefit)} ₪`,
     '',
+    `מקור ההגעה: ${attributionLabel(attribution)}`,
+    ...(attribution.referrerCode ? [`קוד מפנה: ${attribution.referrerCode}`] : []),
+    '',
     'אשמח שתבדוק איתי מה הצעד הבא שמתאים למצב שלי',
   ].join('\n');
 }
 
 export function buildWhatsAppUrl(result, profile) {
-  return `https://wa.me/${PHONE}?text=${encodeURIComponent(buildWhatsAppMessage(result, profile))}`;
+  return `https://wa.me/${SITE_CONFIG.whatsappNumber}?text=${encodeURIComponent(buildWhatsAppMessage(result, profile))}`;
 }
 
-export function buildConsumerShareUrl() {
-  const message = `בדקתי כמה כדאי להפקיד לקרן השתלמות ומה שווי הטבות המס האפשריות. אפשר לבצע כאן בדיקה אישית וקצרה:\n${CONSUMER_URL}`;
+export function buildShareMessage(url = SITE_CONFIG.publicBaseUrl) {
+  return `עצמאי? מצאתי בדיקה קצרה שעוזרת להבין כמה ניתן לשקול להפקיד לקרן ההשתלמות השנה ומה שווי הטבות המס האפשריות.\n\nהבדיקה ללא הרשמה וללא התחייבות:\n${url}`;
+}
+
+export function buildConsumerShareUrl(url = SITE_CONFIG.publicBaseUrl) {
+  const message = buildShareMessage(url);
   return `https://wa.me/?text=${encodeURIComponent(message)}`;
 }

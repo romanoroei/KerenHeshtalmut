@@ -1,7 +1,10 @@
 import { buildGrowthSchedule, calculateConsumerResult, normalizeMoney } from '../engine/calculator.js';
 import { calculateUtilizationScore } from '../engine/score.js';
 import { buildCta, buildRecommendation } from '../engine/recommendations.js';
-import { buildConsumerShareUrl, buildWhatsAppUrl } from '../messages/whatsapp.js';
+import { buildConsumerShareUrl, buildShareMessage, buildWhatsAppUrl } from '../messages/whatsapp.js';
+import { SITE_CONFIG } from '../config.js';
+import { getAttribution } from '../analytics/attribution.js';
+import { trackEvent, trackOnce } from '../analytics/tracking.js';
 import { countUp } from './animations.js';
 
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -22,6 +25,38 @@ let countdownTimer;
 let isTransitioning = false;
 let isSubmitting = false;
 const stepHistory = [0];
+const FORM_STATE_KEY = 'consumer_calculator_state';
+const attribution = getAttribution();
+
+function saveFormState() {
+  try {
+    const values = {};
+    new FormData(form).forEach((value, key) => { values[key] = key === 'goal' ? [...(values[key] || []), value] : value; });
+    sessionStorage.setItem(FORM_STATE_KEY, JSON.stringify({ currentStep, stepHistory, values }));
+  } catch { /* The calculator still works when storage is unavailable. */ }
+}
+
+function restoreFormState() {
+  try {
+    const state = JSON.parse(sessionStorage.getItem(FORM_STATE_KEY) || 'null');
+    if (!state?.values) return false;
+    for (const [name, value] of Object.entries(state.values)) {
+      const fields = $$(`[name="${name}"]`, form);
+      fields.forEach((field) => {
+        if (field.type === 'radio' || field.type === 'checkbox') field.checked = (Array.isArray(value) ? value : [value]).includes(field.value);
+        else field.value = value;
+      });
+    }
+    stepHistory.splice(0, stepHistory.length, ...(Array.isArray(state.stepHistory) ? state.stepHistory : [0]));
+    currentStep = Number.isInteger(state.currentStep) ? state.currentStep : 0;
+    updateDepositFields(); updateSelectedCards(); updateSummary();
+    return true;
+  } catch { return false; }
+}
+
+function resultStatus(result) {
+  return result.overCeiling > 0 ? 'over_ceiling' : result.remaining === 0 ? 'ceiling_reached' : 'remaining';
+}
 
 function scheduleAdvance(action, expectedStep = currentStep, delay = 220) {
   clearTimeout(advanceTimer);
@@ -121,6 +156,7 @@ function renderStep(index, animate = true) {
   if (animate) steps[currentStep].classList.add('is-entering');
   steps[currentStep].querySelector('input')?.focus({ preventScroll: true });
   if (innerWidth <= 640 && currentStep > 0) form.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  saveFormState();
 }
 
 function validateStep() {
@@ -161,6 +197,8 @@ function transitionTo(index, recordHistory = true) {
   if (isTransitioning || index === currentStep || index < 0 || index >= steps.length) return;
   isTransitioning = true;
   if (recordHistory) stepHistory.push(index);
+  const profile = collect().profile;
+  trackEvent('step_completed', { step_number: currentStep + 1, step_name: steps[currentStep].dataset.title, ...(currentStep === 1 ? { fund_status: profile.fundStatus } : {}), ...(currentStep === 2 ? { deposit_method: profile.depositMethod } : {}) });
   const current = steps[currentStep];
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduced) { renderStep(index, false); return; }
@@ -307,10 +345,14 @@ function renderRecommendationSteps(result, profile) {
     stepsForUser.push('לבדוק אחת לשנה שהמסלול ודמי הניהול עדיין מתאימים למטרות שבחרת.');
     stepsForUser.push('לבדוק שמנהל ההשקעות מייצר תשואה טובה ועקבית ביחס למתחרים לאורך תקופות זמן מתאימות.');
   }
-  $('#recommendation-steps').innerHTML = stepsForUser.map((step, index) => {
+  const itemHtml = (step, index) => {
     const isWarning = result.overCeiling > 0 && index === 0;
     return `<li${isWarning ? ' class="is-warning"' : ''}><span>${index + 1}</span><p>${isWarning ? '<i class="fas fa-triangle-exclamation" aria-hidden="true"></i>' : ''}${step}</p></li>`;
-  }).join('');
+  };
+  $('#recommendation-steps').innerHTML = stepsForUser.slice(0, 2).map(itemHtml).join('');
+  const additional = stepsForUser.slice(2);
+  $('#additional-recommendation-steps').innerHTML = additional.map((step, index) => itemHtml(step, index + 2)).join('');
+  $('#more-recommendations').hidden = additional.length === 0;
 }
 
 function renderLiveCountdown(taxYear) {
@@ -401,6 +443,7 @@ form.addEventListener('click', (event) => {
     clearTimeout(advanceTimer);
     if (stepHistory.length > 1) {
       stepHistory.pop();
+      trackEvent('step_back_clicked', { from_step: currentStep + 1, to_step: stepHistory[stepHistory.length - 1] + 1 });
       transitionTo(stepHistory[stepHistory.length - 1], false);
     }
     return;
@@ -421,6 +464,7 @@ form.addEventListener('change', (event) => {
     });
   }
   updateSummary();
+  saveFormState();
   if (event.target.name === 'fundStatus') {
     const destination = event.target.value === 'none' ? 3 : 2;
     scheduleAdvance(() => transitionTo(destination));
@@ -430,6 +474,7 @@ form.addEventListener('change', (event) => {
 form.addEventListener('input', (event) => {
   if (event.target.name === 'monthsDeposited') validateMonthsDeposited();
   if (event.target.matches('[inputmode="numeric"], input[type="number"]')) updateSummary();
+  saveFormState();
 });
 
 form.addEventListener('focusout', (event) => {
@@ -445,6 +490,7 @@ form.addEventListener('submit', (event) => {
   try {
     const { input, profile } = collect();
     const result = calculateConsumerResult(input);
+    trackOnce('calculator_completed', { fund_status: profile.fundStatus, deposit_method: profile.depositMethod, goals: profile.goals.join('|'), result_status: resultStatus(result) });
     $('.wizard-layout').hidden = true;
     $('.check-heading').hidden = true;
     $('#loading').hidden = false;
@@ -475,14 +521,41 @@ $('#scenario-list').addEventListener('click', (event) => {
   const card = event.target.closest('[data-scenario-index]');
   if (!card || !lastResult) return;
   renderGrowthDetail(lastResult, Number(card.dataset.scenarioIndex));
+  trackEvent('details_opened', { details_type: 'growth_scenario' });
+});
+
+$$('.calculation-details, #more-recommendations').forEach((details) => details.addEventListener('toggle', () => {
+  if (details.open) trackEvent('details_opened', { details_type: details.classList.contains('calculation-details') ? 'calculation_method' : 'additional_actions' });
+}));
+
+$$('#whatsapp, #whatsapp-secondary').forEach((link) => link.addEventListener('click', () => {
+  trackEvent('whatsapp_clicked', { result_status: resultStatus(lastResult), fund_status: lastProfile?.fundStatus || '', entry_source: attribution.source, referrer_code: attribution.referrerCode || '' });
+  const notice = $('#whatsapp-status');
+  if (notice) notice.textContent = 'WhatsApp נפתח בחלון חדש. לאחר שליחת ההודעה רועי יוכל לחזור אליך.';
+}));
+
+$('#share-benefits').addEventListener('click', () => trackEvent('share_clicked', { share_method: 'whatsapp', entry_source: attribution.source }));
+$('#copy-share-link').addEventListener('click', async () => {
+  await navigator.clipboard.writeText(SITE_CONFIG.publicBaseUrl);
+  $('#share-feedback').textContent = 'הקישור הועתק';
+  trackEvent('share_clicked', { share_method: 'copy_link', entry_source: attribution.source });
+});
+const nativeShare = $('#native-share');
+nativeShare.hidden = typeof navigator.share !== 'function';
+nativeShare.addEventListener('click', async () => {
+  try { await navigator.share({ title: 'בדיקת קרן השתלמות לעצמאים', text: buildShareMessage(''), url: SITE_CONFIG.publicBaseUrl }); trackEvent('share_clicked', { share_method: 'native_share', entry_source: attribution.source }); } catch { /* Cancellation is not an error. */ }
 });
 
 $('#restart').addEventListener('click', () => {
+  try { sessionStorage.removeItem(FORM_STATE_KEY); sessionStorage.removeItem('consumer_event_calculator_completed'); sessionStorage.removeItem('consumer_event_calculator_started'); } catch { /* Ignore unavailable storage. */ }
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   location.assign('./check.html?restart=1');
 });
 if (new URLSearchParams(location.search).has('restart')) {
+  try { sessionStorage.removeItem(FORM_STATE_KEY); } catch { /* Ignore unavailable storage. */ }
   history.replaceState(null, '', './check.html');
   scrollTo(0, 0);
 }
-renderStep(0, false);
+trackOnce('calculator_started', { entry_source: attribution.source, referrer_code: attribution.referrerCode || '' });
+restoreFormState();
+renderStep(currentStep, false);

@@ -13,7 +13,7 @@ const browser = await chromium.launch({
 const report = [];
 
 async function completeFlow(page) {
-  await page.goto(checkUrl, { waitUntil: 'networkidle' });
+  await page.goto(`${checkUrl}?restart=1`, { waitUntil: 'networkidle' });
   await page.locator('[data-amount="200000"]').click();
   await page.locator('[data-next]').click();
   await page.waitForTimeout(300);
@@ -22,6 +22,7 @@ async function completeFlow(page) {
   await page.locator('input[name="depositMethod"][value="monthly"]').check({ force: true });
   await page.locator('#monthlyDeposit').fill('500');
   await page.locator('#monthsDeposited').fill('7');
+  await page.locator('.optional-balance').evaluate((element) => { element.open = true; });
   await page.locator('#existingBalance').fill('85000');
   await page.locator('[data-next]').click();
   await page.waitForTimeout(300);
@@ -48,6 +49,7 @@ for (const viewport of [{ name: 'mobile', width: 390, height: 844 }, { name: 'ta
   await page.waitForTimeout(400);
   await page.locator('input[name="depositMethod"][value="lump"]').check({ force: true });
   await page.locator('#lumpSum').fill('12000');
+  await page.locator('.optional-balance').evaluate((element) => { element.open = true; });
   await page.locator('#existingBalance').fill('85000');
   if (viewport.name !== 'tablet') await page.locator('.wizard-layout').screenshot({ path: fileURLToPath(new URL(`${viewport.name}-question.png`, outputDir)) });
   await page.reload({ waitUntil: 'networkidle' });
