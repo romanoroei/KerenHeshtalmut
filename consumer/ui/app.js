@@ -19,28 +19,9 @@ let lastProfile;
 let lastResult;
 let advanceTimer;
 let countdownTimer;
-let floatingCountdownFrame;
 let isTransitioning = false;
 let isSubmitting = false;
 const stepHistory = [0];
-
-function syncFloatingCountdown() {
-  cancelAnimationFrame(floatingCountdownFrame);
-  floatingCountdownFrame = requestAnimationFrame(() => {
-    const countdown = $('#tax-countdown');
-    const results = $('#results');
-    if (!countdown || !results || innerWidth > 640 || countdown.hidden || results.hidden) {
-      countdown?.classList.remove('is-floating');
-      return;
-    }
-    const introBottom = $('#result-intro').getBoundingClientRect().bottom;
-    const resultsBottom = results.getBoundingClientRect().bottom;
-    countdown.classList.toggle('is-floating', introBottom < 0 && resultsBottom > 90);
-  });
-}
-
-addEventListener('scroll', syncFloatingCountdown, { passive: true });
-addEventListener('resize', syncFloatingCountdown);
 
 function scheduleAdvance(action, expectedStep = currentStep, delay = 220) {
   clearTimeout(advanceTimer);
@@ -347,7 +328,6 @@ function renderLiveCountdown(taxYear) {
     $('#countdown-minutes').textContent = String(minutes).padStart(2, '0');
     $('#countdown-seconds').textContent = String(seconds).padStart(2, '0');
     $('#tax-countdown').hidden = remainingMilliseconds === 0;
-    syncFloatingCountdown();
     if (remainingMilliseconds === 0) clearInterval(countdownTimer);
   };
   update();

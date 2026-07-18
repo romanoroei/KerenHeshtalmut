@@ -116,6 +116,7 @@ test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקד
   const check = await readFile(new URL('../check.html', import.meta.url), 'utf8');
   const landing = await readFile(new URL('../index.html', import.meta.url), 'utf8');
   const source = await readFile(new URL('../ui/app.js', import.meta.url), 'utf8');
+  const styles = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
   assert.match(check, /id="share-benefits"/);
   assert.match(check, /מכירים עצמאי שהמחשבון יכול לעזור לו\?/);
   assert.match(check, /שתפו איתו את האתר/);
@@ -126,7 +127,9 @@ test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקד
   assert.match(source, /כולל הוראת קבע/);
   assert.match(source, /location\.assign\('\.\/check\.html\?restart=1'\)/);
   assert.match(source, /currentStep > 0/);
-  assert.match(source, /classList\.toggle\('is-floating'/);
+  assert.doesNotMatch(source, /is-floating/);
+  assert.match(styles, /\.tax-countdown \{ position: sticky;/);
+  assert.match(landing, /לחצו כאן ומתחילים בדיקה/);
   assert.equal((check.match(/class="site-footer"/g) ?? []).length, 0);
   assert.match(check, /שיתוף האתר ב־WhatsApp/);
   assert.doesNotMatch(check, />למחשבון המקצועי/);
