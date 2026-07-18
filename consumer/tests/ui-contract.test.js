@@ -6,7 +6,7 @@ test('הכפתורים נטענים מ-bundle רגיל ללא script inline', as
   const landing = await readFile(new URL('../index.html', import.meta.url), 'utf8');
   const check = await readFile(new URL('../check.html', import.meta.url), 'utf8');
   assert.match(landing, /href="\.\/check\.html"/);
-  assert.doesNotMatch(landing, /href="\.\.\/index\.html"/);
+  assert.match(landing, /href="\.\.\/index\.html">המחשבון המקצועי<\/a>/);
   assert.match(check, /script defer src="\.\/ui\/app\.bundle\.js\?v=\d+-\d+"/);
   assert.doesNotMatch(check, /script type="module"/);
   assert.doesNotMatch(check, /<script>(?!\s*<\/script>)/);
@@ -154,6 +154,8 @@ test('דפי המדיניות מחזירים למחשבון שממנו הגיע 
     assert.match(html, /data-calculator-back/);
     assert.match(html, /script defer src="legal-return\.js"/);
   }
+  assert.match(returnScript, /חזרה למחשבון'/);
+  assert.doesNotMatch(returnScript, /מחשבון פשוט/);
   assert.match(returnScript, /from.*consumer/);
   assert.match(returnScript, /consumer\/index\.html/);
 });

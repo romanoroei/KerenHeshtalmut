@@ -3,5 +3,5 @@ const cameFromConsumer = new URLSearchParams(window.location.search).get('from')
 
 if (backLink && cameFromConsumer) {
   backLink.href = 'consumer/index.html';
-  backLink.lastChild.textContent = ' חזרה למחשבון הפשוט';
+  backLink.lastChild.textContent = ' חזרה למחשבון';
 }
