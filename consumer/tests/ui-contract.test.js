@@ -47,7 +47,8 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   assert.match(html, /id="growth-detail"/);
   assert.match(html, /id="growth-chart"/);
   assert.doesNotMatch(html, /id="growth-bars"/);
-  assert.ok(html.indexOf('class="whatsapp-card"') < html.indexOf('class="support-grid"'));
+  assert.ok(html.indexOf('class="benefit-breakdown"') < html.indexOf('class="whatsapp-card"'));
+  assert.ok(html.indexOf('class="whatsapp-card"') < html.indexOf('class="action-plan-card"'));
   assert.match(html, /id="countdown-days"/);
   assert.match(html, /id="whatsapp-secondary"/);
 });
@@ -116,8 +117,8 @@ test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקד
   const landing = await readFile(new URL('../index.html', import.meta.url), 'utf8');
   const source = await readFile(new URL('../ui/app.js', import.meta.url), 'utf8');
   assert.match(check, /id="share-benefits"/);
-  assert.match(check, /מכירים עצמאי שזה יכול לעזור לו\?/);
-  assert.match(check, /שתפו את הבדיקה/);
+  assert.match(check, /מכירים עצמאי שהמחשבון יכול לעזור לו\?/);
+  assert.match(check, /שתפו איתו את האתר/);
   assert.match(check, /class="restart-link"/);
   assert.doesNotMatch(check, /class="btn btn-share"/);
   assert.doesNotMatch(check, /name="(?:lumpSum|monthlyDeposit|monthsDeposited)"[^>]*value="0"/);
@@ -125,6 +126,9 @@ test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקד
   assert.match(source, /כולל הוראת קבע/);
   assert.match(source, /location\.assign\('\.\/check\.html\?restart=1'\)/);
   assert.match(source, /currentStep > 0/);
+  assert.match(source, /classList\.toggle\('is-floating'/);
+  assert.equal((check.match(/class="site-footer"/g) ?? []).length, 0);
+  assert.match(check, /שיתוף האתר ב־WhatsApp/);
   assert.doesNotMatch(check, />למחשבון המקצועי/);
   assert.match(landing, /property="og:image" content="https:\/\/romanoroei\.github\.io\/KerenHeshtalmut\/og-share\.jpg/);
   assert.match(landing, /property="og:image:secure_url"/);
