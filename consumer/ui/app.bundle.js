@@ -566,7 +566,15 @@
     if (profile.fundStatus === "none") {
       stepsForUser.push(buildRecommendation(result, profile));
       stepsForUser.push("\u05DC\u05D4\u05E9\u05D5\u05D5\u05EA \u05D1\u05D9\u05DF \u05DE\u05E1\u05DC\u05D5\u05DC\u05D9 \u05D4\u05E9\u05E7\u05E2\u05D4 \u05D5\u05D3\u05DE\u05D9 \u05E0\u05D9\u05D4\u05D5\u05DC \u05DC\u05E4\u05E0\u05D9 \u05E4\u05EA\u05D9\u05D7\u05EA \u05D4\u05E7\u05E8\u05DF.");
-      stepsForUser.push(`\u05DC\u05D0\u05D7\u05E8 \u05E4\u05EA\u05D9\u05D7\u05EA \u05D4\u05E7\u05E8\u05DF, \u05DC\u05D1\u05D7\u05D5\u05DF \u05D4\u05E4\u05E7\u05D3\u05D4 \u05E9\u05E0\u05EA\u05D9\u05EA \u05E2\u05D3 ${money2(result.ceiling)} \u05D1\u05D4\u05EA\u05D0\u05DD \u05DC\u05D4\u05DB\u05E0\u05E1\u05D4 \u05D5\u05DC\u05EA\u05D6\u05E8\u05D9\u05DD.`);
+      if (profile.goals.includes("monthly")) {
+        const targetPayments = Math.min(result.scheduledMonthsRemaining, Math.floor(result.remaining / result.suggestedMonthly));
+        const setupLumpSum = result.remaining - targetPayments * result.suggestedMonthly;
+        const setupMonth = targetPayments > 0 ? monthNames[12 - targetPayments] : `ינואר ${result.taxYear + 1}`;
+        const lumpCopy = setupLumpSum > 0 ? `להפקיד ${money2(setupLumpSum)} בהפקדה חד־פעמית, ובמקביל ` : "";
+        stepsForUser.push(`לאחר פתיחת הקרן: ${lumpCopy}להגדיר הוראת קבע של ${money2(result.suggestedMonthly)} החל מחודש ${setupMonth}, ולהמשיך איתה גם בשנת ${result.taxYear + 1}.`);
+      } else {
+        stepsForUser.push(`\u05DC\u05D0\u05D7\u05E8 \u05E4\u05EA\u05D9\u05D7\u05EA \u05D4\u05E7\u05E8\u05DF, \u05DC\u05D1\u05D7\u05D5\u05DF \u05D4\u05E4\u05E7\u05D3\u05D4 \u05E9\u05E0\u05EA\u05D9\u05EA \u05E2\u05D3 ${money2(result.ceiling)} \u05D1\u05D4\u05EA\u05D0\u05DD \u05DC\u05D4\u05DB\u05E0\u05E1\u05D4 \u05D5\u05DC\u05EA\u05D6\u05E8\u05D9\u05DD.`);
+      }
     } else {
       if (result.remaining > 0) {
         const keepMonthly = result.currentMonthlyDeposit > 0 ? `, ללא שינוי הוראת הקבע הקיימת בסך ${money2(result.currentMonthlyDeposit)}` : "";

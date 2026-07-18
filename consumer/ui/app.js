@@ -259,7 +259,15 @@ function renderRecommendationSteps(result, profile) {
   if (profile.fundStatus === 'none') {
     stepsForUser.push(buildRecommendation(result, profile));
     stepsForUser.push('להשוות בין מסלולי השקעה ודמי ניהול לפני פתיחת הקרן.');
-    stepsForUser.push(`לאחר פתיחת הקרן, לבחון הפקדה שנתית עד ${money(result.ceiling)} בהתאם להכנסה ולתזרים.`);
+    if (profile.goals.includes('monthly')) {
+      const targetPayments = Math.min(result.scheduledMonthsRemaining, Math.floor(result.remaining / result.suggestedMonthly));
+      const setupLumpSum = result.remaining - (targetPayments * result.suggestedMonthly);
+      const setupMonth = targetPayments > 0 ? monthNames[12 - targetPayments] : `ינואר ${result.taxYear + 1}`;
+      const lumpCopy = setupLumpSum > 0 ? `להפקיד ${money(setupLumpSum)} בהפקדה חד־פעמית, ובמקביל ` : '';
+      stepsForUser.push(`לאחר פתיחת הקרן: ${lumpCopy}להגדיר הוראת קבע של ${money(result.suggestedMonthly)} החל מחודש ${setupMonth}, ולהמשיך איתה גם בשנת ${result.taxYear + 1}.`);
+    } else {
+      stepsForUser.push(`לאחר פתיחת הקרן, לבחון הפקדה שנתית עד ${money(result.ceiling)} בהתאם להכנסה ולתזרים.`);
+    }
   } else {
     if (result.remaining > 0) {
       const keepMonthly = result.currentMonthlyDeposit > 0 ? `, ללא שינוי הוראת הקבע הקיימת בסך ${money(result.currentMonthlyDeposit)}` : '';
