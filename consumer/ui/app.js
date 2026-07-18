@@ -12,7 +12,7 @@ const money = (value) => new Intl.NumberFormat('he-IL', {
   style: 'currency', currency: 'ILS', maximumFractionDigits: 0,
 }).format(Math.round(value));
 const labels = {
-  none: 'עדיין אין קרן', locked: 'קרן לא נזילה', liquid: 'קרן נזילה', unknown: 'לא בטוח',
+  none: 'עדיין אין קרן', existing: 'יש קרן השתלמות',
 };
 let currentStep = 0;
 let lastProfile;

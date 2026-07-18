@@ -17,7 +17,7 @@ async function completeFlow(page) {
   await page.locator('[data-amount="200000"]').click();
   await page.locator('[data-next]').click();
   await page.waitForTimeout(300);
-  await page.locator('input[name="fundStatus"][value="locked"]').check({ force: true });
+  await page.locator('input[name="fundStatus"][value="existing"]').check({ force: true });
   await page.waitForTimeout(400);
   await page.locator('input[name="depositMethod"][value="monthly"]').check({ force: true });
   await page.locator('#monthlyDeposit').fill('500');
@@ -44,7 +44,7 @@ for (const viewport of [{ name: 'mobile', width: 390, height: 844 }, { name: 'ta
   await page.locator('[data-amount="200000"]').click();
   await page.locator('[data-next]').click();
   await page.waitForTimeout(300);
-  await page.locator('input[name="fundStatus"][value="liquid"]').check({ force: true });
+  await page.locator('input[name="fundStatus"][value="existing"]').check({ force: true });
   await page.waitForTimeout(400);
   await page.locator('input[name="depositMethod"][value="lump"]').check({ force: true });
   await page.locator('#lumpSum').fill('12000');

@@ -32,7 +32,11 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   const html = await readFile(new URL('../check.html', import.meta.url), 'utf8');
   assert.match(html, /שלב 1 מתוך 4/);
   assert.match(html, /האם יש לך קרן השתלמות/);
+  assert.equal((html.match(/type="radio" name="fundStatus"/g) || []).length, 2);
+  assert.match(html, /value="existing"/);
+  assert.doesNotMatch(html, /לא נזילה|נזילה|לא בטוח אם היא נזילה/);
   assert.match(html, /כמה הפקדת לקרן שלך השנה/);
+  assert.match(html, /מה הצבירה הנוכחית בקרן\? \(כולל הפקדות השנה\)/);
   assert.equal((html.match(/type="checkbox" name="goal"/g) || []).length, 4);
   assert.match(html, /id="recommendation-steps"/);
   assert.match(html, /id="existingBalance"/);
@@ -79,6 +83,7 @@ test('מסך התוצאה מציג יתרה פעם אחת, טיימר חי ו-CT
   assert.equal((html.match(/זה הסכום שעוד ניתן להפקיד עד סוף 2026/g) || []).length, 1);
   assert.doesNotMatch(html, /זהו הסכום שניתן לשקול להפקיד/);
   assert.match(html, /id="countdown-seconds"/);
+  assert.ok(html.indexOf('id="countdown-seconds"') < html.indexOf('id="countdown-days"'));
   assert.match(source, /setInterval\(update, 1000\)/);
   assert.match(source, /buildSecondaryCta/);
   assert.doesNotMatch(source, /dynamic-cta-secondary'\)\.textContent = ctaCopy/);
