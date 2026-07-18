@@ -119,6 +119,7 @@ test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקד
   assert.match(check, /שתפו את הבדיקה/);
   assert.match(check, /class="restart-link"/);
   assert.doesNotMatch(check, /class="btn btn-share"/);
+  assert.doesNotMatch(check, /name="(?:lumpSum|monthlyDeposit|monthsDeposited)"[^>]*value="0"/);
   assert.doesNotMatch(check, />למחשבון המקצועי/);
   assert.match(landing, /property="og:image" content="https:\/\/romanoroei\.github\.io\/KerenHeshtalmut\/og-share\.jpg/);
   assert.match(landing, /property="og:image:secure_url"/);

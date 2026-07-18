@@ -414,6 +414,7 @@ form.addEventListener('change', (event) => {
     requestAnimationFrame(() => {
       const target = ['lump', 'both'].includes(event.target.value) ? $('#lumpSum')
         : ['monthly'].includes(event.target.value) ? $('#monthlyDeposit') : $('#existingBalance');
+      if (target && normalizeMoney(target.value) === 0) target.value = '';
       target?.focus({ preventScroll: true });
       target?.closest('.conditional-fields')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
     });

@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="./styles.css?v=20260718-4">
+  <link rel="stylesheet" href="./styles.css?v=20260718-5">
 </head>
 <body class="check-page">
   <main class="main-content" id="check">
@@ -67,8 +67,8 @@
                 <label class="choice-card"><input type="radio" name="depositMethod" value="monthly"><span class="choice-icon"><i class="fas fa-calendar-check"></i></span><span class="choice-copy"><strong>יש לי הוראת קבע חודשית</strong></span><span class="choice-check"><i class="fas fa-check"></i></span></label>
                 <label class="choice-card"><input type="radio" name="depositMethod" value="both"><span class="choice-icon"><i class="fas fa-layer-group"></i></span><span class="choice-copy"><strong>שילוב של הוראת קבע וסכום חד פעמי</strong></span><span class="choice-check"><i class="fas fa-check"></i></span></label>
               </div>
-              <div class="conditional-fields" id="lump-fields" hidden><div class="field-group"><label for="lumpSum">כמה כבר הפקדת השנה?</label><div class="money-field"><input id="lumpSum" name="lumpSum" inputmode="numeric" value="0"><span>₪</span></div></div></div>
-              <div class="conditional-fields fields-row" id="monthly-fields" hidden><div class="field-group"><label for="monthlyDeposit">כמה מופקד בכל חודש?</label><div class="money-field"><input id="monthlyDeposit" name="monthlyDeposit" inputmode="numeric" value="0"><span>₪</span></div></div><div class="field-group"><label for="monthsDeposited">כמה חודשים הופקדו מתחילת השנה?</label><input id="monthsDeposited" name="monthsDeposited" type="number" min="1" max="12" step="1" value="0" aria-describedby="months-deposited-error"><p class="field-error" id="months-deposited-error"></p></div></div>
+              <div class="conditional-fields" id="lump-fields" hidden><div class="field-group"><label for="lumpSum">כמה כבר הפקדת השנה?</label><div class="money-field"><input id="lumpSum" name="lumpSum" inputmode="numeric" autocomplete="off" placeholder="לדוגמה: 2,000"><span>₪</span></div></div></div>
+              <div class="conditional-fields fields-row" id="monthly-fields" hidden><div class="field-group"><label for="monthlyDeposit">כמה מופקד בכל חודש?</label><div class="money-field"><input id="monthlyDeposit" name="monthlyDeposit" inputmode="numeric" autocomplete="off" placeholder="לדוגמה: 500"><span>₪</span></div></div><div class="field-group"><label for="monthsDeposited">כמה חודשים הופקדו מתחילת השנה?</label><input id="monthsDeposited" name="monthsDeposited" type="number" min="1" max="12" step="1" inputmode="numeric" placeholder="1–12" aria-describedby="months-deposited-error"><p class="field-error" id="months-deposited-error"></p></div></div>
               <div class="conditional-fields existing-balance-field"><div class="field-group"><label for="existingBalance">מה הצבירה הנוכחית בקרן? (כולל הפקדות השנה)</label><div class="money-field"><input id="existingBalance" name="existingBalance" inputmode="numeric" placeholder="0"><span>₪</span></div><small>אם השדה יישאר ריק, נשתמש בסכום שהפקדת השנה לצורך תרחישי הצמיחה.</small></div></div>
               <div class="deposit-preview" id="deposit-preview" hidden><i class="fas fa-calculator"></i><span></span></div>
             </section>
@@ -129,6 +129,6 @@
     <div class="cookie-notice__actions"><button class="cookie-notice__btn cookie-notice__btn--accept" id="acceptCookies" type="button">מאשר/ת</button><button class="cookie-notice__btn cookie-notice__btn--close" id="closeCookies" type="button">סגירה</button></div>
   </div>
   <script defer src="./ui/compliance.js"></script>
-  <script defer src="./ui/app.bundle.js?v=20260718-17"></script>
+  <script defer src="./ui/app.bundle.js?v=20260718-18"></script>
 </body>
 </html>

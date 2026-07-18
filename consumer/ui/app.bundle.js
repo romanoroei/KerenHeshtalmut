@@ -729,6 +729,7 @@ ${CONSUMER_URL}`;
       requestAnimationFrame(() => {
         var _a;
         const target = ["lump", "both"].includes(event.target.value) ? $("#lumpSum") : ["monthly"].includes(event.target.value) ? $("#monthlyDeposit") : $("#existingBalance");
+        if (target && normalizeMoney(target.value) === 0) target.value = "";
         target == null ? void 0 : target.focus({ preventScroll: true });
         (_a = target == null ? void 0 : target.closest(".conditional-fields")) == null ? void 0 : _a.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
       });
