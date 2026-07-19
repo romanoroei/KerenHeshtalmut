@@ -966,11 +966,11 @@ input[type=number]{-moz-appearance:textfield}
 <div class="cookie-notice" id="cookieNotice" role="dialog" aria-live="polite" aria-label="הודעה על שימוש בעוגיות">
   <div class="cookie-notice__text">
     <strong>הודעה על עוגיות</strong><br>
-    האתר עשוי להשתמש בעוגיות ובכלים אנליטיים בסיסיים לצורך תפעול, אבטחה, שיפור חוויית המשתמש וניתוח שימוש כללי. המשך שימוש באתר מהווה הסכמה לשימוש כאמור. ניתן לקרוא עוד ב<a href="privacy.html">מדיניות הפרטיות</a>.
+    באישורך נשתמש בעוגיות מדידה כדי להבין כיצד משתמשים במחשבון ולשפר אותו. לא נשלחים סכומים שהזנת. מידע נוסף ב<a href="privacy.html">מדיניות הפרטיות</a>.
   </div>
   <div class="cookie-notice__actions">
     <button class="cookie-notice__btn cookie-notice__btn--accept" id="acceptCookies" type="button">מאשר/ת</button>
-    <button class="cookie-notice__btn cookie-notice__btn--close" id="closeCookies" type="button">סגירה</button>
+    <button class="cookie-notice__btn cookie-notice__btn--close" id="closeCookies" type="button">רק חיוניות</button>
   </div>
 </div>
 
@@ -2051,21 +2051,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     window.addEventListener('resize',toggleFloatingWhatsApp);
     toggleFloatingWhatsApp();
   }
-  const cookieNotice=$('cookieNotice');
-  const hideCookieNotice=()=>{
-    if(cookieNotice) cookieNotice.classList.remove('is-visible');
-    try{localStorage.setItem('cookieNoticeAccepted','1');}catch(e){}
-  };
-  if(cookieNotice){
-    try{
-      if(localStorage.getItem('cookieNoticeAccepted')!=='1') cookieNotice.classList.add('is-visible');
-    }catch(e){
-      cookieNotice.classList.add('is-visible');
-    }
-    $('acceptCookies')?.addEventListener('click',hideCookieNotice);
-    $('closeCookies')?.addEventListener('click',hideCookieNotice);
-  }
-
   updateTaxCeilingBar();
   updateLegalDataYear();
   openLegalSectionFromHash();
@@ -2082,5 +2067,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   window.addEventListener('hashchange',openLegalSectionFromHash);
 });
 </script>
+<script type="module" src="professional-analytics.js"></script>
 </body>
 </html>

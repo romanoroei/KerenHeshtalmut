@@ -6,7 +6,7 @@ test('הכפתורים נטענים מ-bundle רגיל ללא script inline', as
   const landing = await readFile(new URL('../index.html', import.meta.url), 'utf8');
   const check = await readFile(new URL('../check.html', import.meta.url), 'utf8');
   assert.match(landing, /href="\.\/check\.html"/);
-  assert.match(landing, /href="\.\.\/index\.html" data-professional-link>המחשבון המקצועי<\/a>/);
+  assert.match(landing, /href="\.\.\/index\.html\?from=consumer" data-professional-link>המחשבון המקצועי<\/a>/);
   assert.match(check, /script defer src="\.\/ui\/app\.bundle\.js\?v=\d+-\d+"/);
   assert.doesNotMatch(check, /script type="module" src="\.\/ui\/app\.js"/);
   assert.doesNotMatch(check, /<script>(?!\s*<\/script>)/);
