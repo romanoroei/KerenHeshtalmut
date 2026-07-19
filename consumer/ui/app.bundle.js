@@ -2,61 +2,61 @@
   // consumer/data/tax-data.js
   var TAX_DATA_2026 = Object.freeze({
     taxYear: 2026,
-    verifiedAt: "2026-07-15",
+    verifiedAt: "2026-07-19",
     contributionCeiling: {
       value: 20566,
       taxYear: 2026,
-      verifiedAt: "2026-07-15",
-      source: "\u05E1\u05E4\u05E8 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9\u05D9\u05DD 2026, \u05E8\u05E9\u05D5\u05EA \u05D4\u05DE\u05E1\u05D9\u05DD (\u05DB\u05E4\u05D9 \u05E9\u05EA\u05D5\u05E2\u05D3 \u05D1\u05D0\u05EA\u05E8 \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2\u05D9 \u05D4\u05E7\u05D9\u05D9\u05DD)",
+      verifiedAt: "2026-07-19",
+      source: "Income Tax Ordinance updated for 2026, section 9(16B)",
       status: "official"
     },
     qualifyingIncomeCeiling: {
       value: 293397,
       taxYear: 2026,
-      verifiedAt: "2026-07-15",
-      source: "\u05E1\u05E4\u05E8 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9\u05D9\u05DD 2026, \u05E8\u05E9\u05D5\u05EA \u05D4\u05DE\u05E1\u05D9\u05DD (\u05DB\u05E4\u05D9 \u05E9\u05EA\u05D5\u05E2\u05D3 \u05D1\u05D0\u05EA\u05E8 \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2\u05D9 \u05D4\u05E7\u05D9\u05D9\u05DD)",
+      verifiedAt: "2026-07-19",
+      source: "Israel Tax Authority deductions table and Know Your Rights guide",
       status: "official"
     },
     maxDeductibleContribution: {
       value: 13203,
       taxYear: 2026,
-      verifiedAt: "2026-07-15",
-      source: "\u05E1\u05E4\u05E8 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9\u05D9\u05DD 2026, \u05E8\u05E9\u05D5\u05EA \u05D4\u05DE\u05E1\u05D9\u05DD (\u05DB\u05E4\u05D9 \u05E9\u05EA\u05D5\u05E2\u05D3 \u05D1\u05D0\u05EA\u05E8 \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2\u05D9 \u05D4\u05E7\u05D9\u05D9\u05DD)",
+      verifiedAt: "2026-07-19",
+      source: "4.5% of the official qualifying-income ceiling",
       status: "official"
     },
     deductibleRate: {
       value: 0.045,
       taxYear: 2026,
-      verifiedAt: "2026-07-15",
-      source: "\u05E1\u05E2\u05D9\u05E3 17(5\u05D0) \u05DC\u05E4\u05E7\u05D5\u05D3\u05EA \u05DE\u05E1 \u05D4\u05DB\u05E0\u05E1\u05D4; \u05E0\u05D3\u05E8\u05E9 \u05D0\u05D9\u05DE\u05D5\u05EA \u05DE\u05E7\u05E6\u05D5\u05E2\u05D9 \u05DC\u05E0\u05E1\u05D9\u05D1\u05D5\u05EA \u05D4\u05DE\u05E9\u05EA\u05DE\u05E9",
-      status: "estimate"
+      verifiedAt: "2026-07-19",
+      source: "Income Tax Ordinance section 17(5A) and Israel Tax Authority guide",
+      status: "official"
     },
     taxBrackets: {
       value: [
         [84120, 0.1],
         [120720, 0.14],
-        [193800, 0.2],
-        [269280, 0.31],
+        [228000, 0.2],
+        [301200, 0.31],
         [560280, 0.35],
         [721560, 0.47],
         [Infinity, 0.5]
       ],
       taxYear: 2026,
-      verifiedAt: "2026-07-15",
-      source: "\u05DE\u05D3\u05E8\u05D2\u05D5\u05EA \u05D4\u05DE\u05E1 2026 \u05E9\u05D1\u05D0\u05EA\u05E8 \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2\u05D9 \u05D4\u05E7\u05D9\u05D9\u05DD; \u05D9\u05E9 \u05DC\u05D0\u05DE\u05EA \u05DE\u05D5\u05DC \u05E4\u05E8\u05E1\u05D5\u05DD \u05E8\u05E9\u05D5\u05EA \u05D4\u05DE\u05E1\u05D9\u05DD",
-      status: "estimate"
+      verifiedAt: "2026-07-19",
+      source: "Israel Tax Authority 2026 deductions table; section 121 amendment of 31.3.2026",
+      status: "official"
     },
     nationalInsurance: {
       value: { reducedMonthly: 7703, maxMonthly: 51910, reducedRate: 0.077, regularRate: 0.18 },
       taxYear: 2026,
-      verifiedAt: "2026-07-15",
-      source: "\u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9, \u05E9\u05D9\u05E2\u05D5\u05E8\u05D9 \u05D3\u05DE\u05D9 \u05D4\u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05E2\u05D5\u05D1\u05D3 \u05E2\u05E6\u05DE\u05D0\u05D9 2026 (\u05DB\u05E4\u05D9 \u05E9\u05EA\u05D5\u05E2\u05D3 \u05D1\u05D0\u05EA\u05E8 \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2\u05D9 \u05D4\u05E7\u05D9\u05D9\u05DD)",
-      status: "estimate"
+      verifiedAt: "2026-07-19",
+      source: "National Insurance Institute rates for self-employed persons from 1.1.2026",
+      status: "official"
     },
     capitalGainsExemption: {
       value: { annualReturn: 0.08, years: 6, capitalGainsTaxRate: 0.25 },
       taxYear: 2026,
-      verifiedAt: "2026-07-15",
+      verifiedAt: "2026-07-19",
       source: "\u05D4\u05E0\u05D7\u05EA \u05D4\u05D4\u05DE\u05D7\u05E9\u05D4 \u05D1\u05DE\u05D7\u05E9\u05D1\u05D5\u05DF \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2\u05D9: 8% \u05DC\u05E9\u05E0\u05D4, 6 \u05E9\u05E0\u05D9\u05DD \u05D5\u05DE\u05E1 \u05E8\u05D5\u05D5\u05D7\u05D9 \u05D4\u05D5\u05DF \u05E9\u05DC 25%",
       status: "estimate"
     }

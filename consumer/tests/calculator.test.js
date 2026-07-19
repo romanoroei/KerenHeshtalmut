@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildGrowthSchedule, calculateConsumerResult, capitalGainsExemptionValue, daysRemainingInTaxYear, futureValueOfMonthlyDeposits, monthsRemainingInTaxYear, nationalInsuranceDue, normalizeMoney, projectedAnnualDeposits, totalDeposited } from '../engine/calculator.js';
+import { buildGrowthSchedule, calculateConsumerResult, capitalGainsExemptionValue, daysRemainingInTaxYear, futureValueOfMonthlyDeposits, marginalTaxRate, monthsRemainingInTaxYear, nationalInsuranceDue, normalizeMoney, projectedAnnualDeposits, totalDeposited } from '../engine/calculator.js';
 import { TAX_DATA_2026 } from '../data/tax-data.js';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '../messages/whatsapp.js';
 
@@ -19,6 +19,15 @@ test('הכנסה נמוכה מגבילה את הניכוי האפשרי', () => 
 test('הכנסה מעל התקרה מוגבלת לבסיס המזכה', () => {
   const result = calculateConsumerResult({ income: 500000, deposited: 0 });
   assert.ok(result.estimatedTaxBenefit <= 13203 * 0.35);
+});
+
+test('מדרגות מס 2026 משקפות את תיקון סעיף 121 ממרץ 2026', () => {
+  assert.equal(marginalTaxRate(120720), 0.14);
+  assert.equal(marginalTaxRate(120721), 0.20);
+  assert.equal(marginalTaxRate(228000), 0.20);
+  assert.equal(marginalTaxRate(228001), 0.31);
+  assert.equal(marginalTaxRate(301200), 0.31);
+  assert.equal(marginalTaxRate(301201), 0.35);
 });
 test('תשואה 0%', () => assert.equal(futureValueOfMonthlyDeposits(1000, 0, 6), 72000));
 test('תרחישי 4%, 7% ו-9%', () => {
