@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="./styles.css?v=20260719-1">
+  <link rel="stylesheet" href="./styles.css?v=20260719-2">
 </head>
 <body class="check-page">
   <main class="main-content" id="check">
@@ -21,7 +21,7 @@
       <div class="check-heading">
         <span class="section-kicker"><i class="fas fa-clipboard-check"></i> בדיקת קרן ההשתלמות שלך</span>
         <h2>כמה שאלות קצרות, ותהיה לנו תמונה ברורה יותר</h2>
-        <p>הנתונים נשמרים במהלך המעבר בין השלבים בדפדפן בלבד.</p>
+        <p>הנתונים נשמרים במהלך המעבר בין השלבים בדפדפן בלבד. <a class="heading-disclosure-link" href="#disclaimer">גילוי נאות</a></p>
       </div>
 
       <div class="wizard-layout">
@@ -116,16 +116,14 @@
 
   <div class="consumer-compliance-shell">
     <div class="container">
-      <section class="mini-disclaimer" aria-label="פרטי התקשרות וגילוי נאות">
+      <section class="mini-disclaimer" aria-label="פרטי התקשרות וקישורים חשובים">
         <strong>רועי רומנו, מתכנן פיננסי וסוכן פנסיוני מורשה | רישיון 00117164</strong>
         <div>roeir@ar-fo.co.il | 052-8089808</div>
-        <div class="mini-disclaimer__links"><a href="#disclaimer">גילוי נאות</a><a href="../privacy.html?from=consumer">מדיניות פרטיות</a><a href="../accessibility.html?from=consumer">הצהרת נגישות</a><button type="button" data-cookie-settings>הגדרות עוגיות</button><a href="../index.html" data-professional-link>המחשבון המקצועי</a></div>
-      </section>
-      <section class="legal-sections" aria-label="מסמכים משפטיים">
-        <details class="legal-card" id="disclaimer"><summary><i class="fas fa-scale-balanced"></i> גילוי נאות</summary><div class="legal-card__body"><p>רועי רומנו הינו סוכן פנסיוני, אשר משווק מוצרים פנסיוניים ומוצרי ביטוח נוספים אשר בגינם ייתכן ויהיה זכאי לעמלות ומשווק את המוצרים הפנסיונים הבאים: קרנות השתלמות, קופות גמל, קופות פיצויים מרכזיות, ביטוחי מנהלים, קרנות פנסיה ומוצרים שנמכרים אגב המוצרים הנ״ל, לרועי הסכמים קיימים עם הגופים המובילים במשק.</p></div></details>
+        <div class="mini-disclaimer__links"><a href="../privacy.html?from=consumer">מדיניות פרטיות</a><a href="../accessibility.html?from=consumer">הצהרת נגישות</a><button type="button" data-cookie-settings>הגדרות עוגיות</button><a href="../index.html" data-professional-link>המחשבון המקצועי</a></div>
       </section>
     </div>
   </div>
+  <section class="disclosure-modal" id="disclaimer" role="dialog" aria-modal="true" aria-labelledby="disclaimer-title"><a class="disclosure-modal__backdrop" href="#" aria-label="סגירת גילוי נאות"></a><div class="disclosure-modal__card"><a class="disclosure-modal__close" href="#" aria-label="סגירה"><i class="fas fa-xmark"></i></a><h2 id="disclaimer-title"><i class="fas fa-scale-balanced"></i> גילוי נאות</h2><p>רועי רומנו הינו סוכן פנסיוני, אשר משווק מוצרים פנסיוניים ומוצרי ביטוח נוספים אשר בגינם ייתכן ויהיה זכאי לעמלות. המוצרים המשווקים כוללים קרנות השתלמות, קופות גמל, קופות פיצויים מרכזיות, ביטוחי מנהלים, קרנות פנסיה ומוצרים הנמכרים אגב המוצרים הנ״ל. לרועי הסכמים קיימים עם הגופים המובילים במשק.</p></div></section>
   <div class="cookie-notice" id="cookieNotice" role="dialog" aria-live="polite" aria-label="הודעה על שימוש בעוגיות">
     <div class="cookie-notice__text"><strong>אפשר לשפר את החוויה?</strong><br>עוגיות עוזרות לאתר לעבוד ולנו להבין מה כדאי לשפר — בלי לשמור סכומים או פרטים אישיים. <a href="../privacy.html?from=consumer">למידע נוסף</a>.</div>
     <div class="cookie-notice__actions"><button class="cookie-notice__btn cookie-notice__btn--accept" id="acceptCookies" type="button">מאשר/ת</button><button class="cookie-notice__btn cookie-notice__btn--close" id="essentialCookies" type="button">רק עוגיות הכרחיות</button></div>

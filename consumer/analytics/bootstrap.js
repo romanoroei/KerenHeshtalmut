@@ -28,3 +28,6 @@ document.querySelectorAll('[data-professional-link]').forEach((link) => link.add
 document.querySelectorAll('.legal-card').forEach((details) => details.addEventListener('toggle', () => {
   if (details.open) trackOnce(`details_${details.id || 'disclaimer'}`, { details_type: details.id || 'disclaimer' });
 }));
+document.querySelectorAll('a[href="#disclaimer"]').forEach((link) => link.addEventListener('click', () => {
+  trackOnce('details_disclaimer', { details_type: 'disclaimer' });
+}));
