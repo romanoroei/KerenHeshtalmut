@@ -351,10 +351,16 @@ body{font-family:var(--font);background:var(--slate-50);color:var(--slate-800);d
 .advisor-card p{margin:0;color:var(--slate-600);font-size:13px;font-weight:700;line-height:1.7}
 .advisor-card__meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .advisor-card__meta span{background:#f0fdfa;color:#0f766e;border:1px solid #99f6e4;border-radius:999px;padding:4px 10px;font-size:11.5px;font-weight:900}
-.mini-disclaimer{margin:0 0 18px;text-align:center;color:var(--slate-600);font-size:12px;line-height:1.7}
+.mini-disclaimer{position:relative;margin:0 0 18px;text-align:center;color:var(--slate-600);font-size:12px;line-height:1.7}
 .mini-disclaimer strong{display:block;color:var(--slate-800);font-size:13px;margin-bottom:2px}
 .mini-disclaimer__links{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:6px}
-.mini-disclaimer__links a{color:var(--teal);font-weight:700;text-decoration:none}
+.mini-disclaimer__links a,.mini-disclaimer__links button{border:0;background:none;padding:0;color:var(--teal);font:inherit;font-weight:700;text-decoration:none;cursor:pointer}
+.disclosure-popover{position:absolute;z-index:70;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);width:min(560px,calc(100vw - 32px));max-height:min(280px,55vh);overflow:auto;background:#fff;border:1.5px solid #99f6e4;border-radius:16px;box-shadow:0 16px 42px rgba(15,23,42,.18);padding:18px 20px;text-align:right;color:var(--slate-700);font-size:12.5px;line-height:1.75}
+.disclosure-popover[hidden]{display:none}
+.disclosure-popover__header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;color:var(--slate-900)}
+.disclosure-popover__header strong{display:inline;font-size:14px;margin:0}
+.disclosure-popover__close{width:30px;height:30px;border:0;border-radius:50%;background:var(--slate-100);color:var(--slate-700);cursor:pointer;font-size:18px;line-height:1}
+.disclosure-popover .legal-card__body{padding:0;color:inherit;font-size:inherit;line-height:inherit}
 .btn-cta i{font-size:18px}
 .floating-whatsapp{position:fixed;right:16px;bottom:16px;z-index:60;display:none;align-items:center;gap:8px;background:#25d366;color:#fff;text-decoration:none;border-radius:999px;padding:11px 16px;font-weight:900;font-size:13px;box-shadow:0 10px 30px rgba(22,163,74,.35);transform:translateY(22px);opacity:0;pointer-events:none;transition:opacity .22s,transform .22s}
 .floating-whatsapp.is-visible{opacity:1;transform:translateY(0);pointer-events:auto}
@@ -369,7 +375,7 @@ body{font-family:var(--font);background:var(--slate-50);color:var(--slate-800);d
 .cookie-notice__btn--accept{background:#059669;color:#fff}
 .cookie-notice__btn--close{background:var(--slate-100);color:var(--slate-700)}
 
-.legal-sections{display:grid;gap:12px;margin-bottom:18px}
+.legal-sections{display:none}
 .legal-card{background:var(--white);border:1.5px solid var(--slate-200);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
 .legal-card summary{cursor:pointer;list-style:none;padding:14px 16px;font-weight:900;color:var(--slate-900);display:flex;align-items:center;gap:8px}
 .legal-card summary::-webkit-details-marker{display:none}
@@ -930,10 +936,17 @@ input[type=number]{-moz-appearance:textfield}
     <strong>רועי רומנו, מתכנן פיננסי וסוכן פנסיוני מורשה | רישיון 00117164</strong>
     <div>roeir@ar-fo.co.il | 052-8089808</div>
     <div class="mini-disclaimer__links">
-      <a href="#disclaimer">גילוי נאות</a>
+      <button type="button" id="disclosureToggle" aria-expanded="false" aria-controls="professionalDisclosure">גילוי נאות</button>
       <a href="privacy.html">מדיניות פרטיות</a>
       <a href="accessibility.html">הצהרת נגישות</a>
     </div>
+    <aside class="disclosure-popover" id="professionalDisclosure" hidden aria-label="גילוי נאות">
+      <div class="disclosure-popover__header">
+        <strong><i class="fas fa-scale-balanced" aria-hidden="true"></i> גילוי נאות</strong>
+        <button class="disclosure-popover__close" id="disclosureClose" type="button" aria-label="סגירת גילוי נאות">×</button>
+      </div>
+      <div id="professionalDisclosureContent"></div>
+    </aside>
   </section>
 
   <a href="https://wa.me/972528089808?text=%D7%A9%D7%9C%D7%95%D7%9D%20%D7%A8%D7%95%D7%A2%D7%99%21%20%D7%94%D7%92%D7%A2%D7%AA%D7%99%20%D7%9E%D7%94%D7%9E%D7%97%D7%A9%D7%91%D7%95%D7%9F%20%D7%9C%D7%A7%D7%A8%D7%9F%20%D7%94%D7%A9%D7%AA%D7%9C%D7%9E%D7%95%D7%AA%20%D7%9C%D7%A2%D7%A6%D7%9E%D7%90%D7%99%D7%9D.%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%A9%D7%95%D7%97%D7%97."
@@ -2068,5 +2081,6 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 </script>
 <script type="module" src="professional-analytics.js"></script>
+<script type="module" src="professional-disclosure.js"></script>
 </body>
 </html>

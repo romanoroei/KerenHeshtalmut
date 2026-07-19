@@ -43,6 +43,7 @@ document.getElementById('btnCalcTax')?.addEventListener('click', () => trackEven
 document.getElementById('btnToggleTable')?.addEventListener('click', () => trackEvent('professional_results_table_toggled'));
 document.getElementById('btnReset')?.addEventListener('click', () => trackEvent('professional_calculator_reset'));
 document.getElementById('shareCalculator')?.addEventListener('click', () => trackEvent('professional_calculator_shared'));
+document.getElementById('disclosureToggle')?.addEventListener('click', () => trackEvent('professional_disclosure_opened'));
 document.getElementById('taxShareWhatsApp')?.addEventListener('click', () => trackEvent('professional_whatsapp_lead_clicked', { placement: 'tax_result' }));
 document.getElementById('floatingWhatsApp')?.addEventListener('click', () => trackEvent('professional_whatsapp_lead_clicked', { placement: 'floating' }));
 document.querySelector('.advisor-card a[href*="wa.me"]')?.addEventListener('click', () => trackEvent('professional_whatsapp_lead_clicked', { placement: 'advisor_card' }));
