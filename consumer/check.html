@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="בדיקה אישית לקרן השתלמות לעצמאים לשנת 2026">
+  <meta name="robots" content="index,follow"><link rel="canonical" href="https://romanoroei.github.io/KerenHeshtalmut/consumer/check.html">
+  <meta property="og:type" content="website"><meta property="og:locale" content="he_IL"><meta property="og:url" content="https://romanoroei.github.io/KerenHeshtalmut/consumer/check.html"><meta property="og:title" content="שאלון קרן השתלמות לעצמאים 2026"><meta property="og:description" content="ארבע שאלות קצרות לקבלת תמונת מצב והערכת הטבות מס אפשריות."><meta property="og:image" content="https://romanoroei.github.io/KerenHeshtalmut/og-share.jpg?v=20260718-2"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="מחשבון קרן השתלמות לעצמאים של רועי רומנו"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="שאלון קרן השתלמות לעצמאים 2026"><meta name="twitter:description" content="ארבע שאלות קצרות לקבלת תמונת מצב והערכת הטבות מס אפשריות."><meta name="twitter:image" content="https://romanoroei.github.io/KerenHeshtalmut/og-share.jpg?v=20260718-2">
+  <title>שאלון קרן השתלמות לעצמאים 2026 | רועי רומנו</title>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"שאלון קרן השתלמות לעצמאים 2026","applicationCategory":"FinanceApplication","operatingSystem":"Web","inLanguage":"he","url":"https://romanoroei.github.io/KerenHeshtalmut/consumer/check.html"}</script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2216%22 fill=%22%232563eb%22/><path d=%22M16 42l11-12 8 7 13-17%22 fill=%22none%22 stroke=%22white%22 stroke-width=%226%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="./styles.css?v=20260719-2">
+</head>
+<body class="check-page">
+  <main class="main-content" id="check">
+    <div class="container">
+      <div class="check-heading">
+        <span class="section-kicker"><i class="fas fa-clipboard-check"></i> בדיקת קרן ההשתלמות שלך</span>
+        <h2>כמה שאלות קצרות, ותהיה לנו תמונה ברורה יותר</h2>
+        <p>הנתונים נשמרים במהלך המעבר בין השלבים בדפדפן בלבד. <a class="heading-disclosure-link" href="#disclaimer">גילוי נאות</a></p>
+      </div>
+
+      <div class="wizard-layout">
+        <form id="consumer-form" class="wizard" novalidate>
+          <div class="wizard-progress">
+            <div class="progress-copy"><strong id="step-copy">שלב 1 מתוך 4</strong><span id="step-title">הכנסה משוערת</span></div>
+            <div class="progress-track" role="progressbar" aria-valuemin="1" aria-valuemax="4" aria-valuenow="1"><span id="progress-fill"></span></div>
+          </div>
+
+          <div class="question-stage">
+            <section class="step" data-title="הכנסה משוערת">
+              <div class="question-icon"><i class="fas fa-sack-dollar"></i></div>
+              <p class="question-number">השאלה הראשונה</p>
+              <h3>מה ההכנסה השנתית החייבת המשוערת שלך?</h3>
+              <p class="question-help">הכוונה להכנסה לאחר הוצאות מוכרות ולפני ההפקדה לקרן ההשתלמות. לא בטוח? אפשר להזין הערכה.</p>
+              <div class="field-group">
+                <label for="income">הכנסה שנתית משוערת</label>
+                <div class="money-field"><input id="income" name="income" inputmode="numeric" autocomplete="off" required><span>₪</span></div>
+                <p class="field-error" id="income-error"></p>
+              </div>
+              <div class="quick-amounts" aria-label="בחירת סכום מהירה">
+                <button type="button" data-amount="100000">100,000 ₪</button><button type="button" data-amount="150000">150,000 ₪</button><button type="button" data-amount="200000">200,000 ₪</button><button type="button" data-amount="250000">250,000 ₪</button><button type="button" data-amount="300000">300,000 ₪</button>
+              </div>
+              <div class="info-hint"><i class="fas fa-circle-info"></i><span>לפי ההכנסה שהזנת, ייתכן שקיימת עבורך אפשרות להוצאה מוכרת בגין ההפקדה.</span></div>
+            </section>
+
+            <section class="step" data-title="האם קיימת קרן?" hidden>
+              <div class="question-icon question-icon--purple"><i class="fas fa-landmark"></i></div>
+              <p class="question-number">השאלה השנייה</p>
+              <h3>האם יש לך קרן השתלמות?</h3>
+              <p class="question-help">הבחירה תקבע אילו שאלות רלוונטיות עבורך בהמשך.</p>
+              <div class="choice-grid">
+                <label class="choice-card"><input type="radio" name="fundStatus" value="none" required><span class="choice-icon"><i class="fas fa-plus"></i></span><span class="choice-copy"><strong>עדיין אין לי קרן</strong><small>נדלג ישירות למטרות שלך</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label>
+                <label class="choice-card"><input type="radio" name="fundStatus" value="existing"><span class="choice-icon"><i class="fas fa-landmark"></i></span><span class="choice-copy"><strong>כן, יש לי קרן השתלמות</strong></span><span class="choice-check"><i class="fas fa-check"></i></span></label>
+              </div>
+            </section>
+
+            <section class="step" data-title="הפקדות השנה" hidden>
+              <div class="question-icon question-icon--green"><i class="fas fa-wallet"></i></div>
+              <p class="question-number">הפקדות בשנת 2026</p>
+              <h3>כמה הפקדת לקרן שלך השנה?</h3>
+              <p class="question-help">בחר את אופן ההפקדה. אם נדרש סכום, מלא אותו ולחץ על “ממשיכים”.</p>
+              <div class="choice-grid">
+                <label class="choice-card"><input type="radio" name="depositMethod" value="none" required><span class="choice-icon"><i class="fas fa-wallet"></i></span><span class="choice-copy"><strong>עדיין לא הפקדתי</strong></span><span class="choice-check"><i class="fas fa-check"></i></span></label>
+                <label class="choice-card"><input type="radio" name="depositMethod" value="lump"><span class="choice-icon"><i class="fas fa-coins"></i></span><span class="choice-copy"><strong>הפקדתי סכום אחד או יותר</strong></span><span class="choice-check"><i class="fas fa-check"></i></span></label>
+                <label class="choice-card"><input type="radio" name="depositMethod" value="monthly"><span class="choice-icon"><i class="fas fa-calendar-check"></i></span><span class="choice-copy"><strong>יש לי הוראת קבע חודשית</strong></span><span class="choice-check"><i class="fas fa-check"></i></span></label>
+                <label class="choice-card"><input type="radio" name="depositMethod" value="both"><span class="choice-icon"><i class="fas fa-layer-group"></i></span><span class="choice-copy"><strong>שילוב של הוראת קבע וסכום חד פעמי</strong></span><span class="choice-check"><i class="fas fa-check"></i></span></label>
+              </div>
+              <div class="conditional-fields" id="lump-fields" hidden><div class="field-group"><label for="lumpSum">כמה כבר הפקדת השנה?</label><div class="money-field"><input id="lumpSum" name="lumpSum" inputmode="numeric" autocomplete="off" placeholder="לדוגמה: 2,000"><span>₪</span></div></div></div>
+              <div class="conditional-fields fields-row" id="monthly-fields" hidden><div class="field-group"><label for="monthlyDeposit">כמה מופקד בכל חודש?</label><div class="money-field"><input id="monthlyDeposit" name="monthlyDeposit" inputmode="numeric" autocomplete="off" placeholder="לדוגמה: 500"><span>₪</span></div><p class="field-error" aria-hidden="true"></p></div><div class="field-group"><label for="monthsDeposited">כמה חודשים הופקדו מתחילת השנה?</label><input id="monthsDeposited" name="monthsDeposited" type="number" min="1" max="12" step="1" inputmode="numeric" placeholder="1–12" aria-describedby="months-deposited-error"><p class="field-error" id="months-deposited-error"></p></div></div>
+              <details class="optional-balance"><summary>רוצה לראות גם תחזית על הצבירה הקיימת?</summary><div class="conditional-fields existing-balance-field"><div class="field-group"><label for="existingBalance">מה הצבירה הנוכחית בקרן? (כולל הפקדות השנה) — אופציונלי</label><div class="money-field"><input id="existingBalance" name="existingBalance" inputmode="numeric" autocomplete="off" placeholder="אפשר להשאיר ריק"><span>₪</span></div><small>לא חובה. הנתון משמש רק לתרחישי הצמיחה. אם יישאר ריק, נשתמש בסכום שהפקדת השנה.</small></div></div></details>
+              <div class="deposit-preview" id="deposit-preview" hidden><i class="fas fa-calculator"></i><span></span></div>
+            </section>
+
+            <section class="step" data-title="המטרה שלך" hidden>
+              <div class="question-icon question-icon--teal"><i class="fas fa-bullseye"></i></div>
+              <p class="question-number">השאלה האחרונה</p><h3>מה הכי חשוב לך כרגע?</h3><p class="question-help">אפשר לבחור יותר מתשובה אחת, ולאחר מכן ללחוץ על הכפתור להצגת התוצאה.</p>
+              <div class="choice-grid"><label class="choice-card"><input type="checkbox" name="goal" value="tax"><span class="choice-icon"><i class="fas fa-receipt"></i></span><span class="choice-copy"><strong>לנצל את הטבת המס</strong><small>להתמקד בשנת 2026</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label><label class="choice-card"><input type="checkbox" name="goal" value="saving"><span class="choice-icon"><i class="fas fa-chart-line"></i></span><span class="choice-copy"><strong>להגדיל את החיסכון</strong><small>להסתכל לטווח ארוך</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label><label class="choice-card"><input type="checkbox" name="goal" value="monthly"><span class="choice-icon"><i class="fas fa-calendar-days"></i></span><span class="choice-copy"><strong>לבנות הוראת קבע</strong><small>ליצור הרגל מסודר</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label><label class="choice-card"><input type="checkbox" name="goal" value="check"><span class="choice-icon"><i class="fas fa-magnifying-glass"></i></span><span class="choice-copy"><strong>לבדוק אם אני בדרך הנכונה</strong><small>לקבל תמונת מצב</small></span><span class="choice-check"><i class="fas fa-check"></i></span></label></div>
+            </section>
+          </div>
+
+          <p id="form-error" class="form-error" role="alert"></p>
+          <div class="wizard-actions"><button type="button" class="btn btn-back" data-back hidden><i class="fas fa-arrow-right"></i> חזרה</button><button type="button" class="btn btn-primary" data-next>ממשיכים <i class="fas fa-arrow-left"></i></button><button type="submit" class="btn btn-primary" id="submit-check" hidden>בונים את התמונה שלי <i class="fas fa-wand-magic-sparkles"></i></button></div>
+        </form>
+
+        <aside class="live-summary" aria-label="סיכום הנתונים שהוזנו"><h3><i class="fas fa-list-check"></i> הסיכום שלך</h3><div><span>הכנסה</span><strong id="summary-income">טרם הוזנה</strong></div><div><span>הופקד השנה</span><strong id="summary-deposited">טרם הוזן</strong></div><div><span>צבירה קיימת</span><strong id="summary-balance">טרם הוזנה</strong></div><div><span>מצב הקרן</span><strong id="summary-fund">טרם נבחר</strong></div><p><i class="fas fa-lock"></i> הנתונים נשארים בדפדפן שלך</p></aside>
+      </div>
+
+      <section id="loading" class="loading-card" hidden aria-live="polite"><div class="loading-brand"><img src="../roei-romano.png" alt=""><div><strong>רועי רומנו</strong><span>מחשב את תמונת המצב שלך</span></div></div><div class="loading-icon"><i class="fas fa-calculator"></i></div><div class="loading-track"><span></span></div><ul><li class="is-active">בודק את ההפקדות שבוצעו</li><li>מחשב את היתרה לניצול</li><li>בונה תרחישי צמיחה</li></ul></section>
+
+      <section id="results" class="results" hidden tabindex="-1" aria-live="polite">
+        <div class="result-intro" id="result-intro"><div><span class="section-kicker"><i class="fas fa-chart-pie"></i> תמונת המצב שלך ל־2026</span><h2 id="result-title">ההזדמנות לנצל את ההטבה מסתיימת בסוף השנה</h2><p id="result-message" hidden></p></div><div class="tax-countdown" id="tax-countdown"><i class="fas fa-clock"></i><span>הזמן שנותר עד סוף שנת המס</span><div class="countdown-clock" aria-live="off"><strong id="countdown-seconds"></strong><small>שניות</small><strong id="countdown-minutes"></strong><small>דקות</small><strong id="countdown-hours"></strong><small>שעות</small><strong id="countdown-days"></strong><small>ימים</small></div></div></div>
+        <div class="result-metrics result-metrics--essential"><article class="result-card result-card--blue"><i class="fas fa-wallet"></i><span>זה הסכום שעוד ניתן להפקיד עד סוף 2026</span><strong id="remaining"></strong><div class="deposit-mini" id="deposit-mini"><span>הופקד השנה <b id="deposited-to-date"></b></span><span id="projected-deposit-row">צפוי עד סוף השנה כולל הוראת קבע <b id="projected-annual"></b><small id="future-scheduled"></small></span></div></article><article class="result-card result-card--purple"><i class="fas fa-sparkles"></i><span>שווי הטבות המס הכולל (אומדן)</span><strong id="tax-benefit"></strong><small>בהתאם למיקסום ההפקדה (ראה פירוט בהמשך)</small></article></div>
+        <section class="benefit-breakdown" aria-labelledby="benefit-title">
+          <div class="benefit-heading"><span class="section-kicker">ממה מורכב שווי הטבות המס (אומדן).</span><h3 id="benefit-title">הטבה מיידית ושווי עתידי משוער</h3><p>הסכומים מוצגים בנפרד כדי לא לערבב חיסכון אפשרי כיום עם שווי פטור עתידי.</p></div>
+          <div class="benefit-grid">
+            <article><span class="benefit-icon benefit-icon--blue"><i class="fas fa-receipt"></i></span><div><strong id="income-tax-benefit"></strong><span>חיסכון אפשרי במס הכנסה</span><small>על ההפקדה השנתית המוכרת במיקסום התקרה, לפי המס השולי המשוער.</small></div></article>
+            <article><span class="benefit-icon benefit-icon--teal"><i class="fas fa-heart-pulse"></i></span><div><strong id="insurance-benefit"></strong><span>חיסכון אפשרי בביטוח לאומי ובריאות</span><small>אומדן לפי שיעורי עצמאי 2026 ובהנחה שהניכוי מפחית את ההכנסה המבוטחת.</small></div></article>
+            <article><span class="benefit-icon benefit-icon--gold"><i class="fas fa-seedling"></i></span><div><strong id="capital-gains-benefit"></strong><span>שווי עתידי משוער של הפטור ממס רווחי הון</span><small>על מלוא ההפקדה עד התקרה, בהנחת 8% לשנה במשך 6 שנים ומס של 25% על הרווח.</small></div></article>
+          </div>
+          <p class="benefit-warning"><i class="fas fa-circle-info"></i> האומדן הכולל מחבר רכיבים במועדים שונים: מס הכנסה וביטוח לאומי/בריאות עשויים להשפיע כיום, ואילו הפטור ממס רווחי הון הוא שווי עתידי משוער.</p>
+        </section>
+        <section class="whatsapp-card"><div class="advisor-mini"><img src="../roei-romano.png" alt="רועי רומנו"><span><strong>רועי רומנו</strong><small>מתכנן פיננסי וסוכן פנסיוני</small></span></div><div class="whatsapp-copy"><h3 id="dynamic-cta"></h3><p>בדיקה קצרה יכולה לעזור לוודא שההפקדה, המסלול ודמי הניהול מתאימים למטרות שלך.</p><span class="trust-line"><i class="fas fa-lock"></i> הפנייה מגיעה ישירות לרועי</span><span id="whatsapp-status" class="whatsapp-status" aria-live="polite"></span></div><a id="whatsapp" class="btn btn-whatsapp" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> שליחת התוצאה ב־WhatsApp</a></section>
+        <section class="action-plan-card"><div class="action-plan-heading"><span class="section-kicker">התוכנית הראשונית שלך</span><h3>מה כדאי לשקול עכשיו?</h3><p>הפעולות המרכזיות מוצגות תחילה; אפשר לפתוח חלופות נוספות.</p></div><div class="action-plan-grid"><div class="score-summary"><div class="score-gauge" id="score-gauge"><strong id="score"></strong><span>/100</span></div><h4>ציון ניצול קרן ההשתלמות</h4><p id="score-meaning"></p><ul id="score-components"></ul><small>הציון מודד היערכות והפקדה בלבד — לא את איכות הקרן.</small></div><div><ol id="recommendation-steps" class="recommendation-steps"></ol><details class="more-recommendations" id="more-recommendations" hidden><summary>להצגת אפשרויות נוספות</summary><ol id="additional-recommendation-steps" class="recommendation-steps"></ol></details></div></div><p class="recommendation-disclaimer"><i class="fas fa-circle-info"></i> המידע הוא הערכה כללית ואינו תחליף לייעוץ מס או לייעוץ פנסיוני אישי.</p></section>
+        <section class="support-grid"><article class="growth-card"><div class="section-header"><div><span class="section-kicker">מבט קדימה</span><h3>תרחישי צמיחה</h3></div><div class="year-segments" aria-label="בחירת תקופה"><button type="button" data-years="6">6</button><button type="button" data-years="10" class="is-active">10</button><button type="button" data-years="15">15</button><button type="button" data-years="20">20</button><span>שנים</span></div></div><div id="scenario-list" class="scenario-grid"></div><section id="growth-detail" class="growth-detail" hidden aria-live="polite"><div class="growth-detail-heading"><div><span class="section-kicker">פירוט התרחיש</span><h4 id="growth-detail-title"></h4></div><div class="growth-legend"><span><i></i> שווי משוער</span></div></div><svg id="growth-chart" class="growth-chart" viewBox="0 0 760 270" role="img" aria-label="גרף צמיחת שווי הקרן לפי שנים"></svg><div class="growth-table-wrap"><table><thead><tr><th>תקופה</th><th>צבירה התחלתית</th><th>הפקדות מצטברות</th><th>רווח משוער</th><th>שווי כולל</th></tr></thead><tbody id="growth-table-body"></tbody></table></div></section><p class="growth-notice">המחשה בלבד, ללא התחייבות לתשואה. הסכומים נומינליים, לפני דמי ניהול ובהנחת תשואה קבועה; תקרות עתידיות עשויות להשתנות.</p></article></section>
+        <details class="calculation-details"><summary><i class="fas fa-calculator"></i> איך חישבנו את התוצאה?<i class="fas fa-chevron-down"></i></summary><div id="calculation-details"></div></details>
+        <section class="secondary-cta"><div><span class="section-kicker">לפני שממשיכים הלאה</span><h3 id="dynamic-cta-secondary"></h3><p>שלח לי את הסיכום שכבר הכנת — ואעזור לך להבין מה הצעד שמתאים למצב שלך.</p></div><a id="whatsapp-secondary" class="btn btn-whatsapp" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> רוצה לבדוק את הצעד הבא</a></section>
+        <div class="result-actions"><div class="share-prompt"><div><strong>מכירים עצמאי שהבדיקה יכולה לעזור לו?</strong><span>שתפו את האתר ללא הנתונים או התוצאה האישית שלכם.</span></div><div class="share-actions"><button id="native-share" class="share-link" type="button"><i class="fas fa-share-nodes"></i> שיתוף</button><a id="share-benefits" class="share-link" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> WhatsApp</a><button id="copy-share-link" class="share-link" type="button"><i class="fas fa-link"></i> העתקת קישור</button></div><span id="share-feedback" class="share-feedback" aria-live="polite"></span></div><button id="restart" type="button" class="restart-link"><i class="fas fa-rotate-right"></i> ניקוי הנתונים והתחלה מחדש</button></div>
+      </section>
+    </div>
+  </main>
+
+  <div class="consumer-compliance-shell">
+    <div class="container">
+      <section class="mini-disclaimer" aria-label="פרטי התקשרות וקישורים חשובים">
+        <strong>רועי רומנו, מתכנן פיננסי וסוכן פנסיוני מורשה | רישיון 00117164</strong>
+        <div>roeir@ar-fo.co.il | 052-8089808</div>
+        <div class="mini-disclaimer__links"><a href="../privacy.html?from=consumer">מדיניות פרטיות</a><a href="../accessibility.html?from=consumer">הצהרת נגישות</a><button type="button" data-cookie-settings>הגדרות עוגיות</button><a href="../index.html?from=consumer" data-professional-link>המחשבון המקצועי</a></div>
+      </section>
+    </div>
+  </div>
+  <section class="disclosure-modal" id="disclaimer" role="dialog" aria-modal="true" aria-labelledby="disclaimer-title"><a class="disclosure-modal__backdrop" href="#" aria-label="סגירת גילוי נאות"></a><div class="disclosure-modal__card"><a class="disclosure-modal__close" href="#" aria-label="סגירה"><i class="fas fa-xmark"></i></a><h2 id="disclaimer-title"><i class="fas fa-scale-balanced"></i> גילוי נאות</h2><p>רועי רומנו הינו סוכן פנסיוני, אשר משווק מוצרים פנסיוניים ומוצרי ביטוח נוספים אשר בגינם ייתכן ויהיה זכאי לעמלות. המוצרים המשווקים כוללים קרנות השתלמות, קופות גמל, קופות פיצויים מרכזיות, ביטוחי מנהלים, קרנות פנסיה ומוצרים הנמכרים אגב המוצרים הנ״ל. לרועי הסכמים קיימים עם הגופים המובילים במשק.</p></div></section>
+  <div class="cookie-notice" id="cookieNotice" role="dialog" aria-live="polite" aria-label="הודעה על שימוש בעוגיות">
+    <div class="cookie-notice__text"><strong>אפשר לשפר את החוויה?</strong><br>עוגיות עוזרות לאתר לעבוד ולנו להבין מה כדאי לשפר — בלי לשמור סכומים או פרטים אישיים. <a href="../privacy.html?from=consumer">למידע נוסף</a>.</div>
+    <div class="cookie-notice__actions"><button class="cookie-notice__btn cookie-notice__btn--accept" id="acceptCookies" type="button">מאשר/ת</button><button class="cookie-notice__btn cookie-notice__btn--close" id="essentialCookies" type="button">רק עוגיות הכרחיות</button></div>
+  </div>
+  <script type="module" src="./analytics/bootstrap.js"></script>
+  <script defer src="./ui/app.bundle.js?v=20260719-1"></script>
+</body>
+</html>
