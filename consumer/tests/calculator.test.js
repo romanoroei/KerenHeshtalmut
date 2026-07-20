@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildGrowthSchedule, calculateConsumerResult, capitalGainsExemptionValue, daysRemainingInTaxYear, futureValueOfMonthlyDeposits, marginalTaxRate, monthsRemainingInTaxYear, nationalInsuranceDue, normalizeMoney, projectedAnnualDeposits, totalDeposited } from '../engine/calculator.js';
+import { buildGrowthSchedule, calculateConsumerResult, capitalGainsExemptionValue, daysRemainingInTaxYear, futureValueOfMonthlyDeposits, incomeTaxBenefitFromDeduction, marginalTaxRate, monthsRemainingInTaxYear, nationalInsuranceDue, normalizeMoney, progressiveIncomeTax, projectedAnnualDeposits, totalDeposited } from '../engine/calculator.js';
 import { TAX_DATA_2026 } from '../data/tax-data.js';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '../messages/whatsapp.js';
 
@@ -28,6 +28,13 @@ test('מדרגות מס 2026 משקפות את תיקון סעיף 121 ממרץ 
   assert.equal(marginalTaxRate(228001), 0.31);
   assert.equal(marginalTaxRate(301200), 0.31);
   assert.equal(marginalTaxRate(301201), 0.35);
+});
+test('מס הכנסה מחושב לפני ואחרי הניכוי לפי כל המדרגות', () => {
+  assert.equal(progressiveIncomeTax(84120), 8412);
+  assert.equal(incomeTaxBenefitFromDeduction(230000, 10000), 2220);
+  const result = calculateConsumerResult({ income: 230000, deposited: 0 });
+  assert.equal(result.taxBenefitUsesMultipleBrackets, true);
+  assert.ok(result.estimatedTotalTaxBenefit < 10350 * 0.31);
 });
 test('תשואה 0%', () => assert.equal(futureValueOfMonthlyDeposits(1000, 0, 6), 72000));
 test('תרחישי 4%, 7% ו-9%', () => {

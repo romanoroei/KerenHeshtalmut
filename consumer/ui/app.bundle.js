@@ -7,35 +7,35 @@
       value: 20566,
       taxYear: 2026,
       verifiedAt: "2026-07-19",
-      source: "Income Tax Ordinance updated for 2026, section 9(16B)",
+      source: "\u05E4\u05E7\u05D5\u05D3\u05EA \u05DE\u05E1 \u05D4\u05DB\u05E0\u05E1\u05D4 \u05D4\u05DE\u05E2\u05D5\u05D3\u05DB\u05E0\u05EA \u05DC-2026, \u05E1\u05E2\u05D9\u05E3 9(16\u05D1), \u05E8\u05E9\u05D5\u05EA \u05D4\u05DE\u05E1\u05D9\u05DD",
       status: "official"
     },
     qualifyingIncomeCeiling: {
       value: 293397,
       taxYear: 2026,
       verifiedAt: "2026-07-19",
-      source: "Israel Tax Authority deductions table and Know Your Rights guide",
+      source: "\u05DC\u05D5\u05D7 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9\u05D9\u05DD \u05D5\u05DE\u05D3\u05E8\u05D9\u05DA \u05D3\u05E2 \u05D6\u05DB\u05D5\u05D9\u05D5\u05EA\u05D9\u05DA, \u05E8\u05E9\u05D5\u05EA \u05D4\u05DE\u05E1\u05D9\u05DD",
       status: "official"
     },
     maxDeductibleContribution: {
       value: 13203,
       taxYear: 2026,
       verifiedAt: "2026-07-19",
-      source: "4.5% of the official qualifying-income ceiling",
+      source: "4.5% \u05DE\u05EA\u05E7\u05E8\u05EA \u05D4\u05DB\u05E0\u05E1\u05D4 \u05E7\u05D5\u05D1\u05E2\u05EA \u05E9\u05DC 293,397 \u20AA, \u05E8\u05E9\u05D5\u05EA \u05D4\u05DE\u05E1\u05D9\u05DD",
       status: "official"
     },
     deductibleRate: {
       value: 0.045,
       taxYear: 2026,
       verifiedAt: "2026-07-19",
-      source: "Income Tax Ordinance section 17(5A) and Israel Tax Authority guide",
+      source: "\u05E1\u05E2\u05D9\u05E3 17(5\u05D0) \u05DC\u05E4\u05E7\u05D5\u05D3\u05EA \u05DE\u05E1 \u05D4\u05DB\u05E0\u05E1\u05D4 \u05D5\u05DE\u05D3\u05E8\u05D9\u05DA \u05D3\u05E2 \u05D6\u05DB\u05D5\u05D9\u05D5\u05EA\u05D9\u05DA, \u05E8\u05E9\u05D5\u05EA \u05D4\u05DE\u05E1\u05D9\u05DD",
       status: "official"
     },
     taxBrackets: {
       value: [
         [84120, 0.1],
         [120720, 0.14],
-        [228000, 0.2],
+        [228e3, 0.2],
         [301200, 0.31],
         [560280, 0.35],
         [721560, 0.47],
@@ -43,14 +43,14 @@
       ],
       taxYear: 2026,
       verifiedAt: "2026-07-19",
-      source: "Israel Tax Authority 2026 deductions table; section 121 amendment of 31.3.2026",
+      source: "\u05DC\u05D5\u05D7 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9\u05D9\u05DD 2026, \u05E8\u05E9\u05D5\u05EA \u05D4\u05DE\u05E1\u05D9\u05DD; \u05EA\u05D9\u05E7\u05D5\u05DF \u05E1\u05E2\u05D9\u05E3 121 \u05DE\u05D9\u05D5\u05DD 31.3.2026",
       status: "official"
     },
     nationalInsurance: {
       value: { reducedMonthly: 7703, maxMonthly: 51910, reducedRate: 0.077, regularRate: 0.18 },
       taxYear: 2026,
       verifiedAt: "2026-07-19",
-      source: "National Insurance Institute rates for self-employed persons from 1.1.2026",
+      source: "\u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9, \u05E9\u05D9\u05E2\u05D5\u05E8\u05D9 \u05D3\u05DE\u05D9 \u05D4\u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05E2\u05D5\u05D1\u05D3 \u05E2\u05E6\u05DE\u05D0\u05D9 \u05D4\u05D7\u05DC \u05DE-1.1.2026",
       status: "official"
     },
     capitalGainsExemption: {
@@ -78,6 +78,24 @@
     var _a, _b;
     if (!Number.isFinite(income) || income < 0) return 0;
     return (_b = (_a = brackets.find(([limit]) => income <= limit)) == null ? void 0 : _a[1]) != null ? _b : 0;
+  }
+  function progressiveIncomeTax(income, brackets = TAX_DATA_2026.taxBrackets.value) {
+    if (!Number.isFinite(income) || income <= 0) return 0;
+    let previousLimit = 0;
+    let tax = 0;
+    for (const [limit, rate] of brackets) {
+      const taxableInBracket = Math.max(0, Math.min(income, limit) - previousLimit);
+      tax += taxableInBracket * rate;
+      if (income <= limit) break;
+      previousLimit = limit;
+    }
+    return tax;
+  }
+  function incomeTaxBenefitFromDeduction(income, deduction, brackets = TAX_DATA_2026.taxBrackets.value) {
+    if (![income, deduction].every(Number.isFinite) || income < 0 || deduction < 0) {
+      throw new TypeError("Invalid tax benefit input");
+    }
+    return progressiveIncomeTax(income, brackets) - progressiveIncomeTax(Math.max(0, income - deduction), brackets);
   }
   function nationalInsuranceDue(income, config = TAX_DATA_2026.nationalInsurance.value) {
     if (!Number.isFinite(income) || income < 0) return 0;
@@ -168,9 +186,10 @@
     const additionalDeductible = Math.min(remaining, Math.max(0, annualDeductible - deductibleAlreadyUsed));
     const taxRate = marginalTaxRate(income, data.taxBrackets.value);
     const totalDeductible = Math.min(projectedDeposited + remaining, annualDeductible);
-    const estimatedTotalTaxBenefit = totalDeductible * taxRate;
-    const estimatedAdditionalTaxBenefit = additionalDeductible * taxRate;
     const deductibleAlreadyDeposited = Math.min(projectedDeposited, annualDeductible);
+    const estimatedTotalTaxBenefit = incomeTaxBenefitFromDeduction(income, totalDeductible, data.taxBrackets.value);
+    const estimatedAdditionalTaxBenefit = progressiveIncomeTax(Math.max(0, income - deductibleAlreadyDeposited), data.taxBrackets.value) - progressiveIncomeTax(Math.max(0, income - totalDeductible), data.taxBrackets.value);
+    const taxBenefitUsesMultipleBrackets = totalDeductible > 0 && marginalTaxRate(income, data.taxBrackets.value) !== marginalTaxRate(Math.max(0, income - totalDeductible), data.taxBrackets.value);
     const estimatedNationalInsuranceBenefitTotal = Math.max(
       0,
       nationalInsuranceDue(income, data.nationalInsurance.value) - nationalInsuranceDue(Math.max(0, income - totalDeductible), data.nationalInsurance.value)
@@ -220,6 +239,7 @@
       remaining,
       overCeiling: Math.max(0, projectedDeposited - ceiling),
       taxRate,
+      taxBenefitUsesMultipleBrackets,
       deductibleRate: data.deductibleRate.value,
       estimatedTaxBenefit: estimatedAdditionalTaxBenefit,
       estimatedTotalTaxBenefit,
@@ -889,7 +909,8 @@ ${url}`;
     $("#whatsapp").href = whatsappUrl;
     $("#whatsapp-secondary").href = whatsappUrl;
     $("#share-benefits").href = buildConsumerShareUrl();
-    $("#calculation-details").innerHTML = `<p><strong>\u05EA\u05E7\u05E8\u05EA 2026:</strong> ${money2(result.ceiling)} \xB7 <strong>\u05D4\u05DB\u05E0\u05E1\u05D4:</strong> ${money2(result.income)} \xB7 <strong>\u05D4\u05D5\u05E4\u05E7\u05D3 \u05D4\u05E9\u05E0\u05D4:</strong> ${money2(result.depositedToDate)}${hasFutureProjection ? ` \xB7 <strong>\u05E6\u05E4\u05D5\u05D9 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4 \u05DB\u05D5\u05DC\u05DC \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2:</strong> ${money2(result.projectedAnnualDeposited)}` : ""}</p><p>\u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D4\u05D8\u05D1\u05D5\u05EA \u05DE\u05D7\u05D5\u05E9\u05D1 \u05D1\u05D4\u05E0\u05D7\u05D4 \u05E9\u05DC \u05DE\u05D9\u05E7\u05E1\u05D5\u05DD \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D4\u05E9\u05E0\u05EA\u05D9\u05EA \u05E2\u05D3 \u05D4\u05EA\u05E7\u05E8\u05D4, \u05D5\u05DC\u05DB\u05DF \u05DB\u05D5\u05DC\u05DC \u05D2\u05DD \u05D0\u05EA \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05DB\u05D1\u05E8 \u05D1\u05D5\u05E6\u05E2\u05D5 \u05D5\u05D0\u05EA \u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05D4\u05E6\u05E4\u05D5\u05D9\u05D4 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4 \u2014 \u05D5\u05DC\u05D0 \u05E8\u05E7 \u05D0\u05EA \u05D9\u05EA\u05E8\u05EA \u05D4\u05D4\u05E9\u05DC\u05DE\u05D4.</p><p><strong>\u05DE\u05D3\u05E8\u05D2\u05EA \u05DE\u05E1 \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA:</strong> ${result.taxRate * 100}% \xB7 <strong>\u05E9\u05D9\u05E2\u05D5\u05E8 \u05E0\u05D9\u05DB\u05D5\u05D9:</strong> ${result.deductibleRate * 100}%</p><p><strong>\u05D4\u05D8\u05D1\u05D4 \u05DE\u05D9\u05D9\u05D3\u05D9\u05EA \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA:</strong> \u05DE\u05E1 \u05D4\u05DB\u05E0\u05E1\u05D4 ${money2(result.estimatedTotalTaxBenefit)} + \u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9/\u05D1\u05E8\u05D9\u05D0\u05D5\u05EA ${money2(result.estimatedNationalInsuranceBenefitTotal)}.</p><p><strong>\u05E9\u05D5\u05D5\u05D9 \u05E2\u05EA\u05D9\u05D3\u05D9 \u05DE\u05E9\u05D5\u05E2\u05E8:</strong> \u05E4\u05D8\u05D5\u05E8 \u05DE\u05DE\u05E1 \u05E8\u05D5\u05D5\u05D7\u05D9 \u05D4\u05D5\u05DF ${money2(result.estimatedCapitalGainsExemptionValueTotal)}, \u05D1\u05D4\u05E0\u05D7\u05EA 8% \u05DC\u05E9\u05E0\u05D4 \u05DC\u05BE6 \u05E9\u05E0\u05D9\u05DD \u05D5\u05DE\u05E1 \u05E9\u05DC 25% \u05E2\u05DC \u05D4\u05E8\u05D5\u05D5\u05D7.</p><p>\u05DE\u05E7\u05D5\u05E8\u05D5\u05EA: \u05E1\u05E4\u05E8 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9\u05D9\u05DD 2026 \u05D5\u05E9\u05D9\u05E2\u05D5\u05E8\u05D9 \u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9 \u05DC\u05E2\u05E6\u05DE\u05D0\u05D9 2026 \u05DB\u05E4\u05D9 \u05E9\u05EA\u05D5\u05E2\u05D3\u05D5 \u05D1\u05D0\u05EA\u05E8 \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2\u05D9. \u05D0\u05D9\u05DE\u05D5\u05EA: 15.07.2026. \u05DB\u05DC \u05D4\u05E8\u05DB\u05D9\u05D1\u05D9\u05DD \u05D4\u05DD \u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D3\u05D5\u05E8\u05E9 \u05D0\u05D9\u05DE\u05D5\u05EA \u05D0\u05D9\u05E9\u05D9.</p>`;
+    const bracketNote = result.taxBenefitUsesMultipleBrackets ? "<p><strong>\u05DC\u05EA\u05E9\u05D5\u05DE\u05EA \u05DC\u05D1:</strong> \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9 \u05D7\u05D5\u05E6\u05D4 \u05DE\u05D3\u05E8\u05D2\u05EA \u05DE\u05E1, \u05D5\u05DC\u05DB\u05DF \u05D4\u05D8\u05D1\u05EA \u05DE\u05E1 \u05D4\u05D4\u05DB\u05E0\u05E1\u05D4 \u05D7\u05D5\u05E9\u05D1\u05D4 \u05DC\u05E4\u05D9 \u05D4\u05DE\u05E1 \u05DC\u05E4\u05E0\u05D9 \u05D5\u05D0\u05D7\u05E8\u05D9 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9 \u05D5\u05D1\u05D4\u05EA\u05D0\u05DD \u05DC\u05DB\u05DC \u05DE\u05D3\u05E8\u05D2\u05D5\u05EA \u05D4\u05DE\u05E1 \u05D4\u05E8\u05DC\u05D5\u05D5\u05E0\u05D8\u05D9\u05D5\u05EA \u2014 \u05D5\u05DC\u05D0 \u05DC\u05E4\u05D9 \u05E9\u05D9\u05E2\u05D5\u05E8 \u05E9\u05D5\u05DC\u05D9 \u05D9\u05D7\u05D9\u05D3.</p>" : "";
+    $("#calculation-details").innerHTML = `<p><strong>\u05EA\u05E7\u05E8\u05EA 2026:</strong> ${money2(result.ceiling)} \xB7 <strong>\u05D4\u05DB\u05E0\u05E1\u05D4:</strong> ${money2(result.income)} \xB7 <strong>\u05D4\u05D5\u05E4\u05E7\u05D3 \u05D4\u05E9\u05E0\u05D4:</strong> ${money2(result.depositedToDate)}${hasFutureProjection ? ` \xB7 <strong>\u05E6\u05E4\u05D5\u05D9 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4 \u05DB\u05D5\u05DC\u05DC \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2:</strong> ${money2(result.projectedAnnualDeposited)}` : ""}</p><p>\u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D4\u05D8\u05D1\u05D5\u05EA \u05DE\u05D7\u05D5\u05E9\u05D1 \u05D1\u05D4\u05E0\u05D7\u05D4 \u05E9\u05DC \u05DE\u05D9\u05E7\u05E1\u05D5\u05DD \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D4\u05E9\u05E0\u05EA\u05D9\u05EA \u05E2\u05D3 \u05D4\u05EA\u05E7\u05E8\u05D4, \u05D5\u05DC\u05DB\u05DF \u05DB\u05D5\u05DC\u05DC \u05D2\u05DD \u05D0\u05EA \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05DB\u05D1\u05E8 \u05D1\u05D5\u05E6\u05E2\u05D5 \u05D5\u05D0\u05EA \u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05D4\u05E6\u05E4\u05D5\u05D9\u05D4 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4 \u2014 \u05D5\u05DC\u05D0 \u05E8\u05E7 \u05D0\u05EA \u05D9\u05EA\u05E8\u05EA \u05D4\u05D4\u05E9\u05DC\u05DE\u05D4.</p><p><strong>\u05DE\u05D3\u05E8\u05D2\u05EA \u05DE\u05E1 \u05E9\u05D5\u05DC\u05D9\u05EA \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA \u05DC\u05E4\u05E0\u05D9 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9:</strong> ${result.taxRate * 100}% \xB7 <strong>\u05E9\u05D9\u05E2\u05D5\u05E8 \u05E0\u05D9\u05DB\u05D5\u05D9:</strong> ${result.deductibleRate * 100}%</p>${bracketNote}<p><strong>\u05D4\u05D8\u05D1\u05D4 \u05DE\u05D9\u05D9\u05D3\u05D9\u05EA \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA:</strong> \u05DE\u05E1 \u05D4\u05DB\u05E0\u05E1\u05D4 ${money2(result.estimatedTotalTaxBenefit)} + \u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9/\u05D1\u05E8\u05D9\u05D0\u05D5\u05EA ${money2(result.estimatedNationalInsuranceBenefitTotal)}.</p><p><strong>\u05E9\u05D5\u05D5\u05D9 \u05E2\u05EA\u05D9\u05D3\u05D9 \u05DE\u05E9\u05D5\u05E2\u05E8:</strong> \u05E4\u05D8\u05D5\u05E8 \u05DE\u05DE\u05E1 \u05E8\u05D5\u05D5\u05D7\u05D9 \u05D4\u05D5\u05DF ${money2(result.estimatedCapitalGainsExemptionValueTotal)}, \u05D1\u05D4\u05E0\u05D7\u05EA 8% \u05DC\u05E9\u05E0\u05D4 \u05DC\u05BE6 \u05E9\u05E0\u05D9\u05DD \u05D5\u05DE\u05E1 \u05E9\u05DC 25% \u05E2\u05DC \u05D4\u05E8\u05D5\u05D5\u05D7.</p><p>\u05DE\u05E7\u05D5\u05E8\u05D5\u05EA: \u05DC\u05D5\u05D7 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9\u05D9\u05DD 2026 \u05E9\u05DC \u05E8\u05E9\u05D5\u05EA \u05D4\u05DE\u05E1\u05D9\u05DD \u05D5\u05E9\u05D9\u05E2\u05D5\u05E8\u05D9 \u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9 \u05DC\u05E2\u05E6\u05DE\u05D0\u05D9 \u05D4\u05D7\u05DC \u05DE\u05BE1.1.2026. \u05D0\u05D9\u05DE\u05D5\u05EA: 19.07.2026. \u05DB\u05DC \u05D4\u05E8\u05DB\u05D9\u05D1\u05D9\u05DD \u05D4\u05DD \u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D3\u05D5\u05E8\u05E9 \u05D0\u05D9\u05DE\u05D5\u05EA \u05D0\u05D9\u05E9\u05D9.</p>`;
   }
   form.addEventListener("click", (event) => {
     var _a;

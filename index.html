@@ -1045,6 +1045,18 @@ function getMarginalRate(income,year){
   return 50;
 }
 
+function calcProgressiveIncomeTax(income,year){
+  const brackets=TAX_BRACKETS[year]||TAX_BRACKETS[2026];
+  let previous=0,tax=0;
+  for(const [top,rate] of brackets){
+    const taxable=Math.max(0,Math.min(income,top)-previous);
+    tax+=taxable*(rate/100);
+    if(income<=top)break;
+    previous=top;
+  }
+  return tax;
+}
+
 function calcNationalInsuranceDue(income,year){
   const d=NATIONAL_INSURANCE_DATA[year]||NATIONAL_INSURANCE_DATA[2026];
   const threshold=d.reducedMonthly*12;
@@ -1822,7 +1834,9 @@ function runTaxCalc(){
   const rawDeductible=baseIncome*0.045;
   const deductible   =Math.min(rawDeductible,d.maxDeductible);
   const marginal     =getMarginalRate(income,year);
-  const taxBenefit   =deductible*(marginal/100);
+  const incomeAfterDeduction=Math.max(0,income-deductible);
+  const taxBenefit   =calcProgressiveIncomeTax(income,year)-calcProgressiveIncomeTax(incomeAfterDeduction,year);
+  const crossesTaxBracket=deductible>0&&getMarginalRate(income,year)!==getMarginalRate(incomeAfterDeduction,year);
   const niBenefit    =Math.max(0,calcNationalInsuranceDue(income,year)-calcNationalInsuranceDue(Math.max(0,income-deductible),year));
   const totalProtected=d.ceiling;
   const exemptReturnRate=0.08;
@@ -1839,7 +1853,9 @@ function runTaxCalc(){
   // שלב 2 — מופיע ב-0.36s, ללא ספירה על ההוצאה המוכרת
   $('storyDeductible').textContent = fmtILS(deductible);
   animateCounter($('storyTaxBenefit'), taxBenefit, 1600, 420);
-  $('storyTaxCalc').textContent=`(${fmtILS(deductible)} × המס השולי שלך ${fmtPct(marginal)})`;
+  $('storyTaxCalc').textContent=crossesTaxBracket
+    ? 'הניכוי חוצה מדרגת מס; ההטבה חושבה כהפרש בין המס לפני הניכוי ולאחריו, לפי כל המדרגות הרלוונטיות.'
+    : `ההטבה חושבה כהפרש בין המס לפני הניכוי ולאחריו (מדרגה שולית ${fmtPct(marginal)}).`;
   // שלב 3 — מופיע ב-0.64s, counter מתחיל ב-720ms
   animateCounter($('storyNiBenefit'), niBenefit, 1600, 720);
   // סיכום — מופיע ב-0.92s, counter ארוך במיוחד

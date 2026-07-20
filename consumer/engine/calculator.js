@@ -12,6 +12,27 @@ export function marginalTaxRate(income, brackets = TAX_DATA_2026.taxBrackets.val
   return brackets.find(([limit]) => income <= limit)?.[1] ?? 0;
 }
 
+export function progressiveIncomeTax(income, brackets = TAX_DATA_2026.taxBrackets.value) {
+  if (!Number.isFinite(income) || income <= 0) return 0;
+  let previousLimit = 0;
+  let tax = 0;
+  for (const [limit, rate] of brackets) {
+    const taxableInBracket = Math.max(0, Math.min(income, limit) - previousLimit);
+    tax += taxableInBracket * rate;
+    if (income <= limit) break;
+    previousLimit = limit;
+  }
+  return tax;
+}
+
+export function incomeTaxBenefitFromDeduction(income, deduction, brackets = TAX_DATA_2026.taxBrackets.value) {
+  if (![income, deduction].every(Number.isFinite) || income < 0 || deduction < 0) {
+    throw new TypeError('Invalid tax benefit input');
+  }
+  return progressiveIncomeTax(income, brackets)
+    - progressiveIncomeTax(Math.max(0, income - deduction), brackets);
+}
+
 export function nationalInsuranceDue(income, config = TAX_DATA_2026.nationalInsurance.value) {
   if (!Number.isFinite(income) || income < 0) return 0;
   const threshold = config.reducedMonthly * 12;
@@ -119,9 +140,12 @@ export function calculateConsumerResult(input, data = TAX_DATA_2026) {
   const additionalDeductible = Math.min(remaining, Math.max(0, annualDeductible - deductibleAlreadyUsed));
   const taxRate = marginalTaxRate(income, data.taxBrackets.value);
   const totalDeductible = Math.min(projectedDeposited + remaining, annualDeductible);
-  const estimatedTotalTaxBenefit = totalDeductible * taxRate;
-  const estimatedAdditionalTaxBenefit = additionalDeductible * taxRate;
   const deductibleAlreadyDeposited = Math.min(projectedDeposited, annualDeductible);
+  const estimatedTotalTaxBenefit = incomeTaxBenefitFromDeduction(income, totalDeductible, data.taxBrackets.value);
+  const estimatedAdditionalTaxBenefit = progressiveIncomeTax(Math.max(0, income - deductibleAlreadyDeposited), data.taxBrackets.value)
+    - progressiveIncomeTax(Math.max(0, income - totalDeductible), data.taxBrackets.value);
+  const taxBenefitUsesMultipleBrackets = totalDeductible > 0
+    && marginalTaxRate(income, data.taxBrackets.value) !== marginalTaxRate(Math.max(0, income - totalDeductible), data.taxBrackets.value);
   const estimatedNationalInsuranceBenefitTotal = Math.max(0,
     nationalInsuranceDue(income, data.nationalInsurance.value)
       - nationalInsuranceDue(Math.max(0, income - totalDeductible), data.nationalInsurance.value));
@@ -178,6 +202,7 @@ export function calculateConsumerResult(input, data = TAX_DATA_2026) {
     remaining,
     overCeiling: Math.max(0, projectedDeposited - ceiling),
     taxRate,
+    taxBenefitUsesMultipleBrackets,
     deductibleRate: data.deductibleRate.value,
     estimatedTaxBenefit: estimatedAdditionalTaxBenefit,
     estimatedTotalTaxBenefit,
