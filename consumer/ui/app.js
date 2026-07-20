@@ -288,7 +288,7 @@ function renderScore(result, profile) {
     ['ניצול תקרה', Math.min(result.deposited / result.ceiling, 1) > 0],
     ['תוכנית חודשית', ['monthly', 'both'].includes(profile.depositMethod)],
     ['הוגדרו מטרות', profile.goals.length > 0],
-  ];
+  ].sort((a, b) => Number(b[1]) - Number(a[1]));
   $('#score-components').innerHTML = components.map(([label, done]) => `<li><i class="fas fa-${done ? 'circle-check' : 'circle'}"></i>${label}</li>`).join('');
 }
 
@@ -389,8 +389,13 @@ function renderResultIntro(result) {
   const message = $('#result-message');
   intro.classList.toggle('is-over-ceiling', result.overCeiling > 0);
   if (result.overCeiling > 0) {
-    $('#result-title').textContent = 'ההפקדות הצפויות השנה גבוהות מהתקרה המוטבת';
-    message.textContent = `הסכום הצפוי שמעל התקרה הוא ${money(result.overCeiling)}. כדאי לבדוק אותו לפני ביצוע הפקדות נוספות.`;
+    const isProjectedOverage = result.depositedToDate <= result.ceiling && result.futureScheduledDeposits > 0;
+    $('#result-title').textContent = isProjectedOverage
+      ? 'ההפקדות הצפויות השנה גבוהות מהתקרה המוטבת'
+      : 'ההפקדות השנה גבוהות מהתקרה המוטבת';
+    message.textContent = isProjectedOverage
+      ? `הסכום הצפוי שמעל התקרה הוא ${money(result.overCeiling)}. כדאי לבדוק אותו לפני ביצוע הפקדות נוספות.`
+      : `הסכום שמעל התקרה הוא ${money(result.overCeiling)}. כדאי לבדוק אותו לפני ביצוע הפקדות נוספות.`;
     message.hidden = false;
     countdown.hidden = true;
     return;
@@ -420,6 +425,10 @@ function renderResult(result, profile) {
   $('#deposit-mini').classList.toggle('is-single', !hasFutureProjection);
   $('#future-scheduled').textContent = hasFutureProjection ? `מתוכם ${money(result.futureScheduledDeposits)} צפויים בהוראת הקבע עד סוף השנה` : '';
   countUp($('#income-tax-benefit'), result.estimatedTotalTaxBenefit, money);
+  const taxRatesCopy = result.taxRatesUsed.map((rate) => `${rate * 100}%`).join(' ו־');
+  $('#income-tax-note').textContent = result.taxBenefitUsesMultipleBrackets
+    ? `הניכוי חוצה מדרגות מס; האומדן חושב לפי המדרגות ${taxRatesCopy}.`
+    : `על ההפקדה השנתית המוכרת, לפי מס שולי משוער של ${taxRatesCopy || `${result.taxRate * 100}%`}.`;
   countUp($('#insurance-benefit'), result.estimatedNationalInsuranceBenefitTotal, money);
   countUp($('#capital-gains-benefit'), result.estimatedCapitalGainsExemptionValueTotal, money);
   const ctaCopy = buildCta(result, profile);

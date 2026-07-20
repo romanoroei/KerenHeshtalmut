@@ -97,6 +97,18 @@
     }
     return progressiveIncomeTax(income, brackets) - progressiveIncomeTax(Math.max(0, income - deduction), brackets);
   }
+  function taxRatesForDeduction(income, deduction, brackets = TAX_DATA_2026.taxBrackets.value) {
+    if (![income, deduction].every(Number.isFinite) || income < 0 || deduction < 0) return [];
+    const after = Math.max(0, income - deduction);
+    let previousLimit = 0;
+    const rates = [];
+    for (const [limit, rate] of brackets) {
+      if (Math.min(income, limit) > Math.max(after, previousLimit)) rates.push(rate);
+      if (income <= limit) break;
+      previousLimit = limit;
+    }
+    return rates.reverse();
+  }
   function nationalInsuranceDue(income, config = TAX_DATA_2026.nationalInsurance.value) {
     if (!Number.isFinite(income) || income < 0) return 0;
     const threshold = config.reducedMonthly * 12;
@@ -190,6 +202,7 @@
     const estimatedTotalTaxBenefit = incomeTaxBenefitFromDeduction(income, totalDeductible, data.taxBrackets.value);
     const estimatedAdditionalTaxBenefit = progressiveIncomeTax(Math.max(0, income - deductibleAlreadyDeposited), data.taxBrackets.value) - progressiveIncomeTax(Math.max(0, income - totalDeductible), data.taxBrackets.value);
     const taxBenefitUsesMultipleBrackets = totalDeductible > 0 && marginalTaxRate(income, data.taxBrackets.value) !== marginalTaxRate(Math.max(0, income - totalDeductible), data.taxBrackets.value);
+    const taxRatesUsed = taxRatesForDeduction(income, totalDeductible, data.taxBrackets.value);
     const estimatedNationalInsuranceBenefitTotal = Math.max(
       0,
       nationalInsuranceDue(income, data.nationalInsurance.value) - nationalInsuranceDue(Math.max(0, income - totalDeductible), data.nationalInsurance.value)
@@ -240,6 +253,7 @@
       overCeiling: Math.max(0, projectedDeposited - ceiling),
       taxRate,
       taxBenefitUsesMultipleBrackets,
+      taxRatesUsed,
       deductibleRate: data.deductibleRate.value,
       estimatedTaxBenefit: estimatedAdditionalTaxBenefit,
       estimatedTotalTaxBenefit,
@@ -769,7 +783,7 @@ ${url}`;
       ["\u05E0\u05D9\u05E6\u05D5\u05DC \u05EA\u05E7\u05E8\u05D4", Math.min(result.deposited / result.ceiling, 1) > 0],
       ["\u05EA\u05D5\u05DB\u05E0\u05D9\u05EA \u05D7\u05D5\u05D3\u05E9\u05D9\u05EA", ["monthly", "both"].includes(profile.depositMethod)],
       ["\u05D4\u05D5\u05D2\u05D3\u05E8\u05D5 \u05DE\u05D8\u05E8\u05D5\u05EA", profile.goals.length > 0]
-    ];
+    ].sort((a, b) => Number(b[1]) - Number(a[1]));
     $("#score-components").innerHTML = components.map(([label, done]) => `<li><i class="fas fa-${done ? "circle-check" : "circle"}"></i>${label}</li>`).join("");
   }
   function renderRecommendationSteps(result, profile) {
@@ -866,8 +880,9 @@ ${url}`;
     const message = $("#result-message");
     intro.classList.toggle("is-over-ceiling", result.overCeiling > 0);
     if (result.overCeiling > 0) {
-      $("#result-title").textContent = "\u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05D4\u05E6\u05E4\u05D5\u05D9\u05D5\u05EA \u05D4\u05E9\u05E0\u05D4 \u05D2\u05D1\u05D5\u05D4\u05D5\u05EA \u05DE\u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA";
-      message.textContent = `\u05D4\u05E1\u05DB\u05D5\u05DD \u05D4\u05E6\u05E4\u05D5\u05D9 \u05E9\u05DE\u05E2\u05DC \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05D5\u05D0 ${money2(result.overCeiling)}. \u05DB\u05D3\u05D0\u05D9 \u05DC\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D5\u05EA\u05D5 \u05DC\u05E4\u05E0\u05D9 \u05D1\u05D9\u05E6\u05D5\u05E2 \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E0\u05D5\u05E1\u05E4\u05D5\u05EA.`;
+      const isProjectedOverage = result.depositedToDate <= result.ceiling && result.futureScheduledDeposits > 0;
+      $("#result-title").textContent = isProjectedOverage ? "\u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05D4\u05E6\u05E4\u05D5\u05D9\u05D5\u05EA \u05D4\u05E9\u05E0\u05D4 \u05D2\u05D1\u05D5\u05D4\u05D5\u05EA \u05DE\u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA" : "\u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05D4\u05E9\u05E0\u05D4 \u05D2\u05D1\u05D5\u05D4\u05D5\u05EA \u05DE\u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA";
+      message.textContent = isProjectedOverage ? `\u05D4\u05E1\u05DB\u05D5\u05DD \u05D4\u05E6\u05E4\u05D5\u05D9 \u05E9\u05DE\u05E2\u05DC \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05D5\u05D0 ${money2(result.overCeiling)}. \u05DB\u05D3\u05D0\u05D9 \u05DC\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D5\u05EA\u05D5 \u05DC\u05E4\u05E0\u05D9 \u05D1\u05D9\u05E6\u05D5\u05E2 \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E0\u05D5\u05E1\u05E4\u05D5\u05EA.` : `\u05D4\u05E1\u05DB\u05D5\u05DD \u05E9\u05DE\u05E2\u05DC \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05D5\u05D0 ${money2(result.overCeiling)}. \u05DB\u05D3\u05D0\u05D9 \u05DC\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D5\u05EA\u05D5 \u05DC\u05E4\u05E0\u05D9 \u05D1\u05D9\u05E6\u05D5\u05E2 \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E0\u05D5\u05E1\u05E4\u05D5\u05EA.`;
       message.hidden = false;
       countdown.hidden = true;
       return;
@@ -896,6 +911,8 @@ ${url}`;
     $("#deposit-mini").classList.toggle("is-single", !hasFutureProjection);
     $("#future-scheduled").textContent = hasFutureProjection ? `\u05DE\u05EA\u05D5\u05DB\u05DD ${money2(result.futureScheduledDeposits)} \u05E6\u05E4\u05D5\u05D9\u05D9\u05DD \u05D1\u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4` : "";
     countUp($("#income-tax-benefit"), result.estimatedTotalTaxBenefit, money2);
+    const taxRatesCopy = result.taxRatesUsed.map((rate) => `${rate * 100}%`).join(" \u05D5\u05BE");
+    $("#income-tax-note").textContent = result.taxBenefitUsesMultipleBrackets ? `\u05D4\u05E0\u05D9\u05DB\u05D5\u05D9 \u05D7\u05D5\u05E6\u05D4 \u05DE\u05D3\u05E8\u05D2\u05D5\u05EA \u05DE\u05E1; \u05D4\u05D0\u05D5\u05DE\u05D3\u05DF \u05D7\u05D5\u05E9\u05D1 \u05DC\u05E4\u05D9 \u05D4\u05DE\u05D3\u05E8\u05D2\u05D5\u05EA ${taxRatesCopy}.` : `\u05E2\u05DC \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D4\u05E9\u05E0\u05EA\u05D9\u05EA \u05D4\u05DE\u05D5\u05DB\u05E8\u05EA, \u05DC\u05E4\u05D9 \u05DE\u05E1 \u05E9\u05D5\u05DC\u05D9 \u05DE\u05E9\u05D5\u05E2\u05E8 \u05E9\u05DC ${taxRatesCopy || `${result.taxRate * 100}%`}.`;
     countUp($("#insurance-benefit"), result.estimatedNationalInsuranceBenefitTotal, money2);
     countUp($("#capital-gains-benefit"), result.estimatedCapitalGainsExemptionValueTotal, money2);
     const ctaCopy = buildCta(result, profile);
