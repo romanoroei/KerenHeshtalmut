@@ -959,6 +959,14 @@ ${url}`;
   form.addEventListener("focusout", (event) => {
     if (event.target.matches('[inputmode="numeric"]')) formatMoneyInput(event.target);
   });
+  form.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" || event.isComposing || currentStep === steps.length - 1) return;
+    if (!event.target.matches('input:not([type="radio"]):not([type="checkbox"])')) return;
+    event.preventDefault();
+    if (!validateStep()) return;
+    if (currentStep === 0) transitionTo(1);
+    else if (currentStep === 2) transitionTo(3);
+  });
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     if (isSubmitting) return;
