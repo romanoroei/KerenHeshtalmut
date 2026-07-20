@@ -99,6 +99,10 @@ test('מסך התוצאה מציג יתרה פעם אחת, טיימר חי ו-CT
   assert.ok(html.indexOf('id="countdown-seconds"') < html.indexOf('id="countdown-days"'));
   assert.match(source, /setInterval\(update, 1000\)/);
   assert.match(source, /ההפקדות הצפויות השנה גבוהות מהתקרה המוטבת/);
+  assert.match(source, /ההפקדות השנה גבוהות מהתקרה המוטבת/);
+  assert.match(source, /isProjectedOverage/);
+  assert.match(source, /taxRatesCopy/);
+  assert.match(source, /\.sort\(\(a, b\) => Number\(b\[1\]\) - Number\(a\[1\]\)\)/);
   assert.match(source, /ניצלת את מלוא התקרה המוטבת לשנת/);
   assert.match(source, /countdown\.hidden = true/);
   assert.match(source, /buildSecondaryCta/);
