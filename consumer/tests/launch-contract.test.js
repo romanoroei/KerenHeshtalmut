@@ -20,7 +20,7 @@ test('questionnaire storage is session-only and result shows at most two primary
   const html = await readFile(new URL('../check.html', import.meta.url), 'utf8');
   assert.match(source, /sessionStorage\.setItem\(FORM_STATE_KEY/); assert.doesNotMatch(source, /localStorage\.setItem\(FORM_STATE_KEY/);
   assert.match(source, /stepsForUser\.slice\(0, 2\)/); assert.match(html, /id="more-recommendations"/);
-  assert.match(html, /class="optional-balance" open/);
+  assert.match(html, /class="balance-forecast-card"/);
   assert.doesNotMatch(html, /אופציונלי|אפשר להשאיר ריק|לא חובה/);
   assert.match(source, /sessionStorage\.removeItem\(FORM_STATE_KEY\)/);
 });

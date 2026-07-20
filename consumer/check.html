@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="./styles.css?v=20260719-2">
+  <link rel="stylesheet" href="./styles.css?v=20260721-1">
 </head>
 <body class="check-page">
   <main class="main-content" id="check">
@@ -72,7 +72,7 @@
               </div>
               <div class="conditional-fields" id="lump-fields" hidden><div class="field-group"><label for="lumpSum">כמה כבר הפקדת השנה?</label><div class="money-field"><input id="lumpSum" name="lumpSum" inputmode="numeric" autocomplete="off" placeholder="לדוגמה: 2,000"><span>₪</span></div></div></div>
               <div class="conditional-fields fields-row" id="monthly-fields" hidden><div class="field-group"><label for="monthlyDeposit">כמה מופקד בכל חודש?</label><div class="money-field"><input id="monthlyDeposit" name="monthlyDeposit" inputmode="numeric" autocomplete="off" placeholder="לדוגמה: 500"><span>₪</span></div><p class="field-error" aria-hidden="true"></p></div><div class="field-group"><label for="monthsDeposited">כמה חודשים הופקדו מתחילת השנה?</label><input id="monthsDeposited" name="monthsDeposited" type="number" min="1" max="12" step="1" inputmode="numeric" placeholder="1–12" aria-describedby="months-deposited-error"><p class="field-error" id="months-deposited-error"></p></div></div>
-              <details class="optional-balance" open><summary>רוצה לראות גם תחזית על הצבירה הקיימת?</summary><div class="conditional-fields existing-balance-field"><div class="field-group"><label for="existingBalance">מה הצבירה הנוכחית בקרן? (כולל הפקדות השנה)</label><div class="money-field"><input id="existingBalance" name="existingBalance" inputmode="numeric" autocomplete="off" placeholder="לדוגמה: 100,000"><span>₪</span></div><small>הנתון מאפשר להתאים את תרחישי הצמיחה לצבירה הקיימת בקרן.</small></div></div></details>
+              <section class="balance-forecast-card" aria-labelledby="balance-forecast-title"><div class="balance-forecast-card__heading"><span class="balance-forecast-card__icon"><i class="fas fa-chart-line"></i></span><div><span class="balance-forecast-card__eyebrow">תחזית אישית מדויקת יותר</span><h4 id="balance-forecast-title">רוצה לראות איך כל הכסף בקרן עשוי לצמוח?</h4><p>הוספת הצבירה הקיימת תאפשר להציג תחזית מלאה, ולא רק את ההפקדות החדשות.</p></div></div><div class="conditional-fields existing-balance-field"><div class="field-group"><label for="existingBalance">מה הצבירה הנוכחית בקרן? <span>(כולל מה שכבר הופקד השנה)</span></label><div class="money-field"><input id="existingBalance" name="existingBalance" inputmode="numeric" autocomplete="off" placeholder="לדוגמה: 100,000"><span>₪</span></div><small><i class="fas fa-lock"></i> הנתון נשמר בדפדפן שלך ומשמש רק לחישוב התחזית.</small></div></div></section>
               <div class="deposit-preview" id="deposit-preview" hidden><i class="fas fa-calculator"></i><span></span></div>
             </section>
 
@@ -86,6 +86,7 @@
           <p id="form-error" class="form-error" role="alert"></p>
           <div class="wizard-actions"><button type="button" class="btn btn-back" data-back hidden><i class="fas fa-arrow-right"></i> חזרה</button><button type="button" class="btn btn-primary" data-next>ממשיכים <i class="fas fa-arrow-left"></i></button><button type="submit" class="btn btn-primary" id="submit-check" hidden>בונים את התמונה שלי <i class="fas fa-wand-magic-sparkles"></i></button></div>
         </form>
+        <button id="stage-restart" type="button" class="stage-restart"><i class="fas fa-rotate-right"></i> נקה והתחל מחדש</button>
 
         <aside class="live-summary" aria-label="סיכום הנתונים שהוזנו"><h3><i class="fas fa-list-check"></i> הסיכום שלך</h3><div><span>הכנסה</span><strong id="summary-income">טרם הוזנה</strong></div><div><span>הופקד השנה</span><strong id="summary-deposited">טרם הוזן</strong></div><div><span>צבירה קיימת</span><strong id="summary-balance">טרם הוזנה</strong></div><div><span>מצב הקרן</span><strong id="summary-fund">טרם נבחר</strong></div><p><i class="fas fa-lock"></i> הנתונים נשארים בדפדפן שלך</p></aside>
       </div>
@@ -123,12 +124,12 @@
       </section>
     </div>
   </div>
-  <section class="disclosure-modal" id="disclaimer" role="dialog" aria-modal="true" aria-labelledby="disclaimer-title"><a class="disclosure-modal__backdrop" href="#" aria-label="סגירת גילוי נאות"></a><div class="disclosure-modal__card"><a class="disclosure-modal__close" href="#" aria-label="סגירה"><i class="fas fa-xmark"></i></a><h2 id="disclaimer-title"><i class="fas fa-scale-balanced"></i> גילוי נאות</h2><p>רועי רומנו הינו סוכן פנסיוני, אשר משווק מוצרים פנסיוניים ומוצרי ביטוח נוספים אשר בגינם ייתכן ויהיה זכאי לעמלות. המוצרים המשווקים כוללים קרנות השתלמות, קופות גמל, קופות פיצויים מרכזיות, ביטוחי מנהלים, קרנות פנסיה ומוצרים הנמכרים אגב המוצרים הנ״ל. לרועי הסכמים קיימים עם הגופים המובילים במשק.</p></div></section>
+  <section class="disclosure-modal" id="disclaimer" role="dialog" aria-modal="false" aria-labelledby="disclaimer-title"><div class="disclosure-modal__card"><a class="disclosure-modal__close" href="#" aria-label="סגירה"><i class="fas fa-xmark"></i></a><h2 id="disclaimer-title"><i class="fas fa-scale-balanced"></i> גילוי נאות</h2><p>רועי רומנו הינו סוכן פנסיוני, אשר משווק מוצרים פנסיוניים ומוצרי ביטוח נוספים אשר בגינם ייתכן ויהיה זכאי לעמלות. המוצרים המשווקים כוללים קרנות השתלמות, קופות גמל, קופות פיצויים מרכזיות, ביטוחי מנהלים, קרנות פנסיה ומוצרים הנמכרים אגב המוצרים הנ״ל. לרועי הסכמים קיימים עם הגופים המובילים במשק.</p></div></section>
   <div class="cookie-notice" id="cookieNotice" role="dialog" aria-live="polite" aria-label="הודעה על שימוש בעוגיות">
     <div class="cookie-notice__text"><strong>אפשר לשפר את החוויה?</strong><br>עוגיות עוזרות לאתר לעבוד ולנו להבין מה כדאי לשפר — בלי לשמור סכומים או פרטים אישיים. <a href="../privacy.html?from=consumer">למידע נוסף</a>.</div>
     <div class="cookie-notice__actions"><button class="cookie-notice__btn cookie-notice__btn--accept" id="acceptCookies" type="button">מאשר/ת</button><button class="cookie-notice__btn cookie-notice__btn--close" id="essentialCookies" type="button">רק עוגיות הכרחיות</button></div>
   </div>
   <script type="module" src="./analytics/bootstrap.js"></script>
-  <script defer src="./ui/app.bundle.js?v=20260719-1"></script>
+  <script defer src="./ui/app.bundle.js?v=20260721-1"></script>
 </body>
 </html>

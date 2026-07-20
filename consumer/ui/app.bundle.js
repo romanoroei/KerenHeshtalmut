@@ -1049,7 +1049,7 @@ ${url}`;
     } catch (e) {
     }
   });
-  $("#restart").addEventListener("click", () => {
+  function restartCalculator() {
     try {
       sessionStorage.removeItem(FORM_STATE_KEY);
       sessionStorage.removeItem("consumer_event_calculator_completed");
@@ -1058,7 +1058,9 @@ ${url}`;
     }
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     location.assign("./check.html?restart=1");
-  });
+  }
+  $("#restart").addEventListener("click", restartCalculator);
+  $("#stage-restart").addEventListener("click", restartCalculator);
   if (new URLSearchParams(location.search).has("restart")) {
     try {
       sessionStorage.removeItem(FORM_STATE_KEY);
