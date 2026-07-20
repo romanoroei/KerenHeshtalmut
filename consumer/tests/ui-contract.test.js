@@ -26,6 +26,9 @@ test('האתר אינו יכול לסגור את חלון הדפדפן ומגן 
   assert.match(source, /clearTimeout\(advanceTimer\)/);
   assert.match(source, /if \(isSubmitting\) return/);
   assert.match(source, /if \(isTransitioning/);
+  assert.match(source, /event\.key !== 'Enter'/);
+  assert.match(source, /currentStep === 0\) transitionTo\(1\)/);
+  assert.match(source, /currentStep === 2\) transitionTo\(3\)/);
 });
 
 test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחירת מטרות מרובה', async () => {
