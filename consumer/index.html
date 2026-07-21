@@ -30,9 +30,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="./styles.css?v=20260721-1">
+  <link rel="stylesheet" href="./styles.css?v=20260721-2">
 </head>
 <body class="landing-page">
+  <div class="tax-year-status tax-year-status--landing" data-tax-year-status hidden><i class="fas fa-circle-info"></i><span></span></div>
   <main class="landing-hero">
     <div class="hero-orb hero-orb--one"></div>
     <div class="hero-orb hero-orb--two"></div>
@@ -68,5 +69,6 @@
     <div class="cookie-notice__actions"><button class="cookie-notice__btn cookie-notice__btn--accept" id="acceptCookies" type="button">מאשר/ת</button><button class="cookie-notice__btn cookie-notice__btn--close" id="essentialCookies" type="button">רק עוגיות הכרחיות</button></div>
   </div>
   <script type="module" src="./analytics/bootstrap.js"></script>
+  <script type="module" src="./ui/tax-year-status.js?v=20260721-1"></script>
 </body>
 </html>

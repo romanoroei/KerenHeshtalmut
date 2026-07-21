@@ -328,6 +328,7 @@ body{font-family:var(--font);background:var(--slate-50);color:var(--slate-800);d
 
 .notice-bar{background:var(--orange-light);border:1.5px solid #fed7aa;border-radius:var(--radius-sm);padding:10px 14px;font-size:12.5px;color:#7c2d12;display:flex;gap:8px;align-items:flex-start;margin-top:12px}
 .notice-bar i{color:var(--orange);font-size:15px;flex-shrink:0;margin-top:1px}
+.tax-year-status{display:flex;align-items:flex-start;gap:9px;margin:0 0 16px;padding:11px 14px;border:1px solid #bfdbfe;border-radius:13px;color:#1e3a8a;background:#eff6ff;font-size:12px;font-weight:750;line-height:1.55}.tax-year-status[hidden]{display:none}.tax-year-status i{margin-top:3px;color:var(--blue)}
 
 /* ceiling bar annual */
 .ceiling-info-bar{background:linear-gradient(135deg,var(--purple-light),#ede9fe);border:1.5px solid #c4b5fd;border-radius:var(--radius-sm);padding:12px 15px;margin-bottom:16px;font-size:13px;color:#4c1d95;display:flex;align-items:flex-start;gap:10px}
@@ -425,6 +426,7 @@ input[type=number]{-moz-appearance:textfield}
 </header>
 
 <main class="container main-content" id="mainContent">
+  <div class="tax-year-status" id="professionalTaxYearStatus" hidden><i class="fas fa-circle-info"></i><span></span></div>
 
   <!-- MAIN TABS -->
   <nav class="main-tabs" role="tablist">
@@ -996,7 +998,7 @@ input[type=number]{-moz-appearance:textfield}
 const CEILING_DATA = {
   2024: { ceiling:20520,  taxableIncome:286000, maxDeductible:12870, source:'ספר ניכויים 2024' },
   2025: { ceiling:20520,  taxableIncome:293400, maxDeductible:13203, source:'ספר ניכויים 2025' },
-  2026: { ceiling:20566,  taxableIncome:293397, maxDeductible:13203, source:'ספר ניכויים 2026' },
+  2026: { ceiling:20566, taxableIncome:293397, maxDeductible:13203, source:'ספר ניכויים 2026', status:'official', verifiedAt:'2026-07-19' },
 };
 
 // מדרגות מס הכנסה (מיגיעה אישית) — שנתי בש"ח
@@ -1031,6 +1033,19 @@ const MONTH_NAMES=['ינואר','פברואר','מרץ','אפריל','מאי','�
 const now=new Date();
 const CUR_YEAR=now.getFullYear();
 const CUR_MONTH=now.getMonth()+1;
+
+function getVerifiedTaxContext(requestedYear=CUR_YEAR){
+  const verifiedYears=Object.keys(CEILING_DATA).map(Number)
+    .filter(year=>year<=requestedYear&&CEILING_DATA[year].status==='official'&&TAX_BRACKETS[year]&&NATIONAL_INSURANCE_DATA[year])
+    .sort((a,b)=>b-a);
+  if(!verifiedYears.length) throw new Error('No verified tax data available');
+  const dataYear=verifiedYears.includes(requestedYear)?requestedYear:verifiedYears[0];
+  return{
+    requestedYear,dataYear,isFallback:dataYear!==requestedYear,
+    message:dataYear!==requestedYear?`נתוני ${requestedYear} טרם אומתו. החישוב מבוסס על הנתונים הרשמיים האחרונים שאומתו לשנת ${dataYear}.`:''
+  };
+}
+const ACTIVE_TAX_CONTEXT=getVerifiedTaxContext();
 
 function getCeiling(year){
   if(CEILING_DATA[year]) return {...CEILING_DATA[year],isEstimate:false};
@@ -1496,7 +1511,7 @@ function updateAnnualCeilingBar(){
 }
 
 function updateTaxCeilingBar(){
-  const year=2026;
+  const year=ACTIVE_TAX_CONTEXT.dataYear;
   const d=getCeiling(year);
   let html=`נתוני ${year}: תקרת הפקדה מוטבת⁶ <strong>${fmtILS(d.ceiling)}</strong> | הכנסה קובעת¹ <strong>${fmtILS(d.taxableIncome)}</strong> | ניכוי מרבי⁵ <strong>${fmtILS(d.maxDeductible)}</strong>`;
   if(d.isEstimate) html+=` <em style="color:#b45309">(אומדן מ-${d.estimatedFrom})</em>`;
@@ -1506,9 +1521,19 @@ function updateTaxCeilingBar(){
 }
 
 function updateLegalDataYear(){
-  const latestYear=Math.max(...Object.keys(CEILING_DATA).map(Number));
+  const latestYear=ACTIVE_TAX_CONTEXT.dataYear;
   if($('legalDataYear')) $('legalDataYear').textContent=latestYear;
   if($('heroCeilingYear')) $('heroCeilingYear').textContent=latestYear;
+}
+
+function updateTaxYearStatus(){
+  const banner=$('professionalTaxYearStatus');
+  if(!banner)return;
+  banner.hidden=!ACTIVE_TAX_CONTEXT.isFallback;
+  const text=banner.querySelector('span');
+  if(text)text.textContent=ACTIVE_TAX_CONTEXT.message;
+  document.documentElement.dataset.requestedTaxYear=ACTIVE_TAX_CONTEXT.requestedYear;
+  document.documentElement.dataset.taxDataYear=ACTIVE_TAX_CONTEXT.dataYear;
 }
 
 function openLegalSectionFromHash(){
@@ -1826,7 +1851,7 @@ async function shareCalculator(){
 
 function runTaxCalc(){
   if(!validateTaxIncome()) return;
-  const year   =2026;
+  const year   =ACTIVE_TAX_CONTEXT.dataYear;
   const income =getN('annualIncome');
   const d      =getCeiling(year);
 
@@ -2083,6 +2108,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
   updateTaxCeilingBar();
   updateLegalDataYear();
+  updateTaxYearStatus();
   openLegalSectionFromHash();
   if('scrollRestoration' in history) history.scrollRestoration='manual';
   const savedMainTab=getSavedMainTab();

@@ -1,10 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildGrowthSchedule, calculateConsumerResult, capitalGainsExemptionValue, daysRemainingInTaxYear, futureValueOfMonthlyDeposits, incomeTaxBenefitFromDeduction, marginalTaxRate, monthsRemainingInTaxYear, nationalInsuranceDue, normalizeMoney, progressiveIncomeTax, projectedAnnualDeposits, taxRatesForDeduction, totalDeposited } from '../engine/calculator.js';
-import { TAX_DATA_2026 } from '../data/tax-data.js';
+import { getTaxDataContext, TAX_DATA_2026 } from '../data/tax-data.js';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '../messages/whatsapp.js';
 
 test('ללא הפקדות', () => assert.equal(calculateConsumerResult({ income: 200000, deposited: 0 }).remaining, 20566));
+test('שנה ללא נתונים מאומתים משתמשת בשנה הרשמית האחרונה בלי לשנות את שנת הנתונים', () => {
+  const context2027 = getTaxDataContext(new Date('2027-01-02T12:00:00'));
+  assert.equal(context2027.requestedYear, 2027);
+  assert.equal(context2027.dataYear, 2026);
+  assert.equal(context2027.isFallback, true);
+  assert.equal(context2027.message, 'נתוני 2027 טרם אומתו. החישוב מבוסס על הנתונים הרשמיים האחרונים שאומתו לשנת 2026.');
+  const context2028 = getTaxDataContext(new Date('2028-01-02T12:00:00'));
+  assert.equal(context2028.dataYear, 2026);
+  assert.match(context2028.message, /נתוני 2028 טרם אומתו/);
+});
 test('הפקדה חלקית', () => assert.equal(calculateConsumerResult({ income: 200000, deposited: 10000 }).remaining, 10566));
 test('ניצול מלא של התקרה', () => assert.equal(calculateConsumerResult({ income: 200000, deposited: 20566 }).remaining, 0));
 test('הפקדה מעל התקרה', () => {

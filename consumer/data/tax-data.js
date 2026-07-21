@@ -55,6 +55,35 @@ export const TAX_DATA_2026 = Object.freeze({
   },
 });
 
+export const TAX_DATA_BY_YEAR = Object.freeze({
+  2026: TAX_DATA_2026,
+});
+
+export function getTaxDataContext(date = new Date(), registry = TAX_DATA_BY_YEAR) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) throw new TypeError('Invalid date');
+  const requestedYear = date.getFullYear();
+  const verifiedYears = Object.entries(registry)
+    .filter(([, data]) => data?.taxYear && Object.values(data)
+      .filter((value) => value && typeof value === 'object' && 'status' in value)
+      .every((value) => value.status === 'official' || value.status === 'estimate'))
+    .map(([year]) => Number(year))
+    .filter((year) => year <= requestedYear)
+    .sort((a, b) => b - a);
+  if (!verifiedYears.length) throw new Error('No verified tax data available');
+  const dataYear = verifiedYears.includes(requestedYear) ? requestedYear : verifiedYears[0];
+  const data = registry[dataYear];
+  const isFallback = dataYear !== requestedYear;
+  return Object.freeze({
+    requestedYear,
+    dataYear,
+    data,
+    isFallback,
+    message: isFallback
+      ? `נתוני ${requestedYear} טרם אומתו. החישוב מבוסס על הנתונים הרשמיים האחרונים שאומתו לשנת ${dataYear}.`
+      : '',
+  });
+}
+
 export const RETURN_SCENARIOS = Object.freeze([
   { id: 'conservative', label: 'שמרני', annualRate: 0.04 },
   { id: 'middle', label: 'ביניים', annualRate: 0.07 },

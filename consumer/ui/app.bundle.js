@@ -61,6 +61,25 @@
       status: "estimate"
     }
   });
+  var TAX_DATA_BY_YEAR = Object.freeze({
+    2026: TAX_DATA_2026
+  });
+  function getTaxDataContext(date = /* @__PURE__ */ new Date(), registry = TAX_DATA_BY_YEAR) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) throw new TypeError("Invalid date");
+    const requestedYear = date.getFullYear();
+    const verifiedYears = Object.entries(registry).filter(([, data2]) => (data2 == null ? void 0 : data2.taxYear) && Object.values(data2).filter((value) => value && typeof value === "object" && "status" in value).every((value) => value.status === "official" || value.status === "estimate")).map(([year]) => Number(year)).filter((year) => year <= requestedYear).sort((a, b) => b - a);
+    if (!verifiedYears.length) throw new Error("No verified tax data available");
+    const dataYear = verifiedYears.includes(requestedYear) ? requestedYear : verifiedYears[0];
+    const data = registry[dataYear];
+    const isFallback = dataYear !== requestedYear;
+    return Object.freeze({
+      requestedYear,
+      dataYear,
+      data,
+      isFallback,
+      message: isFallback ? `\u05E0\u05EA\u05D5\u05E0\u05D9 ${requestedYear} \u05D8\u05E8\u05DD \u05D0\u05D5\u05DE\u05EA\u05D5. \u05D4\u05D7\u05D9\u05E9\u05D5\u05D1 \u05DE\u05D1\u05D5\u05E1\u05E1 \u05E2\u05DC \u05D4\u05E0\u05EA\u05D5\u05E0\u05D9\u05DD \u05D4\u05E8\u05E9\u05DE\u05D9\u05D9\u05DD \u05D4\u05D0\u05D7\u05E8\u05D5\u05E0\u05D9\u05DD \u05E9\u05D0\u05D5\u05DE\u05EA\u05D5 \u05DC\u05E9\u05E0\u05EA ${dataYear}.` : ""
+    });
+  }
   var RETURN_SCENARIOS = Object.freeze([
     { id: "conservative", label: "\u05E9\u05DE\u05E8\u05E0\u05D9", annualRate: 0.04 },
     { id: "middle", label: "\u05D1\u05D9\u05E0\u05D9\u05D9\u05DD", annualRate: 0.07 },
@@ -164,7 +183,7 @@
     }
     return lumpSum + monthlyDeposit * monthsDeposited;
   }
-  function projectedAnnualDeposits(input, date = ((_a) => (_a = input.today) != null ? _a : /* @__PURE__ */ new Date())()) {
+  function projectedAnnualDeposits(input, date = ((_a) => (_a = input.today) != null ? _a : /* @__PURE__ */ new Date())(), taxYear = getTaxDataContext(date).dataYear) {
     var _a2, _b, _c;
     const lumpSum = normalizeMoney((_a2 = input.lumpSum) != null ? _a2 : 0);
     const monthlyDeposit = normalizeMoney((_b = input.monthlyDeposit) != null ? _b : 0);
@@ -173,16 +192,16 @@
       throw new TypeError("Invalid deposit details");
     }
     if (!(date instanceof Date) || Number.isNaN(date.getTime())) throw new TypeError("Invalid date");
-    const futurePayments = date.getFullYear() === TAX_DATA_2026.taxYear ? Math.max(0, 11 - date.getMonth()) : date.getFullYear() < TAX_DATA_2026.taxYear ? 12 : 0;
+    const futurePayments = date.getFullYear() === taxYear ? Math.max(0, 11 - date.getMonth()) : date.getFullYear() < taxYear ? 12 : 0;
     return lumpSum + monthlyDeposit * Math.min(12, monthsDeposited + futurePayments);
   }
-  function calculateConsumerResult(input, data = TAX_DATA_2026) {
-    var _a, _b, _c, _d;
-    const calculationDate = (_a = input.today) != null ? _a : /* @__PURE__ */ new Date();
+  function calculateConsumerResult(input, data = getTaxDataContext(((_a) => (_a = input.today) != null ? _a : /* @__PURE__ */ new Date())()).data) {
+    var _a2, _b, _c, _d;
+    const calculationDate = (_a2 = input.today) != null ? _a2 : /* @__PURE__ */ new Date();
     const income = normalizeMoney(input.income);
     const lumpSumDeposit = normalizeMoney((_b = input.lumpSum) != null ? _b : 0);
     const depositedToDate = input.deposited === void 0 ? totalDeposited(input) : normalizeMoney(input.deposited);
-    const projectedDeposited = input.deposited === void 0 ? projectedAnnualDeposits(input, calculationDate) : depositedToDate;
+    const projectedDeposited = input.deposited === void 0 ? projectedAnnualDeposits(input, calculationDate, data.taxYear) : depositedToDate;
     const enteredExistingBalance = normalizeMoney(input.existingBalance);
     const existingBalance = input.existingBalance === "" || input.existingBalance === null || input.existingBalance === void 0 || enteredExistingBalance === 0 ? depositedToDate : enteredExistingBalance;
     if (!Number.isFinite(income) || income <= 0) throw new TypeError("Income must be greater than zero");
@@ -825,13 +844,13 @@ ${url}`;
       } else stepsForUser.push(buildRecommendation(result, profile));
       const wantsMonthlyPlan = profile.goals.includes("monthly");
       if (result.overCeiling > 0) {
-        stepsForUser.push(`\u05DC\u05E7\u05D1\u05D5\u05E2 \u05EA\u05D6\u05DB\u05D5\u05E8\u05EA \u05DC\u05BE1.1.${result.taxYear + 1}: \u05DC\u05D0\u05D7\u05E8 \u05E4\u05E8\u05E1\u05D5\u05DD \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05E2\u05D5\u05D3\u05DB\u05E0\u05EA, \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 \u05D0\u05EA \u05DE\u05DC\u05D5\u05D0 \u05D4\u05EA\u05E7\u05E8\u05D4 \u05DB\u05D1\u05E8 \u05D1\u05EA\u05D7\u05D9\u05DC\u05EA \u05D4\u05E9\u05E0\u05D4, \u05DB\u05D3\u05D9 \u05E9\u05D4\u05DB\u05E1\u05E3 \u05D9\u05D5\u05DB\u05DC \u05DC\u05E2\u05D1\u05D5\u05D3 \u05DC\u05D0\u05D5\u05E8\u05DA \u05E9\u05E0\u05D4 \u05D0\u05E8\u05D5\u05DB\u05D4 \u05D9\u05D5\u05EA\u05E8.`);
+        stepsForUser.push(`\u05DC\u05E7\u05D1\u05D5\u05E2 \u05EA\u05D6\u05DB\u05D5\u05E8\u05EA \u05DC\u05BE1.1.${result.taxYear + 1}: \u05DC\u05D0\u05D7\u05E8 \u05E4\u05E8\u05E1\u05D5\u05DD \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05E2\u05D5\u05D3\u05DB\u05E0\u05EA, \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 \u05D0\u05EA \u05DE\u05DC\u05D5\u05D0 \u05D4\u05EA\u05E7\u05E8\u05D4 \u05DB\u05D1\u05E8 \u05D1\u05EA\u05D7\u05D9\u05DC\u05EA \u05D4\u05E9\u05E0\u05D4, \u05DB\u05D3\u05D9 \u05E9\u05D4\u05DB\u05E1\u05E3 \u05D9\u05D5\u05DB\u05DC \u05DC\u05E2\u05D1\u05D5\u05D3 \u05DC\u05D0\u05D5\u05E8\u05DA \u05DB\u05DC \u05D4\u05E9\u05E0\u05D4.`);
       }
       if (wantsMonthlyPlan && result.remaining > 0) {
         stepsForUser.push(`\u05D7\u05DC\u05D5\u05E4\u05D4 \u05E0\u05D5\u05E1\u05E4\u05EA: \u05DC\u05D4\u05E9\u05DC\u05D9\u05DD \u05D4\u05E9\u05E0\u05D4 \u05D0\u05EA \u05DE\u05DC\u05D5\u05D0 \u05D4\u05D9\u05EA\u05E8\u05D4, ${money2(result.remaining)}, \u05D1\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9\u05EA; \u05D5\u05DE\u05BE1.1.${result.taxYear + 1} \u05DC\u05D4\u05EA\u05D7\u05D9\u05DC \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2 \u05E9\u05D5\u05D8\u05E4\u05EA \u05E9\u05DC \u05DB\u05BE${money2(result.suggestedMonthly)} \u05D1\u05D7\u05D5\u05D3\u05E9. \u05D4\u05E1\u05DB\u05D5\u05DD \u05D4\u05D7\u05D5\u05D3\u05E9\u05D9 \u05DE\u05D1\u05D5\u05E1\u05E1 \u05E2\u05DC \u05EA\u05E7\u05E8\u05EA ${result.taxYear} \u05D5\u05D9\u05E9 \u05DC\u05E2\u05D3\u05DB\u05E0\u05D5 \u05DC\u05D0\u05D7\u05E8 \u05E4\u05E8\u05E1\u05D5\u05DD \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05D7\u05D3\u05E9\u05D4.`);
       }
       if (profile.completionPreference === "lump" && !wantsMonthlyPlan && result.overCeiling === 0) {
-        stepsForUser.push(`\u05DC\u05E7\u05D1\u05D5\u05E2 \u05DB\u05D1\u05E8 \u05E2\u05DB\u05E9\u05D9\u05D5 \u05EA\u05D6\u05DB\u05D5\u05E8\u05EA \u05DC\u05BE1.1.${result.taxYear + 1}. \u05DC\u05D0\u05D7\u05E8 \u05E4\u05E8\u05E1\u05D5\u05DD \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05E2\u05D5\u05D3\u05DB\u05E0\u05EA \u05DC\u05E9\u05E0\u05D4 \u05D4\u05D1\u05D0\u05D4, \u05E0\u05D9\u05EA\u05DF \u05DC\u05E9\u05E7\u05D5\u05DC \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 \u05D0\u05D5\u05EA\u05D4 \u05D1\u05EA\u05D7\u05D9\u05DC\u05EA \u05D4\u05E9\u05E0\u05D4 \u2014 \u05DB\u05DA \u05D4\u05DB\u05E1\u05E3 \u05D9\u05D5\u05DB\u05DC \u05DC\u05D4\u05D9\u05D5\u05EA \u05DE\u05D5\u05E9\u05E7\u05E2 \u05D5\u05DC\u05E2\u05D1\u05D5\u05D3 \u05DC\u05D0\u05D5\u05E8\u05DA \u05E9\u05E0\u05D4 \u05D0\u05E8\u05D5\u05DB\u05D4 \u05D9\u05D5\u05EA\u05E8.`);
+        stepsForUser.push(`\u05DC\u05E7\u05D1\u05D5\u05E2 \u05DB\u05D1\u05E8 \u05E2\u05DB\u05E9\u05D9\u05D5 \u05EA\u05D6\u05DB\u05D5\u05E8\u05EA \u05DC\u05BE1.1.${result.taxYear + 1}. \u05DC\u05D0\u05D7\u05E8 \u05E4\u05E8\u05E1\u05D5\u05DD \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05E2\u05D5\u05D3\u05DB\u05E0\u05EA \u05DC\u05E9\u05E0\u05D4 \u05D4\u05D1\u05D0\u05D4, \u05E0\u05D9\u05EA\u05DF \u05DC\u05E9\u05E7\u05D5\u05DC \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 \u05D0\u05D5\u05EA\u05D4 \u05D1\u05EA\u05D7\u05D9\u05DC\u05EA \u05D4\u05E9\u05E0\u05D4 \u2014 \u05DB\u05DA \u05D4\u05DB\u05E1\u05E3 \u05D9\u05D5\u05DB\u05DC \u05DC\u05D4\u05D9\u05D5\u05EA \u05DE\u05D5\u05E9\u05E7\u05E2 \u05D5\u05DC\u05E2\u05D1\u05D5\u05D3 \u05DC\u05D0\u05D5\u05E8\u05DA \u05DB\u05DC \u05D4\u05E9\u05E0\u05D4.`);
       } else if (result.nextYearRatePayments === 0 && (result.overCeiling === 0 || wantsMonthlyPlan) && !(wantsMonthlyPlan && result.remaining > 0 && result.currentMonthlyDeposit === 0)) {
         const alternativePrefix = result.overCeiling > 0 ? "\u05DC\u05D7\u05D9\u05DC\u05D5\u05E4\u05D9\u05DF, " : "";
         stepsForUser.push(`${alternativePrefix}\u05DC\u05D4\u05D9\u05E2\u05E8\u05DA \u05DC\u05E9\u05E0\u05D4 \u05D4\u05D1\u05D0\u05D4 \u05E2\u05DD \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2 \u05E9\u05DC \u05DB\u05BE${money2(result.suggestedMonthly)} \u05D1\u05D7\u05D5\u05D3\u05E9, \u05D5\u05DC\u05E2\u05D3\u05DB\u05DF \u05D0\u05D5\u05EA\u05D4 \u05DB\u05E9\u05D4\u05EA\u05E7\u05E8\u05D4 \u05DE\u05E9\u05EA\u05E0\u05D4.`);
@@ -921,7 +940,7 @@ ${url}`;
     renderScore(result, profile);
     renderRecommendationSteps(result, profile);
     renderScenarios(result);
-    $(".growth-notice").textContent = `\u05D4\u05D7\u05D9\u05E9\u05D5\u05D1 \u05DE\u05EA\u05D7\u05D9\u05DC \u05DE\u05D4\u05E6\u05D1\u05D9\u05E8\u05D4 \u05E9\u05D4\u05D6\u05E0\u05EA, ${money2(result.existingBalance)}, \u05D5\u05DE\u05D5\u05E1\u05D9\u05E3 \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D5\u05D3\u05E9\u05D9\u05EA \u05E7\u05D1\u05D5\u05E2\u05D4 \u05E9\u05DC ${money2(result.suggestedMonthly)} (\u05EA\u05E7\u05E8\u05EA 2026 \u05D7\u05DC\u05E7\u05D9 12), \u05DC\u05DC\u05D0 \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9\u05EA \u05D5\u05DC\u05E4\u05E0\u05D9 \u05D3\u05DE\u05D9 \u05E0\u05D9\u05D4\u05D5\u05DC. \u05D4\u05DE\u05D7\u05E9\u05D4 \u05D1\u05DC\u05D1\u05D3, \u05DC\u05DC\u05D0 \u05D4\u05EA\u05D7\u05D9\u05D9\u05D1\u05D5\u05EA \u05DC\u05EA\u05E9\u05D5\u05D0\u05D4; \u05D4\u05E1\u05DB\u05D5\u05DE\u05D9\u05DD \u05E0\u05D5\u05DE\u05D9\u05E0\u05DC\u05D9\u05D9\u05DD \u05D5\u05D1\u05D4\u05E0\u05D7\u05EA \u05EA\u05E9\u05D5\u05D0\u05D4 \u05E7\u05D1\u05D5\u05E2\u05D4.`;
+    $(".growth-notice").textContent = `\u05D4\u05D7\u05D9\u05E9\u05D5\u05D1 \u05DE\u05EA\u05D7\u05D9\u05DC \u05DE\u05D4\u05E6\u05D1\u05D9\u05E8\u05D4 \u05E9\u05D4\u05D6\u05E0\u05EA, ${money2(result.existingBalance)}, \u05D5\u05DE\u05D5\u05E1\u05D9\u05E3 \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D5\u05D3\u05E9\u05D9\u05EA \u05E7\u05D1\u05D5\u05E2\u05D4 \u05E9\u05DC ${money2(result.suggestedMonthly)} (\u05EA\u05E7\u05E8\u05EA ${result.taxYear} \u05D7\u05DC\u05E7\u05D9 12), \u05DC\u05DC\u05D0 \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9\u05EA \u05D5\u05DC\u05E4\u05E0\u05D9 \u05D3\u05DE\u05D9 \u05E0\u05D9\u05D4\u05D5\u05DC. \u05D4\u05DE\u05D7\u05E9\u05D4 \u05D1\u05DC\u05D1\u05D3, \u05DC\u05DC\u05D0 \u05D4\u05EA\u05D7\u05D9\u05D9\u05D1\u05D5\u05EA \u05DC\u05EA\u05E9\u05D5\u05D0\u05D4; \u05D4\u05E1\u05DB\u05D5\u05DE\u05D9\u05DD \u05E0\u05D5\u05DE\u05D9\u05E0\u05DC\u05D9\u05D9\u05DD \u05D5\u05D1\u05D4\u05E0\u05D7\u05EA \u05EA\u05E9\u05D5\u05D0\u05D4 \u05E7\u05D1\u05D5\u05E2\u05D4.`;
     const whatsappUrl = buildWhatsAppUrl(result, profile);
     $("#whatsapp").href = whatsappUrl;
     $("#whatsapp-secondary").href = whatsappUrl;

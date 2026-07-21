@@ -1,0 +1,106 @@
+name: בדיקת נתוני מס לשנה הבאה
+
+on:
+  schedule:
+    - cron: '15 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  watch-official-sources:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: חיפוש פרסומים רשמיים חדשים
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const taxData = fs.readFileSync('consumer/data/tax-data.js', 'utf8');
+            const verifiedYears = [...taxData.matchAll(/export const TAX_DATA_(\d{4})\s*=/g)]
+              .map(match => Number(match[1]));
+            const latestVerifiedYear = Math.max(...verifiedYears);
+            const targetYear = Math.max(new Date().getUTCFullYear(), latestVerifiedYear + 1);
+            const sources = [
+              {
+                name: 'לוח הניכויים של רשות המסים',
+                url: `https://www.gov.il/BlobFolder/generalpage/income-tax-monthly-deductions-booklet/he/generalInformation_income-tax-monthly-deductions-booklet_monthly-deductions-booklet-${targetYear}.pdf`,
+                detect: (response, body) => response.ok && ((response.headers.get('content-type') || '').includes('pdf') || body.startsWith('%PDF')),
+              },
+              {
+                name: 'שיעורי דמי ביטוח לעצמאי — ביטוח לאומי',
+                url: 'https://www.btl.gov.il/insurance/national%20insurance/type_list/self_employed/pages/rates.aspx',
+                detect: (response, body) => response.ok && body.includes(String(targetYear)),
+              },
+              {
+                name: 'חוזרי גבייה ללא שכירים — ביטוח לאומי',
+                url: 'https://www.btl.gov.il/Insurance/HozrimBituah/HozrimGalash/Pages/default.aspx',
+                detect: (response, body) => response.ok && body.includes(String(targetYear)),
+              },
+            ];
+
+            const findings = [];
+            for (const source of sources) {
+              try {
+                const response = await fetch(source.url, { redirect: 'follow' });
+                const body = await response.text();
+                if (source.detect(response, body)) findings.push(source);
+              } catch (error) {
+                core.warning(`Source check failed: ${source.name}: ${error.message}`);
+              }
+            }
+
+            if (!findings.length) {
+              core.notice(`לא נמצאו פרסומים אפשריים לשנת ${targetYear}. נתוני ${latestVerifiedYear} נשארים פעילים.`);
+              return;
+            }
+
+            const title = `[נדרש אימות אנושי] נמצאו פרסומים אפשריים לשנת ${targetYear}`;
+            const { data: existing } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100,
+            });
+            if (existing.some(issue => issue.title === title)) {
+              core.notice(`כבר קיימת התרעת אימות פתוחה לשנת ${targetYear}.`);
+              return;
+            }
+
+            const links = findings.map(source => `- [${source.name}](${source.url})`).join('\n');
+            const body = `## נמצאו פרסומים שעשויים לכלול נתוני מס חדשים לשנת ${targetYear}
+
+            **תאריך הזיהוי:** ${new Date().toISOString().slice(0, 10)}
+            **שנת הנתונים הפעילה באתר:** ${latestVerifiedYear}
+
+            ### מקורות שבהם זוהה עדכון אפשרי
+            ${links}
+
+            ### חשוב
+            המנגנון **לא שינה ולא פרסם אף מספר באתר**. עד לאימות אנושי, שני המחשבונים ממשיכים להשתמש בנתונים המאומתים לשנת ${latestVerifiedYear} ומציגים זאת במפורש.
+
+            ### מה צריך לאמת
+            - תקרת ההפקדה שנהנית מפטור ממס רווחי הון
+            - תקרת ההכנסה הקובעת וההוצאה המוכרת המרבית
+            - מדרגות מס ההכנסה
+            - שיעורי ותקרות הביטוח הלאומי והבריאות לעצמאי
+            - המקור הרשמי, שנת המס, תאריך האימות והסטטוס של כל נתון
+
+            ### איך ממשיכים
+            1. לבדוק ידנית את המקורות הרשמיים.
+            2. להוסיף במאגר אובייקט נתונים חדש בשם \`TAX_DATA_${targetYear}\` עם מקורות וסטטוס.
+            3. להוסיף את אותה שנה לנתוני המחשבון המקצועי.
+            4. להריץ את כל הבדיקות ולהשוות בין שני המחשבונים.
+            5. לפרסם רק לאחר אישור אנושי מפורש.`;
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              assignees: [context.repo.owner],
+            });
+

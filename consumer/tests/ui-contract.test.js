@@ -41,6 +41,8 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   assert.match(html, /כמה הפקדת לקרן שלך השנה/);
   assert.match(html, /מה הצבירה הנוכחית בקרן\? <span>\(כולל מה שכבר הופקד השנה\)<\/span>/);
   assert.match(html, /class="balance-forecast-card"/);
+  assert.match(html, /רוצה לראות תחזית על הצבירה הקיימת\?/);
+  assert.doesNotMatch(html, /תחזית אישית מדויקת יותר|הוספת הצבירה הקיימת תאפשר/);
   assert.doesNotMatch(html, /class="optional-balance"/);
   assert.match(html, /id="stage-restart"[^>]*>.*נקה והתחל מחדש/);
   assert.equal((html.match(/type="checkbox" name="goal"/g) || []).length, 4);
@@ -57,6 +59,15 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   assert.ok(html.indexOf('class="whatsapp-card"') < html.indexOf('class="action-plan-card"'));
   assert.match(html, /id="countdown-days"/);
   assert.match(html, /id="whatsapp-secondary"/);
+});
+
+test('סטטוס שנת המס מוצג רק כאשר השנה הנוכחית טרם אומתה', async () => {
+  const landing = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+  const check = await readFile(new URL('../check.html', import.meta.url), 'utf8');
+  const status = await readFile(new URL('../ui/tax-year-status.js', import.meta.url), 'utf8');
+  for (const html of [landing, check]) assert.match(html, /data-tax-year-status hidden/);
+  assert.match(status, /banner\.hidden = !context\.isFallback/);
+  assert.match(status, /context\.message/);
 });
 
 test('מסך הפתיחה אינו מציג תגית צפה ליד תמונת היועץ', async () => {
@@ -98,7 +109,7 @@ test('מסך התוצאה מציג יתרה פעם אחת, טיימר חי ו-CT
   const html = await readFile(new URL('../check.html', import.meta.url), 'utf8');
   const source = await readFile(new URL('../ui/app.js', import.meta.url), 'utf8');
 
-  assert.equal((html.match(/זה הסכום שעוד ניתן להפקיד עד סוף 2026/g) || []).length, 1);
+  assert.equal((html.match(/זה הסכום שעוד ניתן להפקיד עד סוף <span data-tax-data-year>2026<\/span>/g) || []).length, 1);
   assert.doesNotMatch(html, /זהו הסכום שניתן לשקול להפקיד/);
   assert.match(html, /id="countdown-seconds"/);
   assert.ok(html.indexOf('id="countdown-seconds"') < html.indexOf('id="countdown-days"'));

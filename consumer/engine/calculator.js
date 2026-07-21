@@ -1,4 +1,8 @@
-import { RETURN_SCENARIOS, TAX_DATA_2026 } from '../data/tax-data.js';
+import { getTaxDataContext, RETURN_SCENARIOS, TAX_DATA_2026 } from '../data/tax-data.js';
+
+export function currentTaxDataContext(date = new Date()) {
+  return getTaxDataContext(date);
+}
 
 export function normalizeMoney(value) {
   if (typeof value === 'string') value = value.replace(/[₪,\s]/g, '');
@@ -115,7 +119,7 @@ export function totalDeposited(input) {
   return lumpSum + (monthlyDeposit * monthsDeposited);
 }
 
-export function projectedAnnualDeposits(input, date = input.today ?? new Date()) {
+export function projectedAnnualDeposits(input, date = input.today ?? new Date(), taxYear = getTaxDataContext(date).dataYear) {
   const lumpSum = normalizeMoney(input.lumpSum ?? 0);
   const monthlyDeposit = normalizeMoney(input.monthlyDeposit ?? 0);
   const monthsDeposited = normalizeMoney(input.monthsDeposited ?? 0);
@@ -123,18 +127,18 @@ export function projectedAnnualDeposits(input, date = input.today ?? new Date())
     throw new TypeError('Invalid deposit details');
   }
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) throw new TypeError('Invalid date');
-  const futurePayments = date.getFullYear() === TAX_DATA_2026.taxYear
+  const futurePayments = date.getFullYear() === taxYear
     ? Math.max(0, 11 - date.getMonth())
-    : date.getFullYear() < TAX_DATA_2026.taxYear ? 12 : 0;
+    : date.getFullYear() < taxYear ? 12 : 0;
   return lumpSum + (monthlyDeposit * Math.min(12, monthsDeposited + futurePayments));
 }
 
-export function calculateConsumerResult(input, data = TAX_DATA_2026) {
+export function calculateConsumerResult(input, data = getTaxDataContext(input.today ?? new Date()).data) {
   const calculationDate = input.today ?? new Date();
   const income = normalizeMoney(input.income);
   const lumpSumDeposit = normalizeMoney(input.lumpSum ?? 0);
   const depositedToDate = input.deposited === undefined ? totalDeposited(input) : normalizeMoney(input.deposited);
-  const projectedDeposited = input.deposited === undefined ? projectedAnnualDeposits(input, calculationDate) : depositedToDate;
+  const projectedDeposited = input.deposited === undefined ? projectedAnnualDeposits(input, calculationDate, data.taxYear) : depositedToDate;
   const enteredExistingBalance = normalizeMoney(input.existingBalance);
   const existingBalance = input.existingBalance === '' || input.existingBalance === null || input.existingBalance === undefined || enteredExistingBalance === 0
     ? depositedToDate
