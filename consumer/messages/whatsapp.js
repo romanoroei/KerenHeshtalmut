@@ -26,6 +26,8 @@ export function buildWhatsAppMessage(result, profile = {}, attribution = getAttr
     `שווי הטבות המס הכולל (אומדן): ${money(result.estimatedCombinedBenefitTotal ?? result.estimatedTotalTaxBenefit)} ₪`,
     '',
     `מקור ההגעה: ${attributionLabel(attribution)}`,
+    ...(attribution.campaign ? [`קמפיין: ${attribution.campaign}`] : []),
+    ...(attribution.content ? [`תוכן: ${attribution.content}`] : []),
     ...(attribution.referrerCode ? [`קוד מפנה: ${attribution.referrerCode}`] : []),
     '',
     'אשמח שתבדוק איתי מה הצעד הבא שמתאים למצב שלי',

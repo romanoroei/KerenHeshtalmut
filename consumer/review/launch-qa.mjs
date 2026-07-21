@@ -15,7 +15,7 @@ async function runFlow(page, options = {}) {
     await page.locator(`input[name="depositMethod"][value="${method}"]`).check({ force: true });
     if (['lump', 'both'].includes(method)) await page.locator('#lumpSum').fill(String(lump));
     if (['monthly', 'both'].includes(method)) { await page.locator('#monthlyDeposit').fill(String(monthly)); await page.locator('#monthsDeposited').fill(String(months)); }
-    if (balance !== undefined) { await page.locator('.optional-balance').evaluate((el) => { el.open = true; }); await page.locator('#existingBalance').fill(String(balance)); }
+    if (balance !== undefined) await page.locator('#existingBalance').fill(String(balance));
     await page.locator('[data-next]').click();
     await page.waitForTimeout(220);
   }
@@ -52,11 +52,26 @@ const utility = await browser.newPage({ viewport: { width: 390, height: 844 } })
 await utility.goto(`${base}?utm_source=whatsapp&utm_medium=organic&utm_campaign=launch-2026&ref=accountant-test`, { waitUntil: 'domcontentloaded' });
 results.push({ name: 'attribution', value: await utility.evaluate(() => sessionStorage.getItem('consumer_attribution')) });
 await utility.locator('#essentialCookies').click(); results.push({ name: 'essential-only', value: await utility.evaluate(() => localStorage.getItem('consumer_analytics_consent')), gaLoaded: await utility.locator('script[src*="googletagmanager"]').count() });
-await utility.evaluate(() => localStorage.removeItem('consumer_analytics_consent')); await utility.reload(); await utility.locator('#acceptCookies').click(); results.push({ name: 'accepted-no-id', value: await utility.evaluate(() => localStorage.getItem('consumer_analytics_consent')), gaLoaded: await utility.locator('script[src*="googletagmanager"]').count() });
+await utility.evaluate(() => { localStorage.removeItem('consumer_analytics_consent'); sessionStorage.clear(); });
+await utility.goto(`${base}?utm_source=tiktok&utm_medium=organic&utm_campaign=launch-2026&utm_content=video-1`, { waitUntil: 'domcontentloaded' });
+const queuedBeforeConsent = await utility.evaluate(() => sessionStorage.getItem('consumer_pending_analytics_events'));
+await utility.locator('.btn-landing').click({ force: true });
+await utility.locator('#acceptCookies').click();
+await utility.waitForFunction(() => sessionStorage.getItem('consumer_event_landing_view') && sessionStorage.getItem('consumer_event_calculator_started'));
+results.push({ name: 'late-consent', queuedBeforeConsent, attribution: await utility.evaluate(() => sessionStorage.getItem('consumer_attribution')), pendingAfterConsent: await utility.evaluate(() => sessionStorage.getItem('consumer_pending_analytics_events')), gaLoaded: await utility.locator('script[src*="googletagmanager"]').count() });
 await utility.goto(`${base}check.html?restart=1`); await utility.locator('#income').fill('200000'); await utility.locator('[data-next]').click(); await utility.waitForTimeout(240); await utility.reload(); results.push({ name: 'refresh-restore', restoredIncome: await utility.locator('#income').inputValue(), restoredStep: await utility.locator('#step-copy').textContent() });
+for (const query of ['', '?utm_source=whatsapp&utm_medium=organic&utm_campaign=launch-2026&utm_content=status-1', '?utm_source=tiktok&utm_medium=organic&utm_campaign=launch-2026&utm_content=video-1', '?utm_source=accountant&utm_medium=referral&utm_campaign=partners-2026&ref=accountant-test']) {
+  await utility.evaluate(() => sessionStorage.clear()); await utility.goto(`${base}${query}`);
+  results.push({ name: `marketing-${query || 'direct'}`, overflow: await utility.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth), attribution: await utility.evaluate(() => sessionStorage.getItem('consumer_attribution')) });
+}
+await utility.goto(`${base}admin/link-builder.html`); await utility.locator('[data-template="whatsapp_status"]').click();
+const generatedLink = await utility.locator('#generated-url').inputValue(); await utility.locator('#copy-link').click();
+results.push({ name: 'link-builder', generatedLink, copied: await utility.locator('#link-feedback').textContent(), openHref: await utility.locator('#open-link').getAttribute('href'), overflow: await utility.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth) });
 await utility.locator('#restart').count().catch(() => 0);
 await utility.close();
 await writeFile(new URL('./launch-qa-report.json', import.meta.url), JSON.stringify(results, null, 2));
 await Promise.race([browser.close(), new Promise((resolve) => setTimeout(resolve, 5000))]);
-const failures = results.filter((item) => item.error || item.overflow || item.primaryActions > 2 || item.errors?.length || item.gaLoaded > 0);
-if (failures.length) { console.error(JSON.stringify(failures, null, 2)); process.exitCode = 1; } else console.log(JSON.stringify(results, null, 2));
+const failures = results.filter((item) => item.error || item.overflow || item.primaryActions > 2 || item.errors?.length || item.name === 'essential-only' && item.gaLoaded > 0 || item.name === 'late-consent' && (item.gaLoaded !== 1 || item.pendingAfterConsent));
+if (failures.length) { console.error(JSON.stringify(failures, null, 2)); process.exit(1); }
+console.log(JSON.stringify(results, null, 2));
+process.exit(0);

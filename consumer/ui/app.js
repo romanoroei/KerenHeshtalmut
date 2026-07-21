@@ -3,8 +3,8 @@ import { calculateUtilizationScore } from '../engine/score.js';
 import { buildCta, buildRecommendation } from '../engine/recommendations.js';
 import { buildConsumerShareUrl, buildShareMessage, buildWhatsAppUrl } from '../messages/whatsapp.js';
 import { SITE_CONFIG } from '../config.js';
-import { getAttribution } from '../analytics/attribution.js';
-import { trackEvent, trackOnce } from '../analytics/tracking.js';
+import { attributionEventParameters, getAttribution } from '../analytics/attribution.js';
+import { trackEvent, trackOnce, trackOnceOrQueue } from '../analytics/tracking.js';
 import { countUp } from './animations.js';
 
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -27,6 +27,7 @@ let isSubmitting = false;
 const stepHistory = [0];
 const FORM_STATE_KEY = 'consumer_calculator_state';
 const attribution = getAttribution();
+const attributionParameters = attributionEventParameters(attribution);
 
 function saveFormState() {
   try {
@@ -511,7 +512,7 @@ form.addEventListener('submit', (event) => {
   try {
     const { input, profile } = collect();
     const result = calculateConsumerResult(input);
-    trackOnce('calculator_completed', { fund_status: profile.fundStatus, deposit_method: profile.depositMethod, goals: profile.goals.join('|'), result_status: resultStatus(result) });
+    trackOnce('calculator_completed', { fund_status: profile.fundStatus, deposit_method: profile.depositMethod, goals: profile.goals.join('|'), result_status: resultStatus(result), ...attributionParameters });
     $('.wizard-layout').hidden = true;
     $('.check-heading').hidden = true;
     $('#loading').hidden = false;
@@ -550,7 +551,7 @@ $$('.calculation-details, #more-recommendations').forEach((details) => details.a
 }));
 
 $$('#whatsapp, #whatsapp-secondary').forEach((link) => link.addEventListener('click', () => {
-  trackEvent('whatsapp_clicked', { result_status: resultStatus(lastResult), fund_status: lastProfile?.fundStatus || '', entry_source: attribution.source, referrer_code: attribution.referrerCode || '' });
+  trackEvent('whatsapp_clicked', { result_status: resultStatus(lastResult), fund_status: lastProfile?.fundStatus || '', ...attributionParameters });
   const notice = $('#whatsapp-status');
   if (notice) notice.textContent = 'WhatsApp נפתח בחלון חדש. לאחר שליחת ההודעה רועי יוכל לחזור אליך.';
 }));
@@ -579,6 +580,6 @@ if (new URLSearchParams(location.search).has('restart')) {
   history.replaceState(null, '', './check.html');
   scrollTo(0, 0);
 }
-trackOnce('calculator_started', { entry_source: attribution.source, referrer_code: attribution.referrerCode || '' });
+trackOnceOrQueue('calculator_started', attributionParameters);
 restoreFormState();
 renderStep(currentStep, false);
