@@ -50,9 +50,19 @@ export function getAttribution(storage = globalThis.sessionStorage) {
 }
 
 export function attributionLabel(attribution = {}) {
-  const labels = { whatsapp: 'WhatsApp', tiktok: 'TikTok', facebook: 'Facebook', accountant: 'רואה חשבון', direct: 'ישיר', google: 'Google', referral: 'אתר מפנה' };
-  if (attribution.referrerCode?.toLowerCase().includes('accountant')) return 'רואה חשבון';
+  const labels = { whatsapp: 'WhatsApp', tiktok: 'TikTok', facebook: 'Facebook', instagram: 'Instagram', meta: 'Meta', accountant: 'רואה חשבון', bookkeeper: 'מנהל/ת חשבונות', email: 'Email', website: 'אתר', direct: 'ישיר', google: 'Google', referral: 'אתר מפנה' };
   return labels[String(attribution.source || '').toLowerCase()] || sanitizeAttributionValue(attribution.source) || 'ישיר';
+}
+
+export function attributionEventParameters(attribution = getAttribution()) {
+  return {
+    source: attribution.source || 'direct',
+    medium: attribution.medium || 'none',
+    campaign: attribution.campaign || '',
+    content: attribution.content || '',
+    term: attribution.term || '',
+    referrer_code: attribution.referrerCode || '',
+  };
 }
 
 export { ATTRIBUTION_KEY, MAX_VALUE_LENGTH };

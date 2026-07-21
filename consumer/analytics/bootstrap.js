@@ -1,10 +1,17 @@
-import { getAttribution, saveInitialAttribution } from './attribution.js';
+import { attributionEventParameters, getAttribution, saveInitialAttribution } from './attribution.js';
 import { getConsentStatus, setConsentStatus } from './consent.js';
-import { loadAnalytics, trackOnce } from './tracking.js';
+import { clearPendingAnalyticsEvents, flushPendingAnalyticsEvents, loadAnalytics, trackOnce, trackOnceOrQueue } from './tracking.js';
 
 const notice = document.getElementById('cookieNotice');
 const showConsent = () => notice?.classList.toggle('is-visible', getConsentStatus() === 'unknown');
-const choose = (status) => { setConsentStatus(status); showConsent(); if (status === 'accepted') loadAnalytics(); };
+const choose = async (status) => {
+  setConsentStatus(status);
+  showConsent();
+  if (status === 'accepted') {
+    await loadAnalytics();
+    await flushPendingAnalyticsEvents();
+  } else clearPendingAnalyticsEvents();
+};
 
 saveInitialAttribution();
 showConsent();
@@ -18,12 +25,11 @@ document.querySelectorAll('[data-cookie-settings]').forEach((button) => button.a
 }));
 
 const attribution = getAttribution();
-trackOnce('landing_view', {
+trackOnceOrQueue('landing_view', {
   page_type: location.pathname.endsWith('check.html') ? 'consumer_check' : 'consumer_landing',
-  source: attribution.source, medium: attribution.medium, campaign: attribution.campaign || '',
-  referrer_code: attribution.referrerCode || '',
+  ...attributionEventParameters(attribution),
 });
-document.querySelector('.btn-landing')?.addEventListener('click', () => trackOnce('calculator_started', { entry_source: attribution.source, referrer_code: attribution.referrerCode || '' }));
+document.querySelector('.btn-landing')?.addEventListener('click', () => trackOnceOrQueue('calculator_started', attributionEventParameters(attribution)));
 document.querySelectorAll('[data-professional-link]').forEach((link) => link.addEventListener('click', () => trackOnce('professional_calculator_clicked')));
 document.querySelectorAll('.legal-card').forEach((details) => details.addEventListener('toggle', () => {
   if (details.open) trackOnce(`details_${details.id || 'disclaimer'}`, { details_type: details.id || 'disclaimer' });

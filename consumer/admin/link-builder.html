@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>מחולל קישורי שיווק | כלי פנימי</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./link-builder.css">
+</head>
+<body>
+  <main class="builder-shell">
+    <header><span>כלי פנימי</span><h1>מחולל קישורי שיווק</h1><p>כלי פנימי ליצירת קישורי שיווק. אין להזין מידע אישי של לקוחות.</p></header>
+    <section class="builder-card" aria-labelledby="templates-title">
+      <h2 id="templates-title">תבניות מהירות</h2>
+      <div class="template-grid">
+        <button type="button" data-template="whatsapp_status">סטטוס WhatsApp</button>
+        <button type="button" data-template="whatsapp_personal">הודעה אישית</button>
+        <button type="button" data-template="tiktok">TikTok</button>
+        <button type="button" data-template="meta_paid">Meta ממומן</button>
+        <button type="button" data-template="google_ads">Google Ads</button>
+        <button type="button" data-template="accountant">רואה חשבון</button>
+        <button type="button" data-template="bookkeeper">מנהל/ת חשבונות</button>
+      </div>
+    </section>
+    <form id="link-builder-form" class="builder-card">
+      <div class="field-grid">
+        <label>מקור<select name="source" required><option>whatsapp</option><option>tiktok</option><option>facebook</option><option>instagram</option><option>meta</option><option>google</option><option>email</option><option>accountant</option><option>bookkeeper</option><option>website</option><option>other</option></select></label>
+        <label>סוג תנועה<select name="medium" required><option>organic</option><option>paid_social</option><option>cpc</option><option>email</option><option>referral</option><option>direct</option></select></label>
+        <label>קמפיין<input name="campaign" value="launch-2026" maxlength="80" required autocomplete="off"></label>
+        <label>תוכן (רשות)<input name="content" maxlength="80" placeholder="status-1" autocomplete="off"></label>
+        <label>מילת חיפוש (רשות)<input name="term" maxlength="80" placeholder="independent-fund" autocomplete="off"></label>
+        <label>קוד מפנה (רשות)<input name="ref" maxlength="80" placeholder="accountant-name" autocomplete="off"></label>
+      </div>
+      <button class="primary" type="submit">יצירת קישור</button>
+    </form>
+    <section class="builder-card result-card" aria-labelledby="result-title">
+      <h2 id="result-title">הקישור שנוצר</h2>
+      <label class="sr-only" for="generated-url">כתובת מלאה</label>
+      <textarea id="generated-url" readonly rows="3"></textarea>
+      <div class="result-actions"><button id="copy-link" type="button">העתקת קישור</button><a id="open-link" target="_blank" rel="noopener">פתיחת הקישור</a></div>
+      <p id="link-feedback" class="feedback" aria-live="polite"></p>
+      <h3>סיכום</h3><ul id="link-summary" dir="ltr"></ul>
+    </section>
+  </main>
+  <script type="module" src="./link-builder.js"></script>
+</body>
+</html>

@@ -398,10 +398,18 @@
     }
   }
   function attributionLabel(attribution2 = {}) {
-    var _a;
-    const labels2 = { whatsapp: "WhatsApp", tiktok: "TikTok", facebook: "Facebook", accountant: "\u05E8\u05D5\u05D0\u05D4 \u05D7\u05E9\u05D1\u05D5\u05DF", direct: "\u05D9\u05E9\u05D9\u05E8", google: "Google", referral: "\u05D0\u05EA\u05E8 \u05DE\u05E4\u05E0\u05D4" };
-    if ((_a = attribution2.referrerCode) == null ? void 0 : _a.toLowerCase().includes("accountant")) return "\u05E8\u05D5\u05D0\u05D4 \u05D7\u05E9\u05D1\u05D5\u05DF";
+    const labels2 = { whatsapp: "WhatsApp", tiktok: "TikTok", facebook: "Facebook", instagram: "Instagram", meta: "Meta", accountant: "\u05E8\u05D5\u05D0\u05D4 \u05D7\u05E9\u05D1\u05D5\u05DF", bookkeeper: "\u05DE\u05E0\u05D4\u05DC/\u05EA \u05D7\u05E9\u05D1\u05D5\u05E0\u05D5\u05EA", email: "Email", website: "\u05D0\u05EA\u05E8", direct: "\u05D9\u05E9\u05D9\u05E8", google: "Google", referral: "\u05D0\u05EA\u05E8 \u05DE\u05E4\u05E0\u05D4" };
     return labels2[String(attribution2.source || "").toLowerCase()] || sanitizeAttributionValue(attribution2.source) || "\u05D9\u05E9\u05D9\u05E8";
+  }
+  function attributionEventParameters(attribution2 = getAttribution()) {
+    return {
+      source: attribution2.source || "direct",
+      medium: attribution2.medium || "none",
+      campaign: attribution2.campaign || "",
+      content: attribution2.content || "",
+      term: attribution2.term || "",
+      referrer_code: attribution2.referrerCode || ""
+    };
   }
 
   // consumer/messages/whatsapp.js
@@ -431,6 +439,8 @@
       `\u05E9\u05D5\u05D5\u05D9 \u05D4\u05D8\u05D1\u05D5\u05EA \u05D4\u05DE\u05E1 \u05D4\u05DB\u05D5\u05DC\u05DC (\u05D0\u05D5\u05DE\u05D3\u05DF): ${money((_g = result.estimatedCombinedBenefitTotal) != null ? _g : result.estimatedTotalTaxBenefit)} \u20AA`,
       "",
       `\u05DE\u05E7\u05D5\u05E8 \u05D4\u05D4\u05D2\u05E2\u05D4: ${attributionLabel(attribution2)}`,
+      ...attribution2.campaign ? [`\u05E7\u05DE\u05E4\u05D9\u05D9\u05DF: ${attribution2.campaign}`] : [],
+      ...attribution2.content ? [`\u05EA\u05D5\u05DB\u05DF: ${attribution2.content}`] : [],
       ...attribution2.referrerCode ? [`\u05E7\u05D5\u05D3 \u05DE\u05E4\u05E0\u05D4: ${attribution2.referrerCode}`] : [],
       "",
       "\u05D0\u05E9\u05DE\u05D7 \u05E9\u05EA\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D9\u05EA\u05D9 \u05DE\u05D4 \u05D4\u05E6\u05E2\u05D3 \u05D4\u05D1\u05D0 \u05E9\u05DE\u05EA\u05D0\u05D9\u05DD \u05DC\u05DE\u05E6\u05D1 \u05E9\u05DC\u05D9"
@@ -467,6 +477,8 @@ ${url}`;
 
   // consumer/analytics/tracking.js
   var FORBIDDEN_KEYS = /income|amount|deposit|balance|phone|whatsapp.*(?:message|content)|message|content_text/i;
+  var PENDING_EVENTS_KEY = "consumer_pending_analytics_events";
+  var QUEUEABLE_EVENTS = /* @__PURE__ */ new Set(["landing_view", "calculator_started"]);
   var gaLoadingPromise;
   function sanitizeEventParameters(parameters = {}) {
     return Object.fromEntries(Object.entries(parameters).filter(([key, value]) => !FORBIDDEN_KEYS.test(key) && ["string", "number", "boolean"].includes(typeof value)));
@@ -503,10 +515,41 @@ ${url}`;
     const key = `consumer_event_${eventName}`;
     try {
       if (storage == null ? void 0 : storage.getItem(key)) return false;
-      storage == null ? void 0 : storage.setItem(key, "1");
     } catch (e) {
     }
-    return trackEvent(eventName, parameters);
+    const sent = trackEvent(eventName, parameters);
+    if (sent) {
+      try {
+        storage == null ? void 0 : storage.setItem(key, "1");
+      } catch (e) {
+      }
+    }
+    return sent;
+  }
+  function readPendingEvents(storage = globalThis.sessionStorage) {
+    try {
+      const pending = JSON.parse((storage == null ? void 0 : storage.getItem(PENDING_EVENTS_KEY)) || "[]");
+      return Array.isArray(pending) ? pending.filter((item) => QUEUEABLE_EVENTS.has(item == null ? void 0 : item.eventName)) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+  function queueAnalyticsEvent(eventName, parameters = {}, storage = globalThis.sessionStorage) {
+    if (!QUEUEABLE_EVENTS.has(eventName) || getConsentStatus() !== "unknown") return false;
+    const eventKey = `consumer_event_${eventName}`;
+    try {
+      if (storage == null ? void 0 : storage.getItem(eventKey)) return false;
+      const pending = readPendingEvents(storage);
+      if (pending.some((item) => item.eventName === eventName)) return false;
+      pending.push({ eventName, parameters: sanitizeEventParameters(parameters) });
+      storage == null ? void 0 : storage.setItem(PENDING_EVENTS_KEY, JSON.stringify(pending));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  function trackOnceOrQueue(eventName, parameters = {}, storage = globalThis.sessionStorage) {
+    return canUseAnalytics() ? trackOnce(eventName, parameters, storage) : queueAnalyticsEvent(eventName, parameters, storage);
   }
 
   // consumer/ui/animations.js
@@ -550,6 +593,7 @@ ${url}`;
   var stepHistory = [0];
   var FORM_STATE_KEY = "consumer_calculator_state";
   var attribution = getAttribution();
+  var attributionParameters = attributionEventParameters(attribution);
   function saveFormState() {
     try {
       const values = {};
@@ -1012,7 +1056,7 @@ ${url}`;
     try {
       const { input, profile } = collect();
       const result = calculateConsumerResult(input);
-      trackOnce("calculator_completed", { fund_status: profile.fundStatus, deposit_method: profile.depositMethod, goals: profile.goals.join("|"), result_status: resultStatus(result) });
+      trackOnce("calculator_completed", { fund_status: profile.fundStatus, deposit_method: profile.depositMethod, goals: profile.goals.join("|"), result_status: resultStatus(result), ...attributionParameters });
       $(".wizard-layout").hidden = true;
       $(".check-heading").hidden = true;
       $("#loading").hidden = false;
@@ -1049,7 +1093,7 @@ ${url}`;
     if (details.open) trackEvent("details_opened", { details_type: details.classList.contains("calculation-details") ? "calculation_method" : "additional_actions" });
   }));
   $$("#whatsapp, #whatsapp-secondary").forEach((link) => link.addEventListener("click", () => {
-    trackEvent("whatsapp_clicked", { result_status: resultStatus(lastResult), fund_status: (lastProfile == null ? void 0 : lastProfile.fundStatus) || "", entry_source: attribution.source, referrer_code: attribution.referrerCode || "" });
+    trackEvent("whatsapp_clicked", { result_status: resultStatus(lastResult), fund_status: (lastProfile == null ? void 0 : lastProfile.fundStatus) || "", ...attributionParameters });
     const notice = $("#whatsapp-status");
     if (notice) notice.textContent = "WhatsApp \u05E0\u05E4\u05EA\u05D7 \u05D1\u05D7\u05DC\u05D5\u05DF \u05D7\u05D3\u05E9. \u05DC\u05D0\u05D7\u05E8 \u05E9\u05DC\u05D9\u05D7\u05EA \u05D4\u05D4\u05D5\u05D3\u05E2\u05D4 \u05E8\u05D5\u05E2\u05D9 \u05D9\u05D5\u05DB\u05DC \u05DC\u05D7\u05D6\u05D5\u05E8 \u05D0\u05DC\u05D9\u05DA.";
   }));
@@ -1088,7 +1132,7 @@ ${url}`;
     history.replaceState(null, "", "./check.html");
     scrollTo(0, 0);
   }
-  trackOnce("calculator_started", { entry_source: attribution.source, referrer_code: attribution.referrerCode || "" });
+  trackOnceOrQueue("calculator_started", attributionParameters);
   restoreFormState();
   renderStep(currentStep, false);
 })();

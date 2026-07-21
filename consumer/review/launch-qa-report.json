@@ -38,7 +38,7 @@
     "name": "מעל התקרה",
     "overflow": false,
     "primaryActions": 2,
-    "resultTitle": "ההפקדות הצפויות השנה גבוהות מהתקרה המוטבת",
+    "resultTitle": "ההפקדות השנה גבוהות מהתקרה המוטבת",
     "errors": []
   },
   {
@@ -77,13 +77,42 @@
     "gaLoaded": 0
   },
   {
-    "name": "accepted-no-id",
-    "value": "accepted",
-    "gaLoaded": 0
+    "name": "late-consent",
+    "queuedBeforeConsent": "[{\"eventName\":\"landing_view\",\"parameters\":{\"page_type\":\"consumer_landing\",\"source\":\"tiktok\",\"medium\":\"organic\",\"campaign\":\"launch-2026\",\"content\":\"video-1\",\"term\":\"\",\"referrer_code\":\"\"}}]",
+    "attribution": "{\"source\":\"tiktok\",\"medium\":\"organic\",\"campaign\":\"launch-2026\",\"content\":\"video-1\"}",
+    "pendingAfterConsent": null,
+    "gaLoaded": 1
   },
   {
     "name": "refresh-restore",
     "restoredIncome": "200,000",
     "restoredStep": "שלב 2 מתוך 4"
+  },
+  {
+    "name": "marketing-direct",
+    "overflow": false,
+    "attribution": "{\"source\":\"direct\",\"medium\":\"none\"}"
+  },
+  {
+    "name": "marketing-?utm_source=whatsapp&utm_medium=organic&utm_campaign=launch-2026&utm_content=status-1",
+    "overflow": false,
+    "attribution": "{\"source\":\"whatsapp\",\"medium\":\"organic\",\"campaign\":\"launch-2026\",\"content\":\"status-1\"}"
+  },
+  {
+    "name": "marketing-?utm_source=tiktok&utm_medium=organic&utm_campaign=launch-2026&utm_content=video-1",
+    "overflow": false,
+    "attribution": "{\"source\":\"tiktok\",\"medium\":\"organic\",\"campaign\":\"launch-2026\",\"content\":\"video-1\"}"
+  },
+  {
+    "name": "marketing-?utm_source=accountant&utm_medium=referral&utm_campaign=partners-2026&ref=accountant-test",
+    "overflow": false,
+    "attribution": "{\"source\":\"accountant\",\"medium\":\"referral\",\"campaign\":\"partners-2026\",\"referrerCode\":\"accountant-test\"}"
+  },
+  {
+    "name": "link-builder",
+    "generatedLink": "https://romanoroei.github.io/KerenHeshtalmut/consumer/?utm_source=whatsapp&utm_medium=organic&utm_campaign=launch-2026&utm_content=status-1",
+    "copied": "הקישור מוכן.",
+    "openHref": "https://romanoroei.github.io/KerenHeshtalmut/consumer/?utm_source=whatsapp&utm_medium=organic&utm_campaign=launch-2026&utm_content=status-1",
+    "overflow": false
   }
 ]
