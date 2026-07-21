@@ -68,6 +68,17 @@
     "resultTitle": "ההזדמנות לנצל את ההטבה מסתיימת בסוף השנה"
   },
   {
+    "name": "exact-utm-whatsapp",
+    "attribution": {
+      "source": "accountant",
+      "medium": "referral",
+      "campaign": "partners-2026",
+      "content": "personal",
+      "referrerCode": "roynetanel"
+    },
+    "valid": true
+  },
+  {
     "name": "attribution",
     "value": "{\"source\":\"whatsapp\",\"medium\":\"organic\",\"campaign\":\"launch-2026\",\"referrerCode\":\"accountant-test\"}"
   },

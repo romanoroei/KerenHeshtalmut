@@ -222,6 +222,7 @@ function collect(years = 10) {
     profile: {
       depositMethod: method,
       fundStatus: data.get('fundStatus'),
+      hasExistingBalance: data.get('fundStatus') === 'existing' && String(data.get('existingBalance') || '').trim() !== '' && normalizeMoney(data.get('existingBalance')) > 0,
       completionPreference: ['monthly', 'both'].includes(method) ? 'monthly' : method === 'lump' ? 'lump' : 'unknown',
       goals: data.getAll('goal'),
       goal: data.getAll('goal').join(', '),

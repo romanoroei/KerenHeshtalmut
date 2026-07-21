@@ -347,6 +347,10 @@
     utm_term: "term",
     ref: "referrerCode"
   };
+  var DEFAULT_ATTRIBUTION_VALUES = /* @__PURE__ */ new Set(["", "direct", "none", "unknown"]);
+  var REFERRER_DISPLAY_NAMES = Object.freeze({
+    roynetanel: "\u05E8\u05D5\u05E2\u05D9 \u05E0\u05EA\u05E0\u05D0\u05DC"
+  });
   function sanitizeAttributionValue(value, maxLength = MAX_VALUE_LENGTH) {
     return String(value != null ? value : "").normalize("NFKC").replace(/[^\p{L}\p{N}_. -]/gu, "").trim().slice(0, maxLength);
   }
@@ -382,13 +386,21 @@
   function saveInitialAttribution({ storage = globalThis.sessionStorage, url, referrer } = {}) {
     try {
       const existing = storage == null ? void 0 : storage.getItem(ATTRIBUTION_KEY);
-      if (existing) return JSON.parse(existing);
       const attribution2 = readAttribution(url, referrer);
+      if (existing) {
+        const saved = JSON.parse(existing);
+        const hasSavedAttribution = Object.values(saved || {}).some((value) => !DEFAULT_ATTRIBUTION_VALUES.has(String(value || "").toLowerCase()));
+        const hasIncomingAttribution = Object.values(attribution2).some((value) => !DEFAULT_ATTRIBUTION_VALUES.has(String(value || "").toLowerCase()));
+        if (hasSavedAttribution || !hasIncomingAttribution) return saved;
+      }
       storage == null ? void 0 : storage.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution2));
       return attribution2;
     } catch (e) {
       return readAttribution(url, referrer);
     }
+  }
+  function referrerDisplayName(referrerCode) {
+    return REFERRER_DISPLAY_NAMES[String(referrerCode || "").toLowerCase()] || "";
   }
   function getAttribution(storage = globalThis.sessionStorage) {
     try {
@@ -396,10 +408,6 @@
     } catch (e) {
       return readAttribution();
     }
-  }
-  function attributionLabel(attribution2 = {}) {
-    const labels2 = { whatsapp: "WhatsApp", tiktok: "TikTok", facebook: "Facebook", instagram: "Instagram", meta: "Meta", accountant: "\u05E8\u05D5\u05D0\u05D4 \u05D7\u05E9\u05D1\u05D5\u05DF", bookkeeper: "\u05DE\u05E0\u05D4\u05DC/\u05EA \u05D7\u05E9\u05D1\u05D5\u05E0\u05D5\u05EA", email: "Email", website: "\u05D0\u05EA\u05E8", direct: "\u05D9\u05E9\u05D9\u05E8", google: "Google", referral: "\u05D0\u05EA\u05E8 \u05DE\u05E4\u05E0\u05D4" };
-    return labels2[String(attribution2.source || "").toLowerCase()] || sanitizeAttributionValue(attribution2.source) || "\u05D9\u05E9\u05D9\u05E8";
   }
   function attributionEventParameters(attribution2 = getAttribution()) {
     return {
@@ -414,36 +422,39 @@
 
   // consumer/messages/whatsapp.js
   var money = (value) => new Intl.NumberFormat("he-IL", { maximumFractionDigits: 0 }).format(Math.round(value));
+  function naturalList(items) {
+    if (items.length < 2) return items[0] || "";
+    return `${items.slice(0, -1).join(", ")} \u05D5${items.at(-1)}`;
+  }
   function buildWhatsAppMessage(result, profile = {}, attribution2 = getAttribution()) {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d;
     const goalLabels = {
       tax: "\u05DC\u05E0\u05E6\u05DC \u05D0\u05EA \u05D4\u05D8\u05D1\u05EA \u05D4\u05DE\u05E1",
       saving: "\u05DC\u05D4\u05D2\u05D3\u05D9\u05DC \u05D0\u05EA \u05D4\u05D7\u05D9\u05E1\u05DB\u05D5\u05DF",
       monthly: "\u05DC\u05D1\u05E0\u05D5\u05EA \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2",
       check: "\u05DC\u05D1\u05D3\u05D5\u05E7 \u05D0\u05DD \u05D0\u05E0\u05D9 \u05D1\u05D3\u05E8\u05DA \u05D4\u05E0\u05DB\u05D5\u05E0\u05D4"
     };
-    const goals = ((_b = profile.goals) != null ? _b : String((_a = profile.goal) != null ? _a : "").split(",").map((goal) => goal.trim()).filter(Boolean)).map((goal) => {
+    const goals = naturalList(((_b = profile.goals) != null ? _b : String((_a = profile.goal) != null ? _a : "").split(",").map((goal) => goal.trim()).filter(Boolean)).map((goal) => {
       var _a2;
       return (_a2 = goalLabels[goal]) != null ? _a2 : goal;
-    }).join(", ");
-    return [
-      "\u05D4\u05D9\u05D9 \u05E8\u05D5\u05E2\u05D9, \u05D1\u05D9\u05E6\u05E2\u05EA\u05D9 \u05D0\u05EA \u05D1\u05D3\u05D9\u05E7\u05EA \u05E7\u05E8\u05DF \u05D4\u05D4\u05E9\u05EA\u05DC\u05DE\u05D5\u05EA \u05DC\u05E2\u05E6\u05DE\u05D0\u05D9\u05DD \u05D1\u05D0\u05EA\u05E8:",
+    }));
+    const referrerName = referrerDisplayName(attribution2.referrerCode);
+    const details = [
       `\u05D4\u05DB\u05E0\u05E1\u05D4 \u05E9\u05E0\u05EA\u05D9\u05EA \u05D7\u05D9\u05D9\u05D1\u05EA \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA: ${money(result.income)} \u20AA`,
-      `\u05E1\u05DA \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9\u05EA \u05E9\u05D1\u05D9\u05E6\u05E2\u05EA\u05D9 \u05D4\u05E9\u05E0\u05D4: ${money((_c = result.currentLumpSumDeposit) != null ? _c : 0)} \u20AA`,
-      `\u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2 \u05E7\u05D9\u05D9\u05DE\u05EA: ${money((_d = result.currentMonthlyDeposit) != null ? _d : 0)} \u20AA`,
-      `\u05E6\u05D1\u05D9\u05E8\u05D4 \u05E0\u05D5\u05DB\u05D7\u05D9\u05EA \u05D1\u05E7\u05E8\u05DF: ${money((_e = result.existingBalance) != null ? _e : 0)} \u20AA`,
-      `\u05E1\u05DB\u05D5\u05DD \u05DE\u05D5\u05DE\u05DC\u05E5 \u05DC\u05D4\u05E4\u05E7\u05D3\u05D4 \u05E2\u05D3 \u05E1\u05D5\u05E3 ${(_f = result.taxYear) != null ? _f : 2026}: ${money(result.remaining)} \u20AA`,
+      ...profile.hasExistingBalance && result.existingBalance > 0 ? [`\u05E6\u05D1\u05D9\u05E8\u05D4 \u05E0\u05D5\u05DB\u05D7\u05D9\u05EA \u05D1\u05E7\u05E8\u05DF: ${money(result.existingBalance)} \u20AA`] : [],
+      ...result.depositedToDate > 0 ? [`\u05D4\u05E4\u05E7\u05D3\u05D4 \u05E9\u05D1\u05D9\u05E6\u05E2\u05EA\u05D9 \u05D4\u05E9\u05E0\u05D4: ${money(result.depositedToDate)} \u20AA`] : [],
+      result.remaining > 0 ? `\u05E1\u05DB\u05D5\u05DD \u05DE\u05D5\u05DE\u05DC\u05E5 \u05DC\u05D4\u05E4\u05E7\u05D3\u05D4 \u05E2\u05D3 \u05E1\u05D5\u05E3 ${(_c = result.taxYear) != null ? _c : 2026}: ${money(result.remaining)} \u20AA` : `\u05E0\u05D9\u05E6\u05DC\u05EA\u05D9 \u05D0\u05EA \u05DE\u05DC\u05D5\u05D0 \u05EA\u05E7\u05E8\u05EA \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA \u05DC\u05E9\u05E0\u05EA ${(_d = result.taxYear) != null ? _d : 2026}.`
+    ];
+    return [
+      "\u05D4\u05D9\u05D9 \u05E8\u05D5\u05E2\u05D9, \u05D1\u05D9\u05E6\u05E2\u05EA\u05D9 \u05D0\u05EA \u05D1\u05D3\u05D9\u05E7\u05EA \u05E7\u05E8\u05DF \u05D4\u05D4\u05E9\u05EA\u05DC\u05DE\u05D5\u05EA \u05DC\u05E2\u05E6\u05DE\u05D0\u05D9\u05DD \u05D1\u05D0\u05EA\u05E8.",
       "",
-      `\u05D4\u05DB\u05D9 \u05D7\u05E9\u05D5\u05D1 \u05DC\u05D9: ${goals || "\u05DC\u05D0 \u05E6\u05D5\u05D9\u05DF"}`,
+      ...details,
       "",
-      `\u05E9\u05D5\u05D5\u05D9 \u05D4\u05D8\u05D1\u05D5\u05EA \u05D4\u05DE\u05E1 \u05D4\u05DB\u05D5\u05DC\u05DC (\u05D0\u05D5\u05DE\u05D3\u05DF): ${money((_g = result.estimatedCombinedBenefitTotal) != null ? _g : result.estimatedTotalTaxBenefit)} \u20AA`,
+      "\u05D4\u05DB\u05D9 \u05D7\u05E9\u05D5\u05D1 \u05DC\u05D9:",
+      `${goals || "\u05DC\u05D1\u05D3\u05D5\u05E7 \u05DE\u05D4 \u05E0\u05DB\u05D5\u05DF \u05DC\u05DE\u05E6\u05D1 \u05E9\u05DC\u05D9"}.`,
       "",
-      `\u05DE\u05E7\u05D5\u05E8 \u05D4\u05D4\u05D2\u05E2\u05D4: ${attributionLabel(attribution2)}`,
-      ...attribution2.campaign ? [`\u05E7\u05DE\u05E4\u05D9\u05D9\u05DF: ${attribution2.campaign}`] : [],
-      ...attribution2.content ? [`\u05EA\u05D5\u05DB\u05DF: ${attribution2.content}`] : [],
-      ...attribution2.referrerCode ? [`\u05E7\u05D5\u05D3 \u05DE\u05E4\u05E0\u05D4: ${attribution2.referrerCode}`] : [],
-      "",
-      "\u05D0\u05E9\u05DE\u05D7 \u05E9\u05EA\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D9\u05EA\u05D9 \u05DE\u05D4 \u05D4\u05E6\u05E2\u05D3 \u05D4\u05D1\u05D0 \u05E9\u05DE\u05EA\u05D0\u05D9\u05DD \u05DC\u05DE\u05E6\u05D1 \u05E9\u05DC\u05D9"
+      ...referrerName ? [`\u05D4\u05D2\u05E2\u05EA\u05D9 \u05DC\u05D1\u05D3\u05D9\u05E7\u05D4 \u05D3\u05E8\u05DA ${referrerName}.`, ""] : [],
+      "\u05D0\u05E9\u05DE\u05D7 \u05E9\u05EA\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D9\u05EA\u05D9 \u05DE\u05D4 \u05D4\u05E6\u05E2\u05D3 \u05D4\u05D1\u05D0 \u05E9\u05DE\u05EA\u05D0\u05D9\u05DD \u05DC\u05DE\u05E6\u05D1 \u05E9\u05DC\u05D9."
     ].join("\n");
   }
   function buildWhatsAppUrl(result, profile) {
@@ -780,6 +791,7 @@ ${url}`;
       profile: {
         depositMethod: method,
         fundStatus: data.get("fundStatus"),
+        hasExistingBalance: data.get("fundStatus") === "existing" && String(data.get("existingBalance") || "").trim() !== "" && normalizeMoney(data.get("existingBalance")) > 0,
         completionPreference: ["monthly", "both"].includes(method) ? "monthly" : method === "lump" ? "lump" : "unknown",
         goals: data.getAll("goal"),
         goal: data.getAll("goal").join(", ")

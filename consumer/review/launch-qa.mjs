@@ -49,6 +49,20 @@ for (const viewport of [{ width: 768, height: 1024 }, { width: 1440, height: 100
 }
 
 const utility = await browser.newPage({ viewport: { width: 390, height: 844 } });
+await utility.goto(`${base}?utm_source=accountant&utm_medium=referral&utm_campaign=partners-2026&utm_content=personal&ref=roynetanel`, { waitUntil: 'domcontentloaded' });
+const exactAttribution = JSON.parse(await utility.evaluate(() => sessionStorage.getItem('consumer_attribution')));
+await utility.locator('.btn-landing').click({ force: true });
+await utility.locator('#income').fill('250000'); await utility.locator('[data-next]').click(); await utility.waitForTimeout(240);
+await utility.locator('input[name="fundStatus"][value="existing"]').check({ force: true }); await utility.waitForTimeout(450);
+await utility.locator('input[name="depositMethod"][value="lump"]').check({ force: true });
+await utility.locator('#lumpSum').fill('8000'); await utility.locator('#existingBalance').fill('8000'); await utility.locator('[data-next]').click(); await utility.waitForTimeout(220);
+for (const goal of ['tax', 'saving', 'check']) await utility.locator(`input[name="goal"][value="${goal}"]`).check({ force: true });
+await utility.locator('#submit-check').click(); await utility.locator('#results:not([hidden])').waitFor({ timeout: 5000 });
+const exactMessage = await utility.locator('#whatsapp').evaluate((link) => new URL(link.href).searchParams.get('text'));
+const requiredMessageParts = ['הכנסה שנתית חייבת משוערת: 250,000 ₪', 'צבירה נוכחית בקרן: 8,000 ₪', 'הפקדה שביצעתי השנה: 8,000 ₪', 'סכום מומלץ להפקדה עד סוף 2026: 12,566 ₪', 'הגעתי לבדיקה דרך רועי נתנאל.'];
+const forbiddenMessageParts = ['מקור ההגעה', 'accountant', 'referral', 'partners-2026', 'personal', 'roynetanel', 'שווי הטבות המס הכולל', 'הוראת קבע', 'לשקול'];
+results.push({ name: 'exact-utm-whatsapp', attribution: exactAttribution, valid: requiredMessageParts.every((part) => exactMessage.includes(part)) && forbiddenMessageParts.every((part) => !exactMessage.includes(part)) });
+await utility.evaluate(() => sessionStorage.clear());
 await utility.goto(`${base}?utm_source=whatsapp&utm_medium=organic&utm_campaign=launch-2026&ref=accountant-test`, { waitUntil: 'domcontentloaded' });
 results.push({ name: 'attribution', value: await utility.evaluate(() => sessionStorage.getItem('consumer_attribution')) });
 await utility.locator('#essentialCookies').click(); results.push({ name: 'essential-only', value: await utility.evaluate(() => localStorage.getItem('consumer_analytics_consent')), gaLoaded: await utility.locator('script[src*="googletagmanager"]').count() });
@@ -71,7 +85,7 @@ await utility.locator('#restart').count().catch(() => 0);
 await utility.close();
 await writeFile(new URL('./launch-qa-report.json', import.meta.url), JSON.stringify(results, null, 2));
 await Promise.race([browser.close(), new Promise((resolve) => setTimeout(resolve, 5000))]);
-const failures = results.filter((item) => item.error || item.overflow || item.primaryActions > 2 || item.errors?.length || item.name === 'essential-only' && item.gaLoaded > 0 || item.name === 'late-consent' && (item.gaLoaded !== 1 || item.pendingAfterConsent));
+const failures = results.filter((item) => item.error || item.overflow || item.primaryActions > 2 || item.errors?.length || item.name === 'exact-utm-whatsapp' && !item.valid || item.name === 'essential-only' && item.gaLoaded > 0 || item.name === 'late-consent' && (item.gaLoaded !== 1 || item.pendingAfterConsent));
 if (failures.length) { console.error(JSON.stringify(failures, null, 2)); process.exit(1); }
 console.log(JSON.stringify(results, null, 2));
 process.exit(0);

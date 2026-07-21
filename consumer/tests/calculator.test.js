@@ -179,10 +179,10 @@ test('הודעת WhatsApp כוללת את כל נתוני החובה ונשלח�
   const result = calculateConsumerResult({ income: 200000, lumpSum: 10000, monthlyDeposit: 500, monthsDeposited: 7 });
   const profile = { goals:['tax', 'saving'] };
   const message = buildWhatsAppMessage(result, profile);
-  for (const label of ['הכנסה שנתית', 'הפקדה חד־פעמית', 'הוראת קבע קיימת', 'צבירה נוכחית', 'סכום מומלץ להפקדה', 'הכי חשוב לי', 'שווי הטבות המס הכולל']) assert.match(message, new RegExp(label));
-  assert.match(message, /10,000 ₪/);
-  assert.match(message, /500 ₪/);
-  assert.match(message, /לנצל את הטבת המס, להגדיל את החיסכון/);
+  for (const label of ['הכנסה שנתית', 'הפקדה שביצעתי השנה', 'סכום מומלץ להפקדה', 'הכי חשוב לי']) assert.match(message, new RegExp(label));
+  assert.match(message, /13,500 ₪/);
+  assert.match(message, /לנצל את הטבת המס ולהגדיל את החיסכון/);
+  assert.doesNotMatch(message, /הוראת קבע|צבירה נוכחית|שווי הטבות המס הכולל/);
   for (const removed of ['both', 'monthly', 'מצב הקרן', 'ציון ניצול', 'ביטוח לאומי', 'רווחי הון']) assert.doesNotMatch(message, new RegExp(removed));
   assert.match(buildWhatsAppUrl(result), /^https:\/\/wa\.me\/972528089808\?text=/);
 });
