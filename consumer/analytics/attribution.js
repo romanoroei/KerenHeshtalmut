@@ -4,6 +4,10 @@ const PARAMETER_MAP = {
   utm_source: 'source', utm_medium: 'medium', utm_campaign: 'campaign',
   utm_content: 'content', utm_term: 'term', ref: 'referrerCode',
 };
+const DEFAULT_ATTRIBUTION_VALUES = new Set(['', 'direct', 'none', 'unknown']);
+const REFERRER_DISPLAY_NAMES = Object.freeze({
+  roynetanel: 'רועי נתנאל',
+});
 
 export function sanitizeAttributionValue(value, maxLength = MAX_VALUE_LENGTH) {
   return String(value ?? '').normalize('NFKC').replace(/[^\p{L}\p{N}_. -]/gu, '').trim().slice(0, maxLength);
@@ -37,11 +41,20 @@ export function readAttribution(url = globalThis.location?.href ?? '', referrer 
 export function saveInitialAttribution({ storage = globalThis.sessionStorage, url, referrer } = {}) {
   try {
     const existing = storage?.getItem(ATTRIBUTION_KEY);
-    if (existing) return JSON.parse(existing);
     const attribution = readAttribution(url, referrer);
+    if (existing) {
+      const saved = JSON.parse(existing);
+      const hasSavedAttribution = Object.values(saved || {}).some((value) => !DEFAULT_ATTRIBUTION_VALUES.has(String(value || '').toLowerCase()));
+      const hasIncomingAttribution = Object.values(attribution).some((value) => !DEFAULT_ATTRIBUTION_VALUES.has(String(value || '').toLowerCase()));
+      if (hasSavedAttribution || !hasIncomingAttribution) return saved;
+    }
     storage?.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution));
     return attribution;
   } catch { return readAttribution(url, referrer); }
+}
+
+export function referrerDisplayName(referrerCode) {
+  return REFERRER_DISPLAY_NAMES[String(referrerCode || '').toLowerCase()] || '';
 }
 
 export function getAttribution(storage = globalThis.sessionStorage) {
@@ -65,4 +78,4 @@ export function attributionEventParameters(attribution = getAttribution()) {
   };
 }
 
-export { ATTRIBUTION_KEY, MAX_VALUE_LENGTH };
+export { ATTRIBUTION_KEY, MAX_VALUE_LENGTH, REFERRER_DISPLAY_NAMES };

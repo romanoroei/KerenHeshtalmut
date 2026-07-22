@@ -1,7 +1,12 @@
 import { SITE_CONFIG } from '../config.js';
-import { attributionLabel, getAttribution } from '../analytics/attribution.js';
+import { getAttribution, referrerDisplayName } from '../analytics/attribution.js';
 
 const money = (value) => new Intl.NumberFormat('he-IL', { maximumFractionDigits: 0 }).format(Math.round(value));
+
+function naturalList(items) {
+  if (items.length < 2) return items[0] || '';
+  return `${items.slice(0, -1).join(', ')} ו${items.at(-1)}`;
+}
 
 export function buildWhatsAppMessage(result, profile = {}, attribution = getAttribution()) {
   const goalLabels = {
@@ -10,27 +15,27 @@ export function buildWhatsAppMessage(result, profile = {}, attribution = getAttr
     monthly: 'לבנות הוראת קבע',
     check: 'לבדוק אם אני בדרך הנכונה',
   };
-  const goals = (profile.goals ?? String(profile.goal ?? '').split(',').map((goal) => goal.trim()).filter(Boolean))
-    .map((goal) => goalLabels[goal] ?? goal)
-    .join(', ');
-  return [
-    'היי רועי, ביצעתי את בדיקת קרן ההשתלמות לעצמאים באתר:',
+  const goals = naturalList((profile.goals ?? String(profile.goal ?? '').split(',').map((goal) => goal.trim()).filter(Boolean))
+    .map((goal) => goalLabels[goal] ?? goal));
+  const referrerName = referrerDisplayName(attribution.referrerCode);
+  const details = [
     `הכנסה שנתית חייבת משוערת: ${money(result.income)} ₪`,
-    `סך הפקדה חד־פעמית שביצעתי השנה: ${money(result.currentLumpSumDeposit ?? 0)} ₪`,
-    `הוראת קבע קיימת: ${money(result.currentMonthlyDeposit ?? 0)} ₪`,
-    `צבירה נוכחית בקרן: ${money(result.existingBalance ?? 0)} ₪`,
-    `סכום מומלץ להפקדה עד סוף ${result.taxYear ?? 2026}: ${money(result.remaining)} ₪`,
+    ...(profile.hasExistingBalance && result.existingBalance > 0 ? [`צבירה נוכחית בקרן: ${money(result.existingBalance)} ₪`] : []),
+    ...(result.depositedToDate > 0 ? [`הפקדה שביצעתי השנה: ${money(result.depositedToDate)} ₪`] : []),
+    result.remaining > 0
+      ? `סכום מומלץ להפקדה עד סוף ${result.taxYear ?? 2026}: ${money(result.remaining)} ₪`
+      : `ניצלתי את מלוא תקרת ההפקדה המוטבת לשנת ${result.taxYear ?? 2026}.`,
+  ];
+  return [
+    'היי רועי, ביצעתי את בדיקת קרן ההשתלמות לעצמאים באתר.',
     '',
-    `הכי חשוב לי: ${goals || 'לא צוין'}`,
+    ...details,
     '',
-    `שווי הטבות המס הכולל (אומדן): ${money(result.estimatedCombinedBenefitTotal ?? result.estimatedTotalTaxBenefit)} ₪`,
+    'הכי חשוב לי:',
+    `${goals || 'לבדוק מה נכון למצב שלי'}.`,
     '',
-    `מקור ההגעה: ${attributionLabel(attribution)}`,
-    ...(attribution.campaign ? [`קמפיין: ${attribution.campaign}`] : []),
-    ...(attribution.content ? [`תוכן: ${attribution.content}`] : []),
-    ...(attribution.referrerCode ? [`קוד מפנה: ${attribution.referrerCode}`] : []),
-    '',
-    'אשמח שתבדוק איתי מה הצעד הבא שמתאים למצב שלי',
+    ...(referrerName ? [`הגעתי לבדיקה דרך ${referrerName}.`, ''] : []),
+    'אשמח שתבדוק איתי מה הצעד הבא שמתאים למצב שלי.',
   ].join('\n');
 }
 

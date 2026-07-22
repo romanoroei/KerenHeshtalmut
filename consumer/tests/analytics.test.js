@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { getConsentStatus, setConsentStatus, canUseAnalytics } from '../analytics/consent.js';
-import { readAttribution, sanitizeAttributionValue, attributionLabel, attributionEventParameters, saveInitialAttribution, getAttribution } from '../analytics/attribution.js';
+import { readAttribution, sanitizeAttributionValue, attributionEventParameters, saveInitialAttribution, getAttribution, referrerDisplayName } from '../analytics/attribution.js';
 import { PENDING_EVENTS_KEY, clearPendingAnalyticsEvents, flushPendingAnalyticsEvents, queueAnalyticsEvent, sanitizeEventParameters, trackEvent, trackOnce } from '../analytics/tracking.js';
 import { buildShareMessage, buildWhatsAppMessage } from '../messages/whatsapp.js';
 
@@ -78,11 +78,34 @@ test('initial attribution persists across landing and check pages', () => {
   assert.deepEqual(attributionEventParameters(initial), { source: 'tiktok', medium: 'organic', campaign: 'launch-2026', content: '', term: '', referrer_code: 'creator-1' });
 });
 
-test('WhatsApp includes general attribution while sharing excludes personal data', () => {
-  const result = { income: 250000, currentLumpSumDeposit: 1000, currentMonthlyDeposit: 500, existingBalance: 100000, remaining: 2500, taxYear: 2026, estimatedCombinedBenefitTotal: 8000 };
-  const message = buildWhatsAppMessage(result, { goals: ['tax'] }, { source: 'whatsapp', campaign: 'launch-2026', content: 'status-1', referrerCode: 'accountant-test' });
-  assert.match(message, /מקור ההגעה: WhatsApp/); assert.match(message, /קוד מפנה: accountant-test/); assert.equal(attributionLabel({ source: 'accountant', referrerCode: 'accountant-test' }), 'רואה חשבון');
-  assert.match(message, /קמפיין: launch-2026/); assert.match(message, /תוכן: status-1/); assert.doesNotMatch(message, /https?:\/\//);
+test('real UTM replaces only a stored direct default and remains first-touch afterwards', () => {
+  const store = storage();
+  saveInitialAttribution({ storage: store, url: 'https://site.test/consumer/check.html' });
+  const campaign = saveInitialAttribution({ storage: store, url: 'https://site.test/consumer/?utm_source=accountant&utm_medium=referral&utm_campaign=partners-2026&utm_content=personal&ref=roynetanel' });
+  assert.deepEqual(campaign, { source: 'accountant', medium: 'referral', campaign: 'partners-2026', content: 'personal', referrerCode: 'roynetanel' });
+  assert.deepEqual(saveInitialAttribution({ storage: store, url: 'https://site.test/consumer/check.html' }), campaign);
+  assert.deepEqual(saveInitialAttribution({ storage: store, url: 'https://site.test/?utm_source=email&utm_campaign=other' }), campaign);
+});
+
+test('WhatsApp keeps campaign codes private and shows only a known referrer name', () => {
+  const result = { income: 250000, depositedToDate: 8000, existingBalance: 8000, remaining: 12566, taxYear: 2026 };
+  const message = buildWhatsAppMessage(result, { goals: ['tax', 'saving', 'check'], hasExistingBalance: true }, { source: 'accountant', medium: 'referral', campaign: 'partners-2026', content: 'personal', referrerCode: 'roynetanel' });
+  assert.match(message, /הכנסה שנתית חייבת משוערת: 250,000 ₪/);
+  assert.match(message, /צבירה נוכחית בקרן: 8,000 ₪/);
+  assert.match(message, /הפקדה שביצעתי השנה: 8,000 ₪/);
+  assert.match(message, /סכום מומלץ להפקדה עד סוף 2026: 12,566 ₪/);
+  assert.match(message, /לנצל את הטבת המס, להגדיל את החיסכון ולבדוק אם אני בדרך הנכונה\./);
+  assert.match(message, /הגעתי לבדיקה דרך רועי נתנאל\./);
+  assert.equal(referrerDisplayName('roynetanel'), 'רועי נתנאל');
+  assert.doesNotMatch(message, /accountant|referral|partners-2026|personal|roynetanel|מקור ההגעה|קוד מפנה|שווי הטבות המס|הוראת קבע|לשקול/);
   const share = buildShareMessage('https://example.test/');
   assert.doesNotMatch(share, /250,000|2,500|8,000|הכנסה שנתית/); assert.match(share, /ללא הרשמה וללא התחייבות/);
+});
+
+test('WhatsApp omits zero, missing and unknown-referrer details', () => {
+  const message = buildWhatsAppMessage({ income: 180000, depositedToDate: 0, existingBalance: 0, remaining: 20566, taxYear: 2026 }, { goals: ['tax'], hasExistingBalance: false }, { source: 'direct', medium: 'none', referrerCode: 'unknown-code' });
+  assert.doesNotMatch(message, /צבירה נוכחית|הפקדה שביצעתי|הגעתי לבדיקה דרך|unknown-code|: 0 ₪/);
+  const full = buildWhatsAppMessage({ income: 250000, depositedToDate: 20566, existingBalance: 80000, remaining: 0, taxYear: 2026 }, { goals: ['check'], hasExistingBalance: true }, {});
+  assert.match(full, /ניצלתי את מלוא תקרת ההפקדה המוטבת לשנת 2026\./);
+  assert.doesNotMatch(full, /סכום מומלץ.*0 ₪/);
 });
