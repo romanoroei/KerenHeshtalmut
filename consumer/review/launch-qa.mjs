@@ -48,6 +48,42 @@ for (const viewport of [{ width: 768, height: 1024 }, { width: 1440, height: 100
   console.log(`DONE viewport-${viewport.width}`);
 }
 
+const analyticsContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
+await analyticsContext.addInitScript(() => {
+  localStorage.setItem('consumer_analytics_consent', 'accepted');
+  globalThis.dataLayer = [];
+  globalThis.gtag = function gtag() {
+    globalThis.dataLayer.push(arguments);
+    if (arguments[0] !== 'event') return;
+    const log = JSON.parse(sessionStorage.getItem('consumer_qa_ga_events') || '[]');
+    log.push({ name: arguments[1], parameters: arguments[2] });
+    sessionStorage.setItem('consumer_qa_ga_events', JSON.stringify(log));
+  };
+});
+const analyticsPage = await analyticsContext.newPage();
+await analyticsPage.goto(`${base}?utm_source=accountant&utm_medium=referral&utm_campaign=partners-2026&utm_content=personal&ref=roynetanel`, { waitUntil: 'domcontentloaded' });
+await analyticsPage.locator('.btn-landing').click({ force: true });
+await analyticsPage.locator('#income').fill('250000'); await analyticsPage.locator('[data-next]').click(); await analyticsPage.waitForTimeout(240);
+await analyticsPage.locator('input[name="fundStatus"][value="existing"]').check({ force: true }); await analyticsPage.waitForTimeout(450);
+await analyticsPage.locator('input[name="depositMethod"][value="lump"]').check({ force: true });
+await analyticsPage.locator('#lumpSum').fill('8000'); await analyticsPage.locator('#existingBalance').fill('8000'); await analyticsPage.locator('[data-next]').click(); await analyticsPage.waitForTimeout(220);
+await analyticsPage.locator('input[name="goal"][value="tax"]').check({ force: true });
+await analyticsPage.locator('#submit-check').click(); await analyticsPage.locator('#results:not([hidden])').waitFor({ timeout: 5000 });
+await analyticsPage.evaluate(() => {
+  for (const id of ['whatsapp', 'whatsapp', 'whatsapp-secondary']) {
+    const link = document.getElementById(id); link.addEventListener('click', (event) => event.preventDefault(), { once: true }); link.click();
+  }
+});
+const gaEvents = await analyticsPage.evaluate(() => JSON.parse(sessionStorage.getItem('consumer_qa_ga_events') || '[]'));
+const coreNames = ['landing_view', 'calculator_started', 'calculator_completed', 'whatsapp_clicked'];
+const coreEvents = gaEvents.filter((event) => coreNames.includes(event.name));
+const sensitiveKey = /income|amount|balance|recommended|tax_benefit|phone|whatsapp_message|message_content|content_text|^message$|(?:^|_)deposit(?:$|_(?:amount|total|value))/i;
+const attributionIsComplete = coreEvents.every(({ parameters }) => parameters.source === 'accountant' && parameters.medium === 'referral' && parameters.campaign === 'partners-2026' && parameters.content === 'personal' && parameters.term === '' && parameters.referrer_code === 'roynetanel');
+const eventCounts = Object.fromEntries(coreNames.map((name) => [name, coreEvents.filter((event) => event.name === name).length]));
+const whatsappLocations = coreEvents.filter((event) => event.name === 'whatsapp_clicked').map((event) => event.parameters.button_location);
+results.push({ name: 'ga4-core-events', eventCounts, whatsappLocations, valid: attributionIsComplete && eventCounts.landing_view === 1 && eventCounts.calculator_started === 1 && eventCounts.calculator_completed === 1 && eventCounts.whatsapp_clicked === 3 && whatsappLocations.join(',') === 'primary,primary,secondary' && coreEvents.every(({ parameters }) => Object.keys(parameters).every((key) => !sensitiveKey.test(key))) });
+await analyticsContext.close();
+
 const utility = await browser.newPage({ viewport: { width: 390, height: 844 } });
 await utility.goto(`${base}?utm_source=accountant&utm_medium=referral&utm_campaign=partners-2026&utm_content=personal&ref=roynetanel`, { waitUntil: 'domcontentloaded' });
 const exactAttribution = JSON.parse(await utility.evaluate(() => sessionStorage.getItem('consumer_attribution')));
@@ -85,7 +121,7 @@ await utility.locator('#restart').count().catch(() => 0);
 await utility.close();
 await writeFile(new URL('./launch-qa-report.json', import.meta.url), JSON.stringify(results, null, 2));
 await Promise.race([browser.close(), new Promise((resolve) => setTimeout(resolve, 5000))]);
-const failures = results.filter((item) => item.error || item.overflow || item.primaryActions > 2 || item.errors?.length || item.name === 'exact-utm-whatsapp' && !item.valid || item.name === 'essential-only' && item.gaLoaded > 0 || item.name === 'late-consent' && (item.gaLoaded !== 1 || item.pendingAfterConsent));
+const failures = results.filter((item) => item.error || item.overflow || item.primaryActions > 2 || item.errors?.length || ['ga4-core-events', 'exact-utm-whatsapp'].includes(item.name) && !item.valid || item.name === 'essential-only' && item.gaLoaded > 0 || item.name === 'late-consent' && (item.gaLoaded !== 1 || item.pendingAfterConsent));
 if (failures.length) { console.error(JSON.stringify(failures, null, 2)); process.exit(1); }
 console.log(JSON.stringify(results, null, 2));
 process.exit(0);

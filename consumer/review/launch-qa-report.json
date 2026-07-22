@@ -68,6 +68,21 @@
     "resultTitle": "ההזדמנות לנצל את ההטבה מסתיימת בסוף השנה"
   },
   {
+    "name": "ga4-core-events",
+    "eventCounts": {
+      "landing_view": 1,
+      "calculator_started": 1,
+      "calculator_completed": 1,
+      "whatsapp_clicked": 3
+    },
+    "whatsappLocations": [
+      "primary",
+      "primary",
+      "secondary"
+    ],
+    "valid": true
+  },
+  {
     "name": "exact-utm-whatsapp",
     "attribution": {
       "source": "accountant",
@@ -122,7 +137,7 @@
   {
     "name": "link-builder",
     "generatedLink": "https://romanoroei.github.io/KerenHeshtalmut/consumer/?utm_source=whatsapp&utm_medium=organic&utm_campaign=launch-2026&utm_content=status-1",
-    "copied": "הקישור מוכן.",
+    "copied": "הקישור הועתק.",
     "openHref": "https://romanoroei.github.io/KerenHeshtalmut/consumer/?utm_source=whatsapp&utm_medium=organic&utm_campaign=launch-2026&utm_content=status-1",
     "overflow": false
   }

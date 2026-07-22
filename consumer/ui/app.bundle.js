@@ -487,12 +487,23 @@ ${url}`;
   }
 
   // consumer/analytics/tracking.js
-  var FORBIDDEN_KEYS = /income|amount|deposit|balance|phone|whatsapp.*(?:message|content)|message|content_text/i;
+  var FORBIDDEN_KEYS = /income|amount|balance|recommended|tax_benefit|phone|whatsapp_message|message_content|content_text|^message$/i;
+  var CORE_EVENT_PARAMETERS = Object.freeze({
+    landing_view: /* @__PURE__ */ new Set(["page_type", "source", "medium", "campaign", "content", "term", "referrer_code"]),
+    calculator_started: /* @__PURE__ */ new Set(["source", "medium", "campaign", "content", "term", "referrer_code"]),
+    calculator_completed: /* @__PURE__ */ new Set(["fund_status", "deposit_method", "goals", "result_status", "source", "medium", "campaign", "content", "term", "referrer_code"]),
+    whatsapp_clicked: /* @__PURE__ */ new Set(["fund_status", "result_status", "source", "medium", "campaign", "content", "term", "referrer_code", "button_location"])
+  });
   var PENDING_EVENTS_KEY = "consumer_pending_analytics_events";
   var QUEUEABLE_EVENTS = /* @__PURE__ */ new Set(["landing_view", "calculator_started"]);
   var gaLoadingPromise;
-  function sanitizeEventParameters(parameters = {}) {
-    return Object.fromEntries(Object.entries(parameters).filter(([key, value]) => !FORBIDDEN_KEYS.test(key) && ["string", "number", "boolean"].includes(typeof value)));
+  function sanitizeEventParameters(parameters = {}, eventName = "") {
+    const allowlist = CORE_EVENT_PARAMETERS[eventName];
+    return Object.fromEntries(Object.entries(parameters).filter(([key, value]) => {
+      if (allowlist && !allowlist.has(key)) return false;
+      if (key !== "deposit_method" && (FORBIDDEN_KEYS.test(key) || /(?:^|_)deposit(?:$|_(?:amount|total|value))/i.test(key))) return false;
+      return ["string", "number", "boolean"].includes(typeof value);
+    }));
   }
   function loadAnalytics({ measurementId = SITE_CONFIG.gaMeasurementId, documentRef = globalThis.document } = {}) {
     if (!measurementId || !canUseAnalytics() || !documentRef) return Promise.resolve(false);
@@ -515,7 +526,7 @@ ${url}`;
   }
   function trackEvent(eventName, parameters = {}) {
     var _a;
-    const safeParameters = sanitizeEventParameters(parameters);
+    const safeParameters = sanitizeEventParameters(parameters, eventName);
     if (SITE_CONFIG.analyticsDebug) console.debug("[consumer analytics]", eventName, safeParameters);
     if (!canUseAnalytics() || !SITE_CONFIG.gaMeasurementId) return false;
     loadAnalytics();
@@ -552,7 +563,7 @@ ${url}`;
       if (storage == null ? void 0 : storage.getItem(eventKey)) return false;
       const pending = readPendingEvents(storage);
       if (pending.some((item) => item.eventName === eventName)) return false;
-      pending.push({ eventName, parameters: sanitizeEventParameters(parameters) });
+      pending.push({ eventName, parameters: sanitizeEventParameters(parameters, eventName) });
       storage == null ? void 0 : storage.setItem(PENDING_EVENTS_KEY, JSON.stringify(pending));
       return true;
     } catch (e) {
@@ -1105,7 +1116,12 @@ ${url}`;
     if (details.open) trackEvent("details_opened", { details_type: details.classList.contains("calculation-details") ? "calculation_method" : "additional_actions" });
   }));
   $$("#whatsapp, #whatsapp-secondary").forEach((link) => link.addEventListener("click", () => {
-    trackEvent("whatsapp_clicked", { result_status: resultStatus(lastResult), fund_status: (lastProfile == null ? void 0 : lastProfile.fundStatus) || "", ...attributionParameters });
+    trackEvent("whatsapp_clicked", {
+      result_status: resultStatus(lastResult),
+      fund_status: (lastProfile == null ? void 0 : lastProfile.fundStatus) || "",
+      button_location: link.id === "whatsapp-secondary" ? "secondary" : "primary",
+      ...attributionParameters
+    });
     const notice = $("#whatsapp-status");
     if (notice) notice.textContent = "WhatsApp \u05E0\u05E4\u05EA\u05D7 \u05D1\u05D7\u05DC\u05D5\u05DF \u05D7\u05D3\u05E9. \u05DC\u05D0\u05D7\u05E8 \u05E9\u05DC\u05D9\u05D7\u05EA \u05D4\u05D4\u05D5\u05D3\u05E2\u05D4 \u05E8\u05D5\u05E2\u05D9 \u05D9\u05D5\u05DB\u05DC \u05DC\u05D7\u05D6\u05D5\u05E8 \u05D0\u05DC\u05D9\u05DA.";
   }));

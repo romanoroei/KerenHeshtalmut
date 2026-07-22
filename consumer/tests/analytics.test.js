@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { getConsentStatus, setConsentStatus, canUseAnalytics } from '../analytics/consent.js';
 import { readAttribution, sanitizeAttributionValue, attributionEventParameters, saveInitialAttribution, getAttribution, referrerDisplayName } from '../analytics/attribution.js';
-import { PENDING_EVENTS_KEY, clearPendingAnalyticsEvents, flushPendingAnalyticsEvents, queueAnalyticsEvent, sanitizeEventParameters, trackEvent, trackOnce } from '../analytics/tracking.js';
+import { CORE_EVENT_PARAMETERS, PENDING_EVENTS_KEY, clearPendingAnalyticsEvents, flushPendingAnalyticsEvents, queueAnalyticsEvent, sanitizeEventParameters, trackEvent, trackOnce } from '../analytics/tracking.js';
 import { buildShareMessage, buildWhatsAppMessage } from '../messages/whatsapp.js';
 
 const storage = () => { const data = new Map(); return { getItem: (k) => data.get(k) ?? null, setItem: (k, v) => data.set(k, v), removeItem: (k) => data.delete(k) }; };
@@ -17,6 +17,21 @@ test('consent defaults to unknown and distinguishes accepted from essential only
 test('trackEvent is safe without GA4 and strips financial parameters', () => {
   assert.doesNotThrow(() => trackEvent('calculator_started'));
   assert.deepEqual(sanitizeEventParameters({ income: 100000, deposit_amount: 5, step_number: 2, fund_status: 'existing' }), { step_number: 2, fund_status: 'existing' });
+});
+
+test('core event allowlists preserve UTM content and deposit method but reject sensitive data', () => {
+  const attribution = { source: 'accountant', medium: 'referral', campaign: 'partners-2026', content: 'personal', term: '', referrer_code: 'roynetanel' };
+  const completed = sanitizeEventParameters({ ...attribution, fund_status: 'existing', deposit_method: 'lump', goals: 'tax|saving', result_status: 'remaining', income: 250000, balance: 8000, recommended_amount: 12566, tax_benefit: 1000, message_content: 'private' }, 'calculator_completed');
+  assert.deepEqual(completed, { ...attribution, fund_status: 'existing', deposit_method: 'lump', goals: 'tax|saving', result_status: 'remaining' });
+  const whatsapp = sanitizeEventParameters({ ...attribution, fund_status: 'existing', result_status: 'remaining', button_location: 'primary', whatsapp_message: 'private', phone: '0500000000', deposit_method: 'lump' }, 'whatsapp_clicked');
+  assert.deepEqual(whatsapp, { ...attribution, fund_status: 'existing', result_status: 'remaining', button_location: 'primary' });
+});
+
+test('all four core events define the documented parameter allowlists', () => {
+  assert.deepEqual([...CORE_EVENT_PARAMETERS.landing_view], ['page_type', 'source', 'medium', 'campaign', 'content', 'term', 'referrer_code']);
+  assert.ok(CORE_EVENT_PARAMETERS.calculator_started.has('content'));
+  assert.ok(CORE_EVENT_PARAMETERS.calculator_completed.has('deposit_method'));
+  assert.ok(CORE_EVENT_PARAMETERS.whatsapp_clicked.has('button_location'));
 });
 
 test('trackOnce does not mark an event before analytics consent', () => {

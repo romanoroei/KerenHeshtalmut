@@ -1,14 +1,25 @@
 import { SITE_CONFIG } from '../config.js';
 import { canUseAnalytics, getConsentStatus } from './consent.js';
 
-const FORBIDDEN_KEYS = /income|amount|deposit|balance|phone|whatsapp.*(?:message|content)|message|content_text/i;
+const FORBIDDEN_KEYS = /income|amount|balance|recommended|tax_benefit|phone|whatsapp_message|message_content|content_text|^message$/i;
+const CORE_EVENT_PARAMETERS = Object.freeze({
+  landing_view: new Set(['page_type', 'source', 'medium', 'campaign', 'content', 'term', 'referrer_code']),
+  calculator_started: new Set(['source', 'medium', 'campaign', 'content', 'term', 'referrer_code']),
+  calculator_completed: new Set(['fund_status', 'deposit_method', 'goals', 'result_status', 'source', 'medium', 'campaign', 'content', 'term', 'referrer_code']),
+  whatsapp_clicked: new Set(['fund_status', 'result_status', 'source', 'medium', 'campaign', 'content', 'term', 'referrer_code', 'button_location']),
+});
 const PENDING_EVENTS_KEY = 'consumer_pending_analytics_events';
 const QUEUEABLE_EVENTS = new Set(['landing_view', 'calculator_started']);
 let gaLoadingPromise;
 let flushPromise;
 
-export function sanitizeEventParameters(parameters = {}) {
-  return Object.fromEntries(Object.entries(parameters).filter(([key, value]) => !FORBIDDEN_KEYS.test(key) && ['string', 'number', 'boolean'].includes(typeof value)));
+export function sanitizeEventParameters(parameters = {}, eventName = '') {
+  const allowlist = CORE_EVENT_PARAMETERS[eventName];
+  return Object.fromEntries(Object.entries(parameters).filter(([key, value]) => {
+    if (allowlist && !allowlist.has(key)) return false;
+    if (key !== 'deposit_method' && (FORBIDDEN_KEYS.test(key) || /(?:^|_)deposit(?:$|_(?:amount|total|value))/i.test(key))) return false;
+    return ['string', 'number', 'boolean'].includes(typeof value);
+  }));
 }
 
 export function loadAnalytics({ measurementId = SITE_CONFIG.gaMeasurementId, documentRef = globalThis.document } = {}) {
@@ -30,7 +41,7 @@ export function loadAnalytics({ measurementId = SITE_CONFIG.gaMeasurementId, doc
 }
 
 export function trackEvent(eventName, parameters = {}) {
-  const safeParameters = sanitizeEventParameters(parameters);
+  const safeParameters = sanitizeEventParameters(parameters, eventName);
   if (SITE_CONFIG.analyticsDebug) console.debug('[consumer analytics]', eventName, safeParameters);
   if (!canUseAnalytics() || !SITE_CONFIG.gaMeasurementId) return false;
   loadAnalytics();
@@ -64,7 +75,7 @@ export function queueAnalyticsEvent(eventName, parameters = {}, storage = global
     if (storage?.getItem(eventKey)) return false;
     const pending = readPendingEvents(storage);
     if (pending.some((item) => item.eventName === eventName)) return false;
-    pending.push({ eventName, parameters: sanitizeEventParameters(parameters) });
+    pending.push({ eventName, parameters: sanitizeEventParameters(parameters, eventName) });
     storage?.setItem(PENDING_EVENTS_KEY, JSON.stringify(pending));
     return true;
   } catch { return false; }
@@ -98,4 +109,4 @@ export function flushPendingAnalyticsEvents({ storage = globalThis.sessionStorag
   return flushPromise;
 }
 
-export { PENDING_EVENTS_KEY };
+export { CORE_EVENT_PARAMETERS, PENDING_EVENTS_KEY };

@@ -552,7 +552,12 @@ $$('.calculation-details, #more-recommendations').forEach((details) => details.a
 }));
 
 $$('#whatsapp, #whatsapp-secondary').forEach((link) => link.addEventListener('click', () => {
-  trackEvent('whatsapp_clicked', { result_status: resultStatus(lastResult), fund_status: lastProfile?.fundStatus || '', ...attributionParameters });
+  trackEvent('whatsapp_clicked', {
+    result_status: resultStatus(lastResult),
+    fund_status: lastProfile?.fundStatus || '',
+    button_location: link.id === 'whatsapp-secondary' ? 'secondary' : 'primary',
+    ...attributionParameters,
+  });
   const notice = $('#whatsapp-status');
   if (notice) notice.textContent = 'WhatsApp נפתח בחלון חדש. לאחר שליחת ההודעה רועי יוכל לחזור אליך.';
 }));
