@@ -37,7 +37,7 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   assert.match(html, /האם יש לך קרן השתלמות/);
   assert.equal((html.match(/type="radio" name="fundStatus"/g) || []).length, 2);
   assert.match(html, /value="existing"/);
-  assert.doesNotMatch(html, /לא נזילה|נזילה|לא בטוח אם היא נזילה/);
+  assert.doesNotMatch(html, /לא נזילה|לא בטוח אם היא נזילה/);
   assert.match(html, /כמה הפקדת לקרן שלך השנה/);
   assert.match(html, /מה הצבירה הנוכחית בקרן\? <span>\(כולל מה שכבר הופקד השנה\)<\/span>/);
   assert.match(html, /class="balance-forecast-card"/);

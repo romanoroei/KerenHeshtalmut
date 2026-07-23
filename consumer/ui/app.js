@@ -352,7 +352,7 @@ function setupStickyResultSummary() {
   let scheduled = false;
   const update = () => {
     scheduled = false;
-    const compact = metrics.getBoundingClientRect().bottom <= deadline.getBoundingClientRect().bottom;
+    const compact = metrics.getBoundingClientRect().bottom <= 0;
     deadline.classList.toggle('is-compact-sticky', compact);
   };
   addEventListener('scroll', () => {
