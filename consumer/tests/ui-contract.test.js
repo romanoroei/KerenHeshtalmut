@@ -62,7 +62,7 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   assert.ok(html.indexOf('class="benefit-breakdown"') < html.indexOf('id="preparedness-score"'));
   assert.ok(html.indexOf('id="preparedness-score"') < html.indexOf('id="action-plan-section"'));
   assert.ok(html.indexOf('id="pre-deposit-checks"') < html.indexOf('class="whatsapp-card"'));
-  assert.ok(html.indexOf('id="whatsapp-secondary"') < html.indexOf('id="contact-process"'));
+  assert.ok(html.indexOf('id="contact-process"') < html.indexOf('id="whatsapp-secondary"'));
   assert.match(html, /id="countdown-days"/);
   assert.match(html, /id="whatsapp-secondary"/);
 });
