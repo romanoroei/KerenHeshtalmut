@@ -195,7 +195,7 @@ input[aria-invalid="true"] { border-color: #dc2626; background: #fef2f2; box-sha
 .scenario-card { width: 100%; font-family: inherit; text-align: right; cursor: pointer; transition: transform .18s,border-color .18s,box-shadow .18s; }.scenario-card:hover,.scenario-card:focus-visible,.scenario-card.is-selected { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 8px 22px rgba(15,23,42,.1); outline: none; }.scenario-card.is-selected { background: #fff; }
 .growth-detail { margin-top: 18px; padding: 20px; border: 1px solid #bfdbfe; border-radius: 16px; background: #f8fbff; }.growth-detail-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; }.growth-detail-heading h4 { margin: 2px 0 0; color: var(--slate-900); font-size: 18px; }.growth-legend span { color: var(--slate-500); font-size: 10px; font-weight: 700; }.growth-legend i { display: inline-block; width: 10px; height: 10px; margin-left: 5px; border-radius: 3px; background: linear-gradient(180deg,#60a5fa,#2563eb); }
 .growth-chart { display: block; width: 100%; height: auto; margin: 14px 0 18px; overflow: visible; }.chart-grid { stroke: #dbeafe; stroke-width: 1; stroke-dasharray: 4 5; }.chart-axis { stroke: #64748b; stroke-width: 1.5; }.chart-line { fill: none; stroke: #2563eb; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }.chart-area { fill: rgba(37,99,235,.1); }.chart-point { fill: #fff; stroke: #2563eb; stroke-width: 2.5; }.chart-label { fill: #64748b; font-family: Heebo,sans-serif; font-size: 10px; font-weight: 700; }.chart-label--y { text-anchor: end; }.chart-label--x { text-anchor: middle; }.chart-axis-title { fill: #475569; font-family: Heebo,sans-serif; font-size: 11px; font-weight: 900; text-anchor: middle; }.chart-axis-title--y { transform: rotate(-90deg); transform-origin: 18px 122px; }
-.growth-table-wrap { overflow-x: auto; }.growth-table-wrap table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 10px; }.growth-table-wrap th,.growth-table-wrap td { padding: 9px 10px; border-bottom: 1px solid var(--slate-200); text-align: right; }.growth-table-wrap thead th { color: var(--slate-600); background: #eff6ff; font-weight: 900; }.growth-table-wrap tbody th { color: var(--slate-700); }.growth-table-wrap td { color: var(--slate-600); }.growth-table-wrap td strong { color: var(--blue-dark); }
+.growth-table-wrap { overflow-x: auto; }.growth-table-wrap table { width: max-content; max-width: 100%; margin-inline: auto; border-collapse: collapse; white-space: nowrap; font-size: 10px; }.growth-table-wrap th,.growth-table-wrap td { padding: 9px 10px; border-bottom: 1px solid var(--slate-200); text-align: right; }.growth-table-wrap thead th { color: var(--slate-600); background: #eff6ff; font-weight: 900; }.growth-table-wrap tbody th { color: var(--slate-700); }.growth-table-wrap td { color: var(--slate-600); }.growth-table-wrap td strong { color: var(--blue-dark); }
 @media (max-width: 700px) {
   .landing-hero { min-height: 0; }.landing-layout { display: flex; min-height: 0; padding-block: 30px 0; flex-direction: column; gap: 18px; text-align: center; }.landing-copy h1 { font-size: 36px; }.landing-copy p { font-size: 16px; }.landing-copy > small { display: block; margin: 12px 0 0; }.landing-proof { grid-template-columns: 1fr; margin-top: 20px; }.landing-proof span { min-height: 34px; }.landing-portrait { width: 100%; min-height: 250px; padding-bottom: 46px; }.landing-portrait img { max-width: 150px; max-height: 200px; }.landing-portrait .landing-advisor-tag { bottom: 12px; width: 170px; padding: 7px 10px; }.landing-result-chip { top: 14px; left: 8px; padding: 8px 10px; }.annual-deposit-summary { grid-template-columns: 1fr; }.result-metrics--essential { grid-template-columns: 1fr; }.deposit-mini { grid-template-columns: 1fr 1fr; }
 }
@@ -282,7 +282,7 @@ input[aria-invalid="true"] { border-color: #dc2626; background: #fef2f2; box-sha
 .growth-detail { width: 100%; box-sizing: border-box; }
 .growth-chart { max-width: 100%; }
 .growth-table-wrap { width: 100%; max-width: 100%; overscroll-behavior-inline: contain; }
-.growth-table-wrap table { min-width: 620px; }
+.growth-table-wrap table { min-width: 0; }
 
 @media (max-width: 700px) {
   .landing-proof { grid-template-columns: repeat(2,minmax(0,1fr)); }
@@ -370,12 +370,16 @@ input[aria-invalid="true"] { border-color: #dc2626; background: #fef2f2; box-sha
 .sticky-result-chips b { color:var(--blue-dark); font-size:15px; line-height:1.2; }
 .sticky-result-chips > span:last-child b { color:#6d28d9; }
 .growth-card p,.growth-card small,.growth-notice,.scenario-card small,.growth-detail { color:var(--slate-900) !important; }
-.fund-knowledge ul { display:grid; gap:10px; margin:16px 0 0; padding:0; list-style:none; }
-.fund-knowledge li { position:relative; padding:11px 42px 11px 14px; border-radius:11px; color:var(--slate-900); background:#f8fafc; line-height:1.6; }
-.fund-knowledge li::before { content:'\f058'; position:absolute; top:13px; right:14px; color:var(--teal); font-family:'Font Awesome 6 Free'; font-weight:900; }
-.fund-knowledge li:last-child { border:1px solid #bfdbfe; background:#eff6ff; }
+.knowledge-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:16px; }
+.knowledge-grid article { display:grid; grid-template-columns:42px 1fr; grid-template-rows:auto 1fr; gap:3px 11px; padding:15px; border:1px solid var(--slate-200); border-radius:13px; color:var(--slate-900); background:#f8fafc; }
+.knowledge-grid article > i { grid-row:1/3; width:42px; height:42px; display:grid; place-items:center; border-radius:12px; color:var(--blue); background:#dbeafe; font-size:18px; }
+.knowledge-grid strong { font-size:13px; line-height:1.35; }
+.knowledge-grid span { font-size:10.5px; font-weight:650; line-height:1.45; }
+.knowledge-grid .knowledge-card--featured { border-color:#bfdbfe; background:#eff6ff; }
+.knowledge-grid .knowledge-card--featured > i { color:#6d28d9; background:#ede9fe; }
 
 @media (max-width: 640px) {
+  .knowledge-grid { grid-template-columns:1fr; }
   .results .result-intro > div:first-child { margin-bottom:10px; }
   .results .result-intro .section-kicker { font-size:16px; }
   .results .tax-deadline { margin:0 0 10px; padding:10px; }
