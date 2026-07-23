@@ -466,7 +466,7 @@
 \u05D4\u05D1\u05D3\u05D9\u05E7\u05D4 \u05DC\u05DC\u05D0 \u05D4\u05E8\u05E9\u05DE\u05D4 \u05D5\u05DC\u05DC\u05D0 \u05D4\u05EA\u05D7\u05D9\u05D9\u05D1\u05D5\u05EA:
 ${url}`;
   }
-  function buildConsumerShareUrl(url = `${SITE_CONFIG.publicBaseUrl}?share=20260724-2`) {
+  function buildConsumerShareUrl(url = `${SITE_CONFIG.publicBaseUrl}?share=20260724-3`) {
     const message = buildShareMessage(url);
     return `https://wa.me/?text=${encodeURIComponent(message)}`;
   }

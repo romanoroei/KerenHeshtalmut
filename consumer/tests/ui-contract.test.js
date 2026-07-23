@@ -176,7 +176,7 @@ test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקד
   assert.match(check, /<i class="fab fa-whatsapp"><\/i> WhatsApp/);
   assert.match(source, /button_location: link\.id === 'whatsapp-secondary' \? 'bottom_secondary' : 'main_after_value'/);
   assert.doesNotMatch(check, />למחשבון המקצועי/);
-  assert.match(landing, /property="og:image" content="https:\/\/romanoroei\.github\.io\/KerenHeshtalmut\/og-share\.jpg/);
+  assert.match(landing, /property="og:image" content="https:\/\/romanoroei\.github\.io\/KerenHeshtalmut\/consumer-og-share\.jpg/);
   assert.match(landing, /property="og:image:secure_url"/);
   assert.match(landing, /property="og:image:type" content="image\/jpeg"/);
 });
