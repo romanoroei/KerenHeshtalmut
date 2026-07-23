@@ -883,24 +883,28 @@ ${url}`;
     $("#fund-check-copy").textContent = noFund ? "\u05DC\u05D4\u05E9\u05D5\u05D5\u05EA \u05D1\u05D9\u05DF \u05D2\u05D5\u05E4\u05D9\u05DD \u05DE\u05E0\u05D4\u05DC\u05D9\u05DD \u05D5\u05DC\u05D1\u05D7\u05D5\u05E8 \u05E7\u05E8\u05DF \u05DC\u05E4\u05E0\u05D9 \u05D1\u05D9\u05E6\u05D5\u05E2 \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4." : "\u05DC\u05D5\u05D5\u05D3\u05D0 \u05E9\u05D0\u05D9\u05DF \u05E7\u05E8\u05DF \u05E0\u05D5\u05E1\u05E4\u05EA \u05D5\u05E9\u05E4\u05E8\u05D8\u05D9 \u05D4\u05E7\u05E8\u05DF \u05E9\u05D0\u05DC\u05D9\u05D4 \u05DE\u05E4\u05E7\u05D9\u05D3\u05D9\u05DD \u05E0\u05DB\u05D5\u05E0\u05D9\u05DD.";
   }
   function setupStickyResultSummary() {
-    const deadline = $("#result-intro");
+    const floating = $("#floating-result-summary");
     const metrics = $(".result-metrics--essential");
-    if (!deadline || !metrics || deadline.dataset.stickyReady) return;
-    deadline.dataset.stickyReady = "true";
+    if (!floating || !metrics || floating.dataset.stickyReady) return;
+    floating.dataset.stickyReady = "true";
     let scheduled = false;
+    let activationY = Number.POSITIVE_INFINITY;
     const update = () => {
       scheduled = false;
-      const compact = metrics.getBoundingClientRect().bottom <= 0;
-      deadline.classList.toggle("is-compact-sticky", compact);
+      floating.classList.toggle("is-visible", scrollY >= activationY);
+    };
+    const measure = () => {
+      const rect = metrics.getBoundingClientRect();
+      if (rect.height > 0) activationY = rect.bottom + scrollY;
+      update();
     };
     addEventListener("scroll", () => {
       if (scheduled) return;
       scheduled = true;
       requestAnimationFrame(update);
     }, { passive: true });
-    addEventListener("resize", update, { passive: true });
-    update();
-    requestAnimationFrame(update);
+    addEventListener("resize", measure, { passive: true });
+    requestAnimationFrame(measure);
   }
   function setupValueSectionTracking(result) {
     if (!("IntersectionObserver" in window)) return;
@@ -990,6 +994,7 @@ ${url}`;
     const target = new Date(taxYear, 11, 31, 23, 59, 59, 999);
     const days = Math.max(0, Math.ceil((target.getTime() - Date.now()) / 864e5));
     $("#countdown-days").textContent = days.toLocaleString("he-IL");
+    $("#floating-countdown-days").textContent = days.toLocaleString("he-IL");
     $("#countdown-copy").textContent = days < 30 ? "\u05D0\u05EA\u05D4 \u05DE\u05DE\u05E9 \u05E7\u05E8\u05D5\u05D1 \u05DC\u05D0\u05D1\u05D3 \u05D0\u05EA \u05D4\u05D8\u05D1\u05EA \u05D4\u05DE\u05E1 \u05E9\u05DC\u05DA \u2014 \u05DE\u05D5\u05DE\u05DC\u05E5 \u05DC\u05D8\u05E4\u05DC \u05E2\u05DB\u05E9\u05D9\u05D5." : "\u05DC\u05D0 \u05DE\u05D7\u05DB\u05D9\u05DD \u05DC\u05D3\u05E7\u05D4 \u05D4\u05BE90, \u05D6\u05D4 \u05D4\u05D6\u05DE\u05DF \u05DC\u05D4\u05EA\u05D9\u05D9\u05E2\u05E5 \u05E2\u05DD \u05D1\u05E2\u05DC \u05E8\u05D9\u05E9\u05D9\u05D5\u05DF \u05D5\u05DC\u05D4\u05D9\u05E2\u05E8\u05DA \u05DC\u05E0\u05D9\u05E6\u05D5\u05DC \u05D4\u05D8\u05D1\u05D5\u05EA \u05D4\u05DE\u05E1.";
     $("#tax-countdown").hidden = days === 0;
   }

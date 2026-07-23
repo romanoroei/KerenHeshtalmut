@@ -345,24 +345,28 @@ function renderPreDepositChecks(profile) {
 }
 
 function setupStickyResultSummary() {
-  const deadline = $('#result-intro');
+  const floating = $('#floating-result-summary');
   const metrics = $('.result-metrics--essential');
-  if (!deadline || !metrics || deadline.dataset.stickyReady) return;
-  deadline.dataset.stickyReady = 'true';
+  if (!floating || !metrics || floating.dataset.stickyReady) return;
+  floating.dataset.stickyReady = 'true';
   let scheduled = false;
+  let activationY = Number.POSITIVE_INFINITY;
   const update = () => {
     scheduled = false;
-    const compact = metrics.getBoundingClientRect().bottom <= 0;
-    deadline.classList.toggle('is-compact-sticky', compact);
+    floating.classList.toggle('is-visible', scrollY >= activationY);
+  };
+  const measure = () => {
+    const rect = metrics.getBoundingClientRect();
+    if (rect.height > 0) activationY = rect.bottom + scrollY;
+    update();
   };
   addEventListener('scroll', () => {
     if (scheduled) return;
     scheduled = true;
     requestAnimationFrame(update);
   }, { passive: true });
-  addEventListener('resize', update, { passive: true });
-  update();
-  requestAnimationFrame(update);
+  addEventListener('resize', measure, { passive: true });
+  requestAnimationFrame(measure);
 }
 
 function setupValueSectionTracking(result) {
@@ -451,6 +455,7 @@ function renderDeadlineCard(taxYear) {
   const target = new Date(taxYear, 11, 31, 23, 59, 59, 999);
   const days = Math.max(0, Math.ceil((target.getTime() - Date.now()) / 86400000));
   $('#countdown-days').textContent = days.toLocaleString('he-IL');
+  $('#floating-countdown-days').textContent = days.toLocaleString('he-IL');
   $('#countdown-copy').textContent = days < 30
     ? 'אתה ממש קרוב לאבד את הטבת המס שלך — מומלץ לטפל עכשיו.'
     : 'לא מחכים לדקה ה־90, זה הזמן להתייעץ עם בעל רישיון ולהיערך לניצול הטבות המס.';
