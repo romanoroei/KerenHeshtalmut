@@ -430,11 +430,9 @@ function renderDeadlineCard(taxYear) {
   const target = new Date(taxYear, 11, 31, 23, 59, 59, 999);
   const days = Math.max(0, Math.ceil((target.getTime() - Date.now()) / 86400000));
   $('#countdown-days').textContent = days.toLocaleString('he-IL');
-  $('#countdown-copy').textContent = days > 90
-    ? 'יש זמן להיערך בנחת, להשוות ולבחור דרך הפקדה שמתאימה לתזרים.'
-    : days > 30
-      ? 'כדאי לגבש תוכנית הפקדה בשבועות הקרובים ולא להשאיר אותה לסוף דצמבר.'
-      : 'סוף שנת המס מתקרב; כדאי לבדוק את האפשרויות מראש ולפעול בזמן.';
+  $('#countdown-copy').textContent = days < 30
+    ? 'אתה ממש קרוב לאבד את הטבת המס שלך — מומלץ לטפל עכשיו.'
+    : 'לא מחכים לדקה ה־90, זה הזמן להתייעץ עם בעל רישיון ולהיערך לניצול הטבות המס.';
   $('#tax-countdown').hidden = days === 0;
 }
 
@@ -501,10 +499,8 @@ function renderResult(result, profile) {
   countUp($('#capital-gains-benefit'), result.estimatedCapitalGainsExemptionValueTotal, money);
   const ctaCopy = buildCta(result, profile);
   $('#dynamic-cta').textContent = ctaCopy;
-  renderInterpretation(result, profile);
   renderScore(result, profile);
   renderRecommendationSteps(result, profile);
-  renderDepositOptions(result);
   renderPreDepositChecks(profile);
   renderScenarios(result);
   $('.growth-notice').textContent = `החישוב מתחיל מהצבירה שהזנת, ${money(result.existingBalance)}, ומוסיף הפקדה חודשית קבועה של ${money(result.suggestedMonthly)} (תקרת ${result.taxYear} חלקי 12), ללא הפקדה חד־פעמית ולפני דמי ניהול. המחשה בלבד, ללא התחייבות לתשואה; הסכומים נומינליים ובהנחת תשואה קבועה.`;

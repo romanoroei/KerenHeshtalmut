@@ -57,10 +57,12 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   assert.doesNotMatch(html, /id="growth-bars"/);
   assert.ok(html.indexOf('class="benefit-breakdown"') < html.indexOf('class="whatsapp-card"'));
   assert.ok(html.indexOf('class="action-plan-card"') < html.indexOf('class="whatsapp-card"'));
-  assert.ok(html.indexOf('id="result-interpretation"') < html.indexOf('id="action-plan-section"'));
-  assert.ok(html.indexOf('id="deposit-options-section"') < html.indexOf('id="pre-deposit-checks"'));
-  assert.ok(html.indexOf('id="preparedness-score"') < html.indexOf('id="growth-scenarios"'));
-  assert.ok(html.indexOf('id="contact-process"') < html.indexOf('class="whatsapp-card"'));
+  assert.doesNotMatch(html, /id="result-interpretation"/);
+  assert.doesNotMatch(html, /id="deposit-options-section"/);
+  assert.ok(html.indexOf('class="benefit-breakdown"') < html.indexOf('id="preparedness-score"'));
+  assert.ok(html.indexOf('id="preparedness-score"') < html.indexOf('id="action-plan-section"'));
+  assert.ok(html.indexOf('id="pre-deposit-checks"') < html.indexOf('class="whatsapp-card"'));
+  assert.ok(html.indexOf('id="whatsapp-secondary"') < html.indexOf('id="contact-process"'));
   assert.match(html, /id="countdown-days"/);
   assert.match(html, /id="whatsapp-secondary"/);
 });
