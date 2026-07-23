@@ -408,7 +408,7 @@ input[aria-invalid="true"] { border-color: #dc2626; background: #fef2f2; box-sha
 .deadline-inline { display:flex; align-items:center; gap:10px; flex:0 1 500px; color:var(--slate-900); }
 .deadline-inline > i { display:grid; place-items:center; flex:0 0 42px; width:42px; height:42px; border-radius:12px; color:#fff; background:var(--blue); }
 .deadline-inline strong,.deadline-inline span { display:block; }
-.deadline-inline strong { white-space:nowrap; font-size:15px; }
+.deadline-inline strong { white-space:nowrap; font-size:17px; }
 .deadline-inline strong span { display:inline; }
 .deadline-inline .deadline-copy > span { margin-top:3px; color:var(--slate-700); font-size:12px; line-height:1.45; }
 .result-intro.is-compact-sticky { position:fixed; z-index:100; top:0; right:50%; width:min(calc(100% - 20px),1160px); box-sizing:border-box; margin:0; padding:9px 12px; transform:translateX(50%); border-radius:0 0 14px 14px; background:rgba(255,255,255,.97); box-shadow:0 8px 24px rgba(15,23,42,.16); backdrop-filter:blur(10px); }
