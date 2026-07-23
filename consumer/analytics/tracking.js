@@ -7,6 +7,12 @@ const CORE_EVENT_PARAMETERS = Object.freeze({
   calculator_started: new Set(['source', 'medium', 'campaign', 'content', 'term', 'referrer_code']),
   calculator_completed: new Set(['fund_status', 'deposit_method', 'goals', 'result_status', 'source', 'medium', 'campaign', 'content', 'term', 'referrer_code']),
   whatsapp_clicked: new Set(['fund_status', 'result_status', 'source', 'medium', 'campaign', 'content', 'term', 'referrer_code', 'button_location']),
+  result_interpretation_viewed: new Set(['result_status', 'source', 'medium', 'campaign', 'content', 'term', 'referrer_code']),
+  action_plan_viewed: new Set(['result_status', 'source', 'medium', 'campaign', 'content', 'term', 'referrer_code']),
+  deposit_options_viewed: new Set(['result_status', 'source', 'medium', 'campaign', 'content', 'term', 'referrer_code']),
+  pre_deposit_checks_viewed: new Set(['result_status', 'source', 'medium', 'campaign', 'content', 'term', 'referrer_code']),
+  growth_scenarios_viewed: new Set(['result_status', 'source', 'medium', 'campaign', 'content', 'term', 'referrer_code']),
+  contact_process_viewed: new Set(['result_status', 'source', 'medium', 'campaign', 'content', 'term', 'referrer_code']),
 });
 const PENDING_EVENTS_KEY = 'consumer_pending_analytics_events';
 const QUEUEABLE_EVENTS = new Set(['landing_view', 'calculator_started']);

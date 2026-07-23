@@ -21,7 +21,6 @@ let currentStep = 0;
 let lastProfile;
 let lastResult;
 let advanceTimer;
-let countdownTimer;
 let isTransitioning = false;
 let isSubmitting = false;
 const stepHistory = [0];
@@ -294,6 +293,76 @@ function renderScore(result, profile) {
   $('#score-components').innerHTML = components.map(([label, done]) => `<li><i class="fas fa-${done ? 'circle-check' : 'circle'}"></i>${label}</li>`).join('');
 }
 
+function renderInterpretation(result, profile) {
+  const points = [];
+  if (result.overCeiling > 0) {
+    points.push(`כ־${money(result.overCeiling)} מההפקדה השנתית הצפויה עשויים להיות מעל התקרה המוטבת.`);
+    points.push('אין צורך להגדיל כרגע את ההפקדה לצורך ניצול התקרה.');
+    points.push('כדאי לבדוק את ההפקדות המתוכננות, המסלול ודמי הניהול לפני שינוי נוסף.');
+  } else if (result.remaining === 0) {
+    points.push(`מלוא תקרת ההפקדה המוטבת לשנת ${result.taxYear} כבר מנוצלת.`);
+    points.push('במקום להוסיף הפקדה לצורך התקרה, אפשר לבדוק את המסלול ודמי הניהול.');
+    points.push('המשך הפקדה צריך להתאים לתזרים ולמטרות, גם כשהתקרה כבר מלאה.');
+  } else {
+    points.push(`נותרה יתרה של ${money(result.remaining)} שניתן לשקול להפקיד עד סוף שנת המס.`);
+    points.push(`הפקדה חד־פעמית, הפקדה חודשית או שילוב ביניהן יכולים להשלים את היתרה.`);
+    points.push(profile.fundStatus === 'none' ? 'לפני הפקדה יש לבחור גוף מנהל ומסלול השקעה ולפתוח קרן.' : 'לפני שינוי ההפקדה כדאי לבדוק שהמסלול ודמי הניהול עדיין מתאימים.');
+    if (profile.depositMethod === 'monthly' || profile.goals.includes('monthly')) points.push('אפשר לבנות קצב חודשי שמתאים לתזרים ולא רק להשלמה בסוף השנה.');
+  }
+  const goalLabels = { tax: 'ניצול הטבות המס', saving: 'חיסכון לטווח בינוני וארוך', monthly: 'בניית הרגל הפקדה חודשי', check: 'בדיקת הקרן הקיימת' };
+  const goals = profile.goals.map((goal) => goalLabels[goal]).filter(Boolean);
+  $('#goal-focus').textContent = goals.length ? `הדגשים הותאמו למטרות שסימנת: ${goals.join(' ו־')}.` : 'הפירוש מבוסס על תמונת המצב שהזנת.';
+  $('#interpretation-points').innerHTML = points.slice(0, 5).map((point) => `<li><i class="fas fa-circle-check"></i><span>${point}</span></li>`).join('');
+}
+
+function renderDepositOptions(result) {
+  const section = $('#deposit-options-section');
+  if (result.remaining === 0 && result.overCeiling === 0) {
+    section.hidden = true;
+    return;
+  }
+  section.hidden = false;
+  if (result.overCeiling > 0) {
+    $('#deposit-options').innerHTML = '<article class="deposit-option deposit-option--notice"><i class="fas fa-circle-info"></i><div><strong>לא נדרשת השלמת הפקדה לצורך התקרה</strong><span>כדאי לבדוק את ההפקדות המתוכננות לפני הוספת סכום נוסף.</span></div></article>';
+    return;
+  }
+  const months = Math.max(1, result.scheduledMonthsRemaining);
+  const monthly = Math.ceil(result.remaining / months);
+  const lump = Math.round((result.remaining / 2) / 100) * 100;
+  const combinedMonthly = Math.ceil((result.remaining - lump) / months);
+  $('#deposit-options').innerHTML = `
+    <article class="deposit-option"><i class="fas fa-bolt"></i><strong>הפקדה חד־פעמית</strong><b>${money(result.remaining)}</b><span>השלמת היתרה בפעולה אחת, בכפוף לתזרים.</span></article>
+    <article class="deposit-option"><i class="fas fa-calendar-days"></i><strong>חלוקה חודשית</strong><b>כ־${money(monthly)} לחודש</b><span>חלוקת היתרה על פני ${months} ההפקדות שנותרו השנה.</span></article>
+    <article class="deposit-option"><i class="fas fa-scale-balanced"></i><strong>שילוב מאוזן לדוגמה</strong><b>${money(lump)} עכשיו</b><span>ועוד כ־${money(combinedMonthly)} לחודש במשך ${months} חודשים.</span></article>`;
+}
+
+function renderPreDepositChecks(profile) {
+  const noFund = profile.fundStatus === 'none';
+  $('#fund-check-title').textContent = noFund ? 'בחירת גוף מנהל' : 'קרנות קיימות';
+  $('#fund-check-copy').textContent = noFund
+    ? 'להשוות בין גופים מנהלים ולבחור קרן לפני ביצוע ההפקדה.'
+    : 'לוודא שאין קרן נוספת ושפרטי הקרן שאליה מפקידים נכונים.';
+}
+
+function setupValueSectionTracking(result) {
+  if (!('IntersectionObserver' in window)) return;
+  const events = [
+    ['result-interpretation', 'result_interpretation_viewed'],
+    ['action-plan-section', 'action_plan_viewed'],
+    ['deposit-options-section', 'deposit_options_viewed'],
+    ['pre-deposit-checks', 'pre_deposit_checks_viewed'],
+    ['growth-scenarios', 'growth_scenarios_viewed'],
+    ['contact-process', 'contact_process_viewed'],
+  ];
+  const observer = new IntersectionObserver((entries) => entries.forEach((entry) => {
+    if (!entry.isIntersecting || entry.target.hidden) return;
+    const eventName = events.find(([id]) => id === entry.target.id)?.[1];
+    if (eventName) trackOnce(eventName, { result_status: resultStatus(result), ...attributionParameters });
+    observer.unobserve(entry.target);
+  }), { threshold: 0.35 });
+  events.forEach(([id]) => { const element = $(`#${id}`); if (element) observer.observe(element); });
+}
+
 function renderRecommendationSteps(result, profile) {
   const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
   const stepsForUser = [];
@@ -357,25 +426,16 @@ function renderRecommendationSteps(result, profile) {
   $('#more-recommendations').hidden = additional.length === 0;
 }
 
-function renderLiveCountdown(taxYear) {
-  clearInterval(countdownTimer);
+function renderDeadlineCard(taxYear) {
   const target = new Date(taxYear, 11, 31, 23, 59, 59, 999);
-  const update = () => {
-    const remainingMilliseconds = Math.max(0, target.getTime() - Date.now());
-    const totalSeconds = Math.floor(remainingMilliseconds / 1000);
-    const days = Math.floor(totalSeconds / 86400);
-    const hours = Math.floor((totalSeconds % 86400) / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    $('#countdown-days').textContent = days.toLocaleString('he-IL');
-    $('#countdown-hours').textContent = String(hours).padStart(2, '0');
-    $('#countdown-minutes').textContent = String(minutes).padStart(2, '0');
-    $('#countdown-seconds').textContent = String(seconds).padStart(2, '0');
-    $('#tax-countdown').hidden = remainingMilliseconds === 0;
-    if (remainingMilliseconds === 0) clearInterval(countdownTimer);
-  };
-  update();
-  countdownTimer = setInterval(update, 1000);
+  const days = Math.max(0, Math.ceil((target.getTime() - Date.now()) / 86400000));
+  $('#countdown-days').textContent = days.toLocaleString('he-IL');
+  $('#countdown-copy').textContent = days > 90
+    ? 'יש זמן להיערך בנחת, להשוות ולבחור דרך הפקדה שמתאימה לתזרים.'
+    : days > 30
+      ? 'כדאי לגבש תוכנית הפקדה בשבועות הקרובים ולא להשאיר אותה לסוף דצמבר.'
+      : 'סוף שנת המס מתקרב; כדאי לבדוק את האפשרויות מראש ולפעול בזמן.';
+  $('#tax-countdown').hidden = days === 0;
 }
 
 function buildSecondaryCta(result, profile) {
@@ -384,41 +444,47 @@ function buildSecondaryCta(result, profile) {
   return 'רוצה לבדוק שהקרן הקיימת עדיין עובדת נכון עבורך?';
 }
 
-function renderResultIntro(result) {
-  clearInterval(countdownTimer);
+function renderResultIntro(result, profile) {
   const countdown = $('#tax-countdown');
   const intro = $('#result-intro');
   const message = $('#result-message');
   intro.classList.toggle('is-over-ceiling', result.overCeiling > 0);
   if (result.overCeiling > 0) {
     const isProjectedOverage = result.depositedToDate <= result.ceiling && result.futureScheduledDeposits > 0;
-    $('#result-title').textContent = isProjectedOverage
-      ? 'ההפקדות הצפויות השנה גבוהות מהתקרה המוטבת'
-      : 'ההפקדות השנה גבוהות מהתקרה המוטבת';
+    $('#result-title').textContent = 'חלק מההפקדה שלך עשוי להיות מעל התקרה המוטבת';
     message.textContent = isProjectedOverage
       ? `הסכום הצפוי שמעל התקרה הוא ${money(result.overCeiling)}. כדאי לבדוק אותו לפני ביצוע הפקדות נוספות.`
       : `הסכום שמעל התקרה הוא ${money(result.overCeiling)}. כדאי לבדוק אותו לפני ביצוע הפקדות נוספות.`;
     message.hidden = false;
-    countdown.hidden = true;
+    renderDeadlineCard(result.taxYear);
     return;
   }
   if (result.remaining === 0) {
     $('#result-title').textContent = `ניצלת את מלוא התקרה המוטבת לשנת ${result.taxYear}`;
     message.textContent = 'אין צורך לבצע הפקדה נוספת כדי לנצל את התקרה השנה.';
     message.hidden = false;
-    countdown.hidden = true;
+    renderDeadlineCard(result.taxYear);
     return;
   }
-  $('#result-title').textContent = 'ההזדמנות לנצל את ההטבה מסתיימת בסוף השנה';
-  message.hidden = true;
-  renderLiveCountdown(result.taxYear);
+  if (profile.fundStatus === 'none') {
+    $('#result-title').textContent = 'עדיין אין לך קרן השתלמות — וזו נקודת התחלה חשובה';
+    message.textContent = `אפשר לבחון פתיחת קרן והפקדה של עד ${money(result.remaining)} עד סוף השנה, בהתאם לתזרים ולמצב האישי.`;
+  } else if (result.depositedToDate === 0) {
+    $('#result-title').textContent = 'עדיין לא התחלת לנצל את הטבת קרן ההשתלמות השנה';
+    message.textContent = `נותרה יתרה של ${money(result.remaining)} שניתן לשקול להפקיד השנה.`;
+  } else {
+    $('#result-title').textContent = 'התחלת נכון — ועדיין נשארה לך יתרה שניתן לנצל';
+    message.textContent = `לאחר ההפקדות שכבר בוצעו, נותרו עד ${money(result.remaining)} לניצול התקרה.`;
+  }
+  message.hidden = false;
+  renderDeadlineCard(result.taxYear);
 }
 
 function renderResult(result, profile) {
   lastProfile = profile;
   countUp($('#remaining'), result.remaining, money);
   countUp($('#tax-benefit'), result.estimatedCombinedBenefitTotal, money);
-  renderResultIntro(result);
+  renderResultIntro(result, profile);
   countUp($('#deposited-to-date'), result.depositedToDate, money);
   countUp($('#projected-annual'), result.projectedAnnualDeposited, money);
   const hasFutureProjection = result.projectedAnnualDeposited > result.depositedToDate;
@@ -435,9 +501,11 @@ function renderResult(result, profile) {
   countUp($('#capital-gains-benefit'), result.estimatedCapitalGainsExemptionValueTotal, money);
   const ctaCopy = buildCta(result, profile);
   $('#dynamic-cta').textContent = ctaCopy;
-  $('#dynamic-cta-secondary').textContent = buildSecondaryCta(result, profile);
+  renderInterpretation(result, profile);
   renderScore(result, profile);
   renderRecommendationSteps(result, profile);
+  renderDepositOptions(result);
+  renderPreDepositChecks(profile);
   renderScenarios(result);
   $('.growth-notice').textContent = `החישוב מתחיל מהצבירה שהזנת, ${money(result.existingBalance)}, ומוסיף הפקדה חודשית קבועה של ${money(result.suggestedMonthly)} (תקרת ${result.taxYear} חלקי 12), ללא הפקדה חד־פעמית ולפני דמי ניהול. המחשה בלבד, ללא התחייבות לתשואה; הסכומים נומינליים ובהנחת תשואה קבועה.`;
   const whatsappUrl = buildWhatsAppUrl(result, profile);
@@ -448,6 +516,7 @@ function renderResult(result, profile) {
     ? '<p><strong>לתשומת לב:</strong> הניכוי חוצה מדרגת מס, ולכן הטבת מס ההכנסה חושבה לפי המס לפני ואחרי הניכוי ובהתאם לכל מדרגות המס הרלוונטיות — ולא לפי שיעור שולי יחיד.</p>'
     : '';
   $('#calculation-details').innerHTML = `<p><strong>תקרת 2026:</strong> ${money(result.ceiling)} · <strong>הכנסה:</strong> ${money(result.income)} · <strong>הופקד השנה:</strong> ${money(result.depositedToDate)}${hasFutureProjection ? ` · <strong>צפוי עד סוף השנה כולל הוראת קבע:</strong> ${money(result.projectedAnnualDeposited)}` : ''}</p><p>אומדן ההטבות מחושב בהנחה של מיקסום ההפקדה השנתית עד התקרה, ולכן כולל גם את ההפקדות שכבר בוצעו ואת הוראת הקבע הצפויה עד סוף השנה — ולא רק את יתרת ההשלמה.</p><p><strong>מדרגת מס שולית משוערת לפני הניכוי:</strong> ${result.taxRate * 100}% · <strong>שיעור ניכוי:</strong> ${result.deductibleRate * 100}%</p>${bracketNote}<p><strong>הטבה מיידית משוערת:</strong> מס הכנסה ${money(result.estimatedTotalTaxBenefit)} + ביטוח לאומי/בריאות ${money(result.estimatedNationalInsuranceBenefitTotal)}.</p><p><strong>שווי עתידי משוער:</strong> פטור ממס רווחי הון ${money(result.estimatedCapitalGainsExemptionValueTotal)}, בהנחת 8% לשנה ל־6 שנים ומס של 25% על הרווח.</p><p>מקורות: לוח הניכויים 2026 של רשות המסים ושיעורי ביטוח לאומי לעצמאי החל מ־1.1.2026. אימות: 19.07.2026. כל הרכיבים הם אומדן הדורש אימות אישי.</p>`;
+  setupValueSectionTracking(result);
 }
 
 form.addEventListener('click', (event) => {
@@ -555,7 +624,7 @@ $$('#whatsapp, #whatsapp-secondary').forEach((link) => link.addEventListener('cl
   trackEvent('whatsapp_clicked', {
     result_status: resultStatus(lastResult),
     fund_status: lastProfile?.fundStatus || '',
-    button_location: link.id === 'whatsapp-secondary' ? 'secondary' : 'primary',
+    button_location: link.id === 'whatsapp-secondary' ? 'bottom_secondary' : 'main_after_value',
     ...attributionParameters,
   });
   const notice = $('#whatsapp-status');

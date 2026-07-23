@@ -23,8 +23,10 @@ test('core event allowlists preserve UTM content and deposit method but reject s
   const attribution = { source: 'accountant', medium: 'referral', campaign: 'partners-2026', content: 'personal', term: '', referrer_code: 'roynetanel' };
   const completed = sanitizeEventParameters({ ...attribution, fund_status: 'existing', deposit_method: 'lump', goals: 'tax|saving', result_status: 'remaining', income: 250000, balance: 8000, recommended_amount: 12566, tax_benefit: 1000, message_content: 'private' }, 'calculator_completed');
   assert.deepEqual(completed, { ...attribution, fund_status: 'existing', deposit_method: 'lump', goals: 'tax|saving', result_status: 'remaining' });
-  const whatsapp = sanitizeEventParameters({ ...attribution, fund_status: 'existing', result_status: 'remaining', button_location: 'primary', whatsapp_message: 'private', phone: '0500000000', deposit_method: 'lump' }, 'whatsapp_clicked');
-  assert.deepEqual(whatsapp, { ...attribution, fund_status: 'existing', result_status: 'remaining', button_location: 'primary' });
+  const whatsapp = sanitizeEventParameters({ ...attribution, fund_status: 'existing', result_status: 'remaining', button_location: 'main_after_value', whatsapp_message: 'private', phone: '0500000000', deposit_method: 'lump' }, 'whatsapp_clicked');
+  assert.deepEqual(whatsapp, { ...attribution, fund_status: 'existing', result_status: 'remaining', button_location: 'main_after_value' });
+  const viewed = sanitizeEventParameters({ ...attribution, result_status: 'remaining', income: 250000, fund_status: 'existing' }, 'deposit_options_viewed');
+  assert.deepEqual(viewed, { ...attribution, result_status: 'remaining' });
 });
 
 test('all four core events define the documented parameter allowlists', () => {
@@ -32,6 +34,8 @@ test('all four core events define the documented parameter allowlists', () => {
   assert.ok(CORE_EVENT_PARAMETERS.calculator_started.has('content'));
   assert.ok(CORE_EVENT_PARAMETERS.calculator_completed.has('deposit_method'));
   assert.ok(CORE_EVENT_PARAMETERS.whatsapp_clicked.has('button_location'));
+  assert.ok(CORE_EVENT_PARAMETERS.result_interpretation_viewed.has('result_status'));
+  assert.ok(CORE_EVENT_PARAMETERS.contact_process_viewed.has('content'));
 });
 
 test('trackOnce does not mark an event before analytics consent', () => {

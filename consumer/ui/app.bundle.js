@@ -492,7 +492,13 @@ ${url}`;
     landing_view: /* @__PURE__ */ new Set(["page_type", "source", "medium", "campaign", "content", "term", "referrer_code"]),
     calculator_started: /* @__PURE__ */ new Set(["source", "medium", "campaign", "content", "term", "referrer_code"]),
     calculator_completed: /* @__PURE__ */ new Set(["fund_status", "deposit_method", "goals", "result_status", "source", "medium", "campaign", "content", "term", "referrer_code"]),
-    whatsapp_clicked: /* @__PURE__ */ new Set(["fund_status", "result_status", "source", "medium", "campaign", "content", "term", "referrer_code", "button_location"])
+    whatsapp_clicked: /* @__PURE__ */ new Set(["fund_status", "result_status", "source", "medium", "campaign", "content", "term", "referrer_code", "button_location"]),
+    result_interpretation_viewed: /* @__PURE__ */ new Set(["result_status", "source", "medium", "campaign", "content", "term", "referrer_code"]),
+    action_plan_viewed: /* @__PURE__ */ new Set(["result_status", "source", "medium", "campaign", "content", "term", "referrer_code"]),
+    deposit_options_viewed: /* @__PURE__ */ new Set(["result_status", "source", "medium", "campaign", "content", "term", "referrer_code"]),
+    pre_deposit_checks_viewed: /* @__PURE__ */ new Set(["result_status", "source", "medium", "campaign", "content", "term", "referrer_code"]),
+    growth_scenarios_viewed: /* @__PURE__ */ new Set(["result_status", "source", "medium", "campaign", "content", "term", "referrer_code"]),
+    contact_process_viewed: /* @__PURE__ */ new Set(["result_status", "source", "medium", "campaign", "content", "term", "referrer_code"])
   });
   var PENDING_EVENTS_KEY = "consumer_pending_analytics_events";
   var QUEUEABLE_EVENTS = /* @__PURE__ */ new Set(["landing_view", "calculator_started"]);
@@ -609,7 +615,6 @@ ${url}`;
   var lastProfile;
   var lastResult;
   var advanceTimer;
-  var countdownTimer;
   var isTransitioning = false;
   var isSubmitting = false;
   var stepHistory = [0];
@@ -872,6 +877,74 @@ ${url}`;
     ].sort((a, b) => Number(b[1]) - Number(a[1]));
     $("#score-components").innerHTML = components.map(([label, done]) => `<li><i class="fas fa-${done ? "circle-check" : "circle"}"></i>${label}</li>`).join("");
   }
+  function renderInterpretation(result, profile) {
+    const points = [];
+    if (result.overCeiling > 0) {
+      points.push(`\u05DB\u05BE${money2(result.overCeiling)} \u05DE\u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D4\u05E9\u05E0\u05EA\u05D9\u05EA \u05D4\u05E6\u05E4\u05D5\u05D9\u05D4 \u05E2\u05E9\u05D5\u05D9\u05D9\u05DD \u05DC\u05D4\u05D9\u05D5\u05EA \u05DE\u05E2\u05DC \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA.`);
+      points.push("\u05D0\u05D9\u05DF \u05E6\u05D5\u05E8\u05DA \u05DC\u05D4\u05D2\u05D3\u05D9\u05DC \u05DB\u05E8\u05D2\u05E2 \u05D0\u05EA \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05DC\u05E6\u05D5\u05E8\u05DA \u05E0\u05D9\u05E6\u05D5\u05DC \u05D4\u05EA\u05E7\u05E8\u05D4.");
+      points.push("\u05DB\u05D3\u05D0\u05D9 \u05DC\u05D1\u05D3\u05D5\u05E7 \u05D0\u05EA \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05D4\u05DE\u05EA\u05D5\u05DB\u05E0\u05E0\u05D5\u05EA, \u05D4\u05DE\u05E1\u05DC\u05D5\u05DC \u05D5\u05D3\u05DE\u05D9 \u05D4\u05E0\u05D9\u05D4\u05D5\u05DC \u05DC\u05E4\u05E0\u05D9 \u05E9\u05D9\u05E0\u05D5\u05D9 \u05E0\u05D5\u05E1\u05E3.");
+    } else if (result.remaining === 0) {
+      points.push(`\u05DE\u05DC\u05D5\u05D0 \u05EA\u05E7\u05E8\u05EA \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA \u05DC\u05E9\u05E0\u05EA ${result.taxYear} \u05DB\u05D1\u05E8 \u05DE\u05E0\u05D5\u05E6\u05DC\u05EA.`);
+      points.push("\u05D1\u05DE\u05E7\u05D5\u05DD \u05DC\u05D4\u05D5\u05E1\u05D9\u05E3 \u05D4\u05E4\u05E7\u05D3\u05D4 \u05DC\u05E6\u05D5\u05E8\u05DA \u05D4\u05EA\u05E7\u05E8\u05D4, \u05D0\u05E4\u05E9\u05E8 \u05DC\u05D1\u05D3\u05D5\u05E7 \u05D0\u05EA \u05D4\u05DE\u05E1\u05DC\u05D5\u05DC \u05D5\u05D3\u05DE\u05D9 \u05D4\u05E0\u05D9\u05D4\u05D5\u05DC.");
+      points.push("\u05D4\u05DE\u05E9\u05DA \u05D4\u05E4\u05E7\u05D3\u05D4 \u05E6\u05E8\u05D9\u05DA \u05DC\u05D4\u05EA\u05D0\u05D9\u05DD \u05DC\u05EA\u05D6\u05E8\u05D9\u05DD \u05D5\u05DC\u05DE\u05D8\u05E8\u05D5\u05EA, \u05D2\u05DD \u05DB\u05E9\u05D4\u05EA\u05E7\u05E8\u05D4 \u05DB\u05D1\u05E8 \u05DE\u05DC\u05D0\u05D4.");
+    } else {
+      points.push(`\u05E0\u05D5\u05EA\u05E8\u05D4 \u05D9\u05EA\u05E8\u05D4 \u05E9\u05DC ${money2(result.remaining)} \u05E9\u05E0\u05D9\u05EA\u05DF \u05DC\u05E9\u05E7\u05D5\u05DC \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05E9\u05E0\u05EA \u05D4\u05DE\u05E1.`);
+      points.push(`\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9\u05EA, \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D5\u05D3\u05E9\u05D9\u05EA \u05D0\u05D5 \u05E9\u05D9\u05DC\u05D5\u05D1 \u05D1\u05D9\u05E0\u05D9\u05D4\u05DF \u05D9\u05DB\u05D5\u05DC\u05D9\u05DD \u05DC\u05D4\u05E9\u05DC\u05D9\u05DD \u05D0\u05EA \u05D4\u05D9\u05EA\u05E8\u05D4.`);
+      points.push(profile.fundStatus === "none" ? "\u05DC\u05E4\u05E0\u05D9 \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D9\u05E9 \u05DC\u05D1\u05D7\u05D5\u05E8 \u05D2\u05D5\u05E3 \u05DE\u05E0\u05D4\u05DC \u05D5\u05DE\u05E1\u05DC\u05D5\u05DC \u05D4\u05E9\u05E7\u05E2\u05D4 \u05D5\u05DC\u05E4\u05EA\u05D5\u05D7 \u05E7\u05E8\u05DF." : "\u05DC\u05E4\u05E0\u05D9 \u05E9\u05D9\u05E0\u05D5\u05D9 \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05DB\u05D3\u05D0\u05D9 \u05DC\u05D1\u05D3\u05D5\u05E7 \u05E9\u05D4\u05DE\u05E1\u05DC\u05D5\u05DC \u05D5\u05D3\u05DE\u05D9 \u05D4\u05E0\u05D9\u05D4\u05D5\u05DC \u05E2\u05D3\u05D9\u05D9\u05DF \u05DE\u05EA\u05D0\u05D9\u05DE\u05D9\u05DD.");
+      if (profile.depositMethod === "monthly" || profile.goals.includes("monthly")) points.push("\u05D0\u05E4\u05E9\u05E8 \u05DC\u05D1\u05E0\u05D5\u05EA \u05E7\u05E6\u05D1 \u05D7\u05D5\u05D3\u05E9\u05D9 \u05E9\u05DE\u05EA\u05D0\u05D9\u05DD \u05DC\u05EA\u05D6\u05E8\u05D9\u05DD \u05D5\u05DC\u05D0 \u05E8\u05E7 \u05DC\u05D4\u05E9\u05DC\u05DE\u05D4 \u05D1\u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4.");
+    }
+    const goalLabels = { tax: "\u05E0\u05D9\u05E6\u05D5\u05DC \u05D4\u05D8\u05D1\u05D5\u05EA \u05D4\u05DE\u05E1", saving: "\u05D7\u05D9\u05E1\u05DB\u05D5\u05DF \u05DC\u05D8\u05D5\u05D5\u05D7 \u05D1\u05D9\u05E0\u05D5\u05E0\u05D9 \u05D5\u05D0\u05E8\u05D5\u05DA", monthly: "\u05D1\u05E0\u05D9\u05D9\u05EA \u05D4\u05E8\u05D2\u05DC \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D5\u05D3\u05E9\u05D9", check: "\u05D1\u05D3\u05D9\u05E7\u05EA \u05D4\u05E7\u05E8\u05DF \u05D4\u05E7\u05D9\u05D9\u05DE\u05EA" };
+    const goals = profile.goals.map((goal) => goalLabels[goal]).filter(Boolean);
+    $("#goal-focus").textContent = goals.length ? `\u05D4\u05D3\u05D2\u05E9\u05D9\u05DD \u05D4\u05D5\u05EA\u05D0\u05DE\u05D5 \u05DC\u05DE\u05D8\u05E8\u05D5\u05EA \u05E9\u05E1\u05D9\u05DE\u05E0\u05EA: ${goals.join(" \u05D5\u05BE")}.` : "\u05D4\u05E4\u05D9\u05E8\u05D5\u05E9 \u05DE\u05D1\u05D5\u05E1\u05E1 \u05E2\u05DC \u05EA\u05DE\u05D5\u05E0\u05EA \u05D4\u05DE\u05E6\u05D1 \u05E9\u05D4\u05D6\u05E0\u05EA.";
+    $("#interpretation-points").innerHTML = points.slice(0, 5).map((point) => `<li><i class="fas fa-circle-check"></i><span>${point}</span></li>`).join("");
+  }
+  function renderDepositOptions(result) {
+    const section = $("#deposit-options-section");
+    if (result.remaining === 0 && result.overCeiling === 0) {
+      section.hidden = true;
+      return;
+    }
+    section.hidden = false;
+    if (result.overCeiling > 0) {
+      $("#deposit-options").innerHTML = '<article class="deposit-option deposit-option--notice"><i class="fas fa-circle-info"></i><div><strong>\u05DC\u05D0 \u05E0\u05D3\u05E8\u05E9\u05EA \u05D4\u05E9\u05DC\u05DE\u05EA \u05D4\u05E4\u05E7\u05D3\u05D4 \u05DC\u05E6\u05D5\u05E8\u05DA \u05D4\u05EA\u05E7\u05E8\u05D4</strong><span>\u05DB\u05D3\u05D0\u05D9 \u05DC\u05D1\u05D3\u05D5\u05E7 \u05D0\u05EA \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05D4\u05DE\u05EA\u05D5\u05DB\u05E0\u05E0\u05D5\u05EA \u05DC\u05E4\u05E0\u05D9 \u05D4\u05D5\u05E1\u05E4\u05EA \u05E1\u05DB\u05D5\u05DD \u05E0\u05D5\u05E1\u05E3.</span></div></article>';
+      return;
+    }
+    const months = Math.max(1, result.scheduledMonthsRemaining);
+    const monthly = Math.ceil(result.remaining / months);
+    const lump = Math.round(result.remaining / 2 / 100) * 100;
+    const combinedMonthly = Math.ceil((result.remaining - lump) / months);
+    $("#deposit-options").innerHTML = `
+    <article class="deposit-option"><i class="fas fa-bolt"></i><strong>\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9\u05EA</strong><b>${money2(result.remaining)}</b><span>\u05D4\u05E9\u05DC\u05DE\u05EA \u05D4\u05D9\u05EA\u05E8\u05D4 \u05D1\u05E4\u05E2\u05D5\u05DC\u05D4 \u05D0\u05D7\u05EA, \u05D1\u05DB\u05E4\u05D5\u05E3 \u05DC\u05EA\u05D6\u05E8\u05D9\u05DD.</span></article>
+    <article class="deposit-option"><i class="fas fa-calendar-days"></i><strong>\u05D7\u05DC\u05D5\u05E7\u05D4 \u05D7\u05D5\u05D3\u05E9\u05D9\u05EA</strong><b>\u05DB\u05BE${money2(monthly)} \u05DC\u05D7\u05D5\u05D3\u05E9</b><span>\u05D7\u05DC\u05D5\u05E7\u05EA \u05D4\u05D9\u05EA\u05E8\u05D4 \u05E2\u05DC \u05E4\u05E0\u05D9 ${months} \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05E0\u05D5\u05EA\u05E8\u05D5 \u05D4\u05E9\u05E0\u05D4.</span></article>
+    <article class="deposit-option"><i class="fas fa-scale-balanced"></i><strong>\u05E9\u05D9\u05DC\u05D5\u05D1 \u05DE\u05D0\u05D5\u05D6\u05DF \u05DC\u05D3\u05D5\u05D2\u05DE\u05D4</strong><b>${money2(lump)} \u05E2\u05DB\u05E9\u05D9\u05D5</b><span>\u05D5\u05E2\u05D5\u05D3 \u05DB\u05BE${money2(combinedMonthly)} \u05DC\u05D7\u05D5\u05D3\u05E9 \u05D1\u05DE\u05E9\u05DA ${months} \u05D7\u05D5\u05D3\u05E9\u05D9\u05DD.</span></article>`;
+  }
+  function renderPreDepositChecks(profile) {
+    const noFund = profile.fundStatus === "none";
+    $("#fund-check-title").textContent = noFund ? "\u05D1\u05D7\u05D9\u05E8\u05EA \u05D2\u05D5\u05E3 \u05DE\u05E0\u05D4\u05DC" : "\u05E7\u05E8\u05E0\u05D5\u05EA \u05E7\u05D9\u05D9\u05DE\u05D5\u05EA";
+    $("#fund-check-copy").textContent = noFund ? "\u05DC\u05D4\u05E9\u05D5\u05D5\u05EA \u05D1\u05D9\u05DF \u05D2\u05D5\u05E4\u05D9\u05DD \u05DE\u05E0\u05D4\u05DC\u05D9\u05DD \u05D5\u05DC\u05D1\u05D7\u05D5\u05E8 \u05E7\u05E8\u05DF \u05DC\u05E4\u05E0\u05D9 \u05D1\u05D9\u05E6\u05D5\u05E2 \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4." : "\u05DC\u05D5\u05D5\u05D3\u05D0 \u05E9\u05D0\u05D9\u05DF \u05E7\u05E8\u05DF \u05E0\u05D5\u05E1\u05E4\u05EA \u05D5\u05E9\u05E4\u05E8\u05D8\u05D9 \u05D4\u05E7\u05E8\u05DF \u05E9\u05D0\u05DC\u05D9\u05D4 \u05DE\u05E4\u05E7\u05D9\u05D3\u05D9\u05DD \u05E0\u05DB\u05D5\u05E0\u05D9\u05DD.";
+  }
+  function setupValueSectionTracking(result) {
+    if (!("IntersectionObserver" in window)) return;
+    const events = [
+      ["result-interpretation", "result_interpretation_viewed"],
+      ["action-plan-section", "action_plan_viewed"],
+      ["deposit-options-section", "deposit_options_viewed"],
+      ["pre-deposit-checks", "pre_deposit_checks_viewed"],
+      ["growth-scenarios", "growth_scenarios_viewed"],
+      ["contact-process", "contact_process_viewed"]
+    ];
+    const observer = new IntersectionObserver((entries) => entries.forEach((entry) => {
+      var _a;
+      if (!entry.isIntersecting || entry.target.hidden) return;
+      const eventName = (_a = events.find(([id]) => id === entry.target.id)) == null ? void 0 : _a[1];
+      if (eventName) trackOnce(eventName, { result_status: resultStatus(result), ...attributionParameters });
+      observer.unobserve(entry.target);
+    }), { threshold: 0.35 });
+    events.forEach(([id]) => {
+      const element = $(`#${id}`);
+      if (element) observer.observe(element);
+    });
+  }
   function renderRecommendationSteps(result, profile) {
     const monthNames = ["\u05D9\u05E0\u05D5\u05D0\u05E8", "\u05E4\u05D1\u05E8\u05D5\u05D0\u05E8", "\u05DE\u05E8\u05E5", "\u05D0\u05E4\u05E8\u05D9\u05DC", "\u05DE\u05D0\u05D9", "\u05D9\u05D5\u05E0\u05D9", "\u05D9\u05D5\u05DC\u05D9", "\u05D0\u05D5\u05D2\u05D5\u05E1\u05D8", "\u05E1\u05E4\u05D8\u05DE\u05D1\u05E8", "\u05D0\u05D5\u05E7\u05D8\u05D5\u05D1\u05E8", "\u05E0\u05D5\u05D1\u05DE\u05D1\u05E8", "\u05D3\u05E6\u05DE\u05D1\u05E8"];
     const stepsForUser = [];
@@ -934,61 +1007,51 @@ ${url}`;
     $("#additional-recommendation-steps").innerHTML = additional.map((step, index) => itemHtml(step, index + 2)).join("");
     $("#more-recommendations").hidden = additional.length === 0;
   }
-  function renderLiveCountdown(taxYear) {
-    clearInterval(countdownTimer);
+  function renderDeadlineCard(taxYear) {
     const target = new Date(taxYear, 11, 31, 23, 59, 59, 999);
-    const update = () => {
-      const remainingMilliseconds = Math.max(0, target.getTime() - Date.now());
-      const totalSeconds = Math.floor(remainingMilliseconds / 1e3);
-      const days = Math.floor(totalSeconds / 86400);
-      const hours = Math.floor(totalSeconds % 86400 / 3600);
-      const minutes = Math.floor(totalSeconds % 3600 / 60);
-      const seconds = totalSeconds % 60;
-      $("#countdown-days").textContent = days.toLocaleString("he-IL");
-      $("#countdown-hours").textContent = String(hours).padStart(2, "0");
-      $("#countdown-minutes").textContent = String(minutes).padStart(2, "0");
-      $("#countdown-seconds").textContent = String(seconds).padStart(2, "0");
-      $("#tax-countdown").hidden = remainingMilliseconds === 0;
-      if (remainingMilliseconds === 0) clearInterval(countdownTimer);
-    };
-    update();
-    countdownTimer = setInterval(update, 1e3);
+    const days = Math.max(0, Math.ceil((target.getTime() - Date.now()) / 864e5));
+    $("#countdown-days").textContent = days.toLocaleString("he-IL");
+    $("#countdown-copy").textContent = days > 90 ? "\u05D9\u05E9 \u05D6\u05DE\u05DF \u05DC\u05D4\u05D9\u05E2\u05E8\u05DA \u05D1\u05E0\u05D7\u05EA, \u05DC\u05D4\u05E9\u05D5\u05D5\u05EA \u05D5\u05DC\u05D1\u05D7\u05D5\u05E8 \u05D3\u05E8\u05DA \u05D4\u05E4\u05E7\u05D3\u05D4 \u05E9\u05DE\u05EA\u05D0\u05D9\u05DE\u05D4 \u05DC\u05EA\u05D6\u05E8\u05D9\u05DD." : days > 30 ? "\u05DB\u05D3\u05D0\u05D9 \u05DC\u05D2\u05D1\u05E9 \u05EA\u05D5\u05DB\u05E0\u05D9\u05EA \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D1\u05E9\u05D1\u05D5\u05E2\u05D5\u05EA \u05D4\u05E7\u05E8\u05D5\u05D1\u05D9\u05DD \u05D5\u05DC\u05D0 \u05DC\u05D4\u05E9\u05D0\u05D9\u05E8 \u05D0\u05D5\u05EA\u05D4 \u05DC\u05E1\u05D5\u05E3 \u05D3\u05E6\u05DE\u05D1\u05E8." : "\u05E1\u05D5\u05E3 \u05E9\u05E0\u05EA \u05D4\u05DE\u05E1 \u05DE\u05EA\u05E7\u05E8\u05D1; \u05DB\u05D3\u05D0\u05D9 \u05DC\u05D1\u05D3\u05D5\u05E7 \u05D0\u05EA \u05D4\u05D0\u05E4\u05E9\u05E8\u05D5\u05D9\u05D5\u05EA \u05DE\u05E8\u05D0\u05E9 \u05D5\u05DC\u05E4\u05E2\u05D5\u05DC \u05D1\u05D6\u05DE\u05DF.";
+    $("#tax-countdown").hidden = days === 0;
   }
-  function buildSecondaryCta(result, profile) {
-    if (profile.fundStatus === "none") return "\u05E8\u05D5\u05E6\u05D4 \u05DC\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D9\u05DA \u05E4\u05D5\u05EA\u05D7\u05D9\u05DD \u05E7\u05E8\u05DF \u05E9\u05DE\u05EA\u05D0\u05D9\u05DE\u05D4 \u05DC\u05DA?";
-    if (result.remaining > 0) return "\u05E8\u05D5\u05E6\u05D4 \u05DC\u05D5\u05D5\u05D3\u05D0 \u05E9\u05D4\u05D3\u05E8\u05DA \u05DC\u05E0\u05E6\u05DC \u05D0\u05EA \u05D4\u05D9\u05EA\u05E8\u05D4 \u05D1\u05D0\u05DE\u05EA \u05DE\u05EA\u05D0\u05D9\u05DE\u05D4 \u05DC\u05DA?";
-    return "\u05E8\u05D5\u05E6\u05D4 \u05DC\u05D1\u05D3\u05D5\u05E7 \u05E9\u05D4\u05E7\u05E8\u05DF \u05D4\u05E7\u05D9\u05D9\u05DE\u05EA \u05E2\u05D3\u05D9\u05D9\u05DF \u05E2\u05D5\u05D1\u05D3\u05EA \u05E0\u05DB\u05D5\u05DF \u05E2\u05D1\u05D5\u05E8\u05DA?";
-  }
-  function renderResultIntro(result) {
-    clearInterval(countdownTimer);
+  function renderResultIntro(result, profile) {
     const countdown = $("#tax-countdown");
     const intro = $("#result-intro");
     const message = $("#result-message");
     intro.classList.toggle("is-over-ceiling", result.overCeiling > 0);
     if (result.overCeiling > 0) {
       const isProjectedOverage = result.depositedToDate <= result.ceiling && result.futureScheduledDeposits > 0;
-      $("#result-title").textContent = isProjectedOverage ? "\u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05D4\u05E6\u05E4\u05D5\u05D9\u05D5\u05EA \u05D4\u05E9\u05E0\u05D4 \u05D2\u05D1\u05D5\u05D4\u05D5\u05EA \u05DE\u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA" : "\u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05D4\u05E9\u05E0\u05D4 \u05D2\u05D1\u05D5\u05D4\u05D5\u05EA \u05DE\u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA";
+      $("#result-title").textContent = "\u05D7\u05DC\u05E7 \u05DE\u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05E9\u05DC\u05DA \u05E2\u05E9\u05D5\u05D9 \u05DC\u05D4\u05D9\u05D5\u05EA \u05DE\u05E2\u05DC \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA";
       message.textContent = isProjectedOverage ? `\u05D4\u05E1\u05DB\u05D5\u05DD \u05D4\u05E6\u05E4\u05D5\u05D9 \u05E9\u05DE\u05E2\u05DC \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05D5\u05D0 ${money2(result.overCeiling)}. \u05DB\u05D3\u05D0\u05D9 \u05DC\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D5\u05EA\u05D5 \u05DC\u05E4\u05E0\u05D9 \u05D1\u05D9\u05E6\u05D5\u05E2 \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E0\u05D5\u05E1\u05E4\u05D5\u05EA.` : `\u05D4\u05E1\u05DB\u05D5\u05DD \u05E9\u05DE\u05E2\u05DC \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05D5\u05D0 ${money2(result.overCeiling)}. \u05DB\u05D3\u05D0\u05D9 \u05DC\u05D1\u05D3\u05D5\u05E7 \u05D0\u05D5\u05EA\u05D5 \u05DC\u05E4\u05E0\u05D9 \u05D1\u05D9\u05E6\u05D5\u05E2 \u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E0\u05D5\u05E1\u05E4\u05D5\u05EA.`;
       message.hidden = false;
-      countdown.hidden = true;
+      renderDeadlineCard(result.taxYear);
       return;
     }
     if (result.remaining === 0) {
       $("#result-title").textContent = `\u05E0\u05D9\u05E6\u05DC\u05EA \u05D0\u05EA \u05DE\u05DC\u05D5\u05D0 \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05DE\u05D5\u05D8\u05D1\u05EA \u05DC\u05E9\u05E0\u05EA ${result.taxYear}`;
       message.textContent = "\u05D0\u05D9\u05DF \u05E6\u05D5\u05E8\u05DA \u05DC\u05D1\u05E6\u05E2 \u05D4\u05E4\u05E7\u05D3\u05D4 \u05E0\u05D5\u05E1\u05E4\u05EA \u05DB\u05D3\u05D9 \u05DC\u05E0\u05E6\u05DC \u05D0\u05EA \u05D4\u05EA\u05E7\u05E8\u05D4 \u05D4\u05E9\u05E0\u05D4.";
       message.hidden = false;
-      countdown.hidden = true;
+      renderDeadlineCard(result.taxYear);
       return;
     }
-    $("#result-title").textContent = "\u05D4\u05D4\u05D6\u05D3\u05DE\u05E0\u05D5\u05EA \u05DC\u05E0\u05E6\u05DC \u05D0\u05EA \u05D4\u05D4\u05D8\u05D1\u05D4 \u05DE\u05E1\u05EA\u05D9\u05D9\u05DE\u05EA \u05D1\u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4";
-    message.hidden = true;
-    renderLiveCountdown(result.taxYear);
+    if (profile.fundStatus === "none") {
+      $("#result-title").textContent = "\u05E2\u05D3\u05D9\u05D9\u05DF \u05D0\u05D9\u05DF \u05DC\u05DA \u05E7\u05E8\u05DF \u05D4\u05E9\u05EA\u05DC\u05DE\u05D5\u05EA \u2014 \u05D5\u05D6\u05D5 \u05E0\u05E7\u05D5\u05D3\u05EA \u05D4\u05EA\u05D7\u05DC\u05D4 \u05D7\u05E9\u05D5\u05D1\u05D4";
+      message.textContent = `\u05D0\u05E4\u05E9\u05E8 \u05DC\u05D1\u05D7\u05D5\u05DF \u05E4\u05EA\u05D9\u05D7\u05EA \u05E7\u05E8\u05DF \u05D5\u05D4\u05E4\u05E7\u05D3\u05D4 \u05E9\u05DC \u05E2\u05D3 ${money2(result.remaining)} \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4, \u05D1\u05D4\u05EA\u05D0\u05DD \u05DC\u05EA\u05D6\u05E8\u05D9\u05DD \u05D5\u05DC\u05DE\u05E6\u05D1 \u05D4\u05D0\u05D9\u05E9\u05D9.`;
+    } else if (result.depositedToDate === 0) {
+      $("#result-title").textContent = "\u05E2\u05D3\u05D9\u05D9\u05DF \u05DC\u05D0 \u05D4\u05EA\u05D7\u05DC\u05EA \u05DC\u05E0\u05E6\u05DC \u05D0\u05EA \u05D4\u05D8\u05D1\u05EA \u05E7\u05E8\u05DF \u05D4\u05D4\u05E9\u05EA\u05DC\u05DE\u05D5\u05EA \u05D4\u05E9\u05E0\u05D4";
+      message.textContent = `\u05E0\u05D5\u05EA\u05E8\u05D4 \u05D9\u05EA\u05E8\u05D4 \u05E9\u05DC ${money2(result.remaining)} \u05E9\u05E0\u05D9\u05EA\u05DF \u05DC\u05E9\u05E7\u05D5\u05DC \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 \u05D4\u05E9\u05E0\u05D4.`;
+    } else {
+      $("#result-title").textContent = "\u05D4\u05EA\u05D7\u05DC\u05EA \u05E0\u05DB\u05D5\u05DF \u2014 \u05D5\u05E2\u05D3\u05D9\u05D9\u05DF \u05E0\u05E9\u05D0\u05E8\u05D4 \u05DC\u05DA \u05D9\u05EA\u05E8\u05D4 \u05E9\u05E0\u05D9\u05EA\u05DF \u05DC\u05E0\u05E6\u05DC";
+      message.textContent = `\u05DC\u05D0\u05D7\u05E8 \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05DB\u05D1\u05E8 \u05D1\u05D5\u05E6\u05E2\u05D5, \u05E0\u05D5\u05EA\u05E8\u05D5 \u05E2\u05D3 ${money2(result.remaining)} \u05DC\u05E0\u05D9\u05E6\u05D5\u05DC \u05D4\u05EA\u05E7\u05E8\u05D4.`;
+    }
+    message.hidden = false;
+    renderDeadlineCard(result.taxYear);
   }
   function renderResult(result, profile) {
     lastProfile = profile;
     countUp($("#remaining"), result.remaining, money2);
     countUp($("#tax-benefit"), result.estimatedCombinedBenefitTotal, money2);
-    renderResultIntro(result);
+    renderResultIntro(result, profile);
     countUp($("#deposited-to-date"), result.depositedToDate, money2);
     countUp($("#projected-annual"), result.projectedAnnualDeposited, money2);
     const hasFutureProjection = result.projectedAnnualDeposited > result.depositedToDate;
@@ -1003,9 +1066,11 @@ ${url}`;
     countUp($("#capital-gains-benefit"), result.estimatedCapitalGainsExemptionValueTotal, money2);
     const ctaCopy = buildCta(result, profile);
     $("#dynamic-cta").textContent = ctaCopy;
-    $("#dynamic-cta-secondary").textContent = buildSecondaryCta(result, profile);
+    renderInterpretation(result, profile);
     renderScore(result, profile);
     renderRecommendationSteps(result, profile);
+    renderDepositOptions(result);
+    renderPreDepositChecks(profile);
     renderScenarios(result);
     $(".growth-notice").textContent = `\u05D4\u05D7\u05D9\u05E9\u05D5\u05D1 \u05DE\u05EA\u05D7\u05D9\u05DC \u05DE\u05D4\u05E6\u05D1\u05D9\u05E8\u05D4 \u05E9\u05D4\u05D6\u05E0\u05EA, ${money2(result.existingBalance)}, \u05D5\u05DE\u05D5\u05E1\u05D9\u05E3 \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D5\u05D3\u05E9\u05D9\u05EA \u05E7\u05D1\u05D5\u05E2\u05D4 \u05E9\u05DC ${money2(result.suggestedMonthly)} (\u05EA\u05E7\u05E8\u05EA ${result.taxYear} \u05D7\u05DC\u05E7\u05D9 12), \u05DC\u05DC\u05D0 \u05D4\u05E4\u05E7\u05D3\u05D4 \u05D7\u05D3\u05BE\u05E4\u05E2\u05DE\u05D9\u05EA \u05D5\u05DC\u05E4\u05E0\u05D9 \u05D3\u05DE\u05D9 \u05E0\u05D9\u05D4\u05D5\u05DC. \u05D4\u05DE\u05D7\u05E9\u05D4 \u05D1\u05DC\u05D1\u05D3, \u05DC\u05DC\u05D0 \u05D4\u05EA\u05D7\u05D9\u05D9\u05D1\u05D5\u05EA \u05DC\u05EA\u05E9\u05D5\u05D0\u05D4; \u05D4\u05E1\u05DB\u05D5\u05DE\u05D9\u05DD \u05E0\u05D5\u05DE\u05D9\u05E0\u05DC\u05D9\u05D9\u05DD \u05D5\u05D1\u05D4\u05E0\u05D7\u05EA \u05EA\u05E9\u05D5\u05D0\u05D4 \u05E7\u05D1\u05D5\u05E2\u05D4.`;
     const whatsappUrl = buildWhatsAppUrl(result, profile);
@@ -1014,6 +1079,7 @@ ${url}`;
     $("#share-benefits").href = buildConsumerShareUrl();
     const bracketNote = result.taxBenefitUsesMultipleBrackets ? "<p><strong>\u05DC\u05EA\u05E9\u05D5\u05DE\u05EA \u05DC\u05D1:</strong> \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9 \u05D7\u05D5\u05E6\u05D4 \u05DE\u05D3\u05E8\u05D2\u05EA \u05DE\u05E1, \u05D5\u05DC\u05DB\u05DF \u05D4\u05D8\u05D1\u05EA \u05DE\u05E1 \u05D4\u05D4\u05DB\u05E0\u05E1\u05D4 \u05D7\u05D5\u05E9\u05D1\u05D4 \u05DC\u05E4\u05D9 \u05D4\u05DE\u05E1 \u05DC\u05E4\u05E0\u05D9 \u05D5\u05D0\u05D7\u05E8\u05D9 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9 \u05D5\u05D1\u05D4\u05EA\u05D0\u05DD \u05DC\u05DB\u05DC \u05DE\u05D3\u05E8\u05D2\u05D5\u05EA \u05D4\u05DE\u05E1 \u05D4\u05E8\u05DC\u05D5\u05D5\u05E0\u05D8\u05D9\u05D5\u05EA \u2014 \u05D5\u05DC\u05D0 \u05DC\u05E4\u05D9 \u05E9\u05D9\u05E2\u05D5\u05E8 \u05E9\u05D5\u05DC\u05D9 \u05D9\u05D7\u05D9\u05D3.</p>" : "";
     $("#calculation-details").innerHTML = `<p><strong>\u05EA\u05E7\u05E8\u05EA 2026:</strong> ${money2(result.ceiling)} \xB7 <strong>\u05D4\u05DB\u05E0\u05E1\u05D4:</strong> ${money2(result.income)} \xB7 <strong>\u05D4\u05D5\u05E4\u05E7\u05D3 \u05D4\u05E9\u05E0\u05D4:</strong> ${money2(result.depositedToDate)}${hasFutureProjection ? ` \xB7 <strong>\u05E6\u05E4\u05D5\u05D9 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4 \u05DB\u05D5\u05DC\u05DC \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2:</strong> ${money2(result.projectedAnnualDeposited)}` : ""}</p><p>\u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D4\u05D8\u05D1\u05D5\u05EA \u05DE\u05D7\u05D5\u05E9\u05D1 \u05D1\u05D4\u05E0\u05D7\u05D4 \u05E9\u05DC \u05DE\u05D9\u05E7\u05E1\u05D5\u05DD \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D4\u05E9\u05E0\u05EA\u05D9\u05EA \u05E2\u05D3 \u05D4\u05EA\u05E7\u05E8\u05D4, \u05D5\u05DC\u05DB\u05DF \u05DB\u05D5\u05DC\u05DC \u05D2\u05DD \u05D0\u05EA \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05DB\u05D1\u05E8 \u05D1\u05D5\u05E6\u05E2\u05D5 \u05D5\u05D0\u05EA \u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05D4\u05E6\u05E4\u05D5\u05D9\u05D4 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4 \u2014 \u05D5\u05DC\u05D0 \u05E8\u05E7 \u05D0\u05EA \u05D9\u05EA\u05E8\u05EA \u05D4\u05D4\u05E9\u05DC\u05DE\u05D4.</p><p><strong>\u05DE\u05D3\u05E8\u05D2\u05EA \u05DE\u05E1 \u05E9\u05D5\u05DC\u05D9\u05EA \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA \u05DC\u05E4\u05E0\u05D9 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9:</strong> ${result.taxRate * 100}% \xB7 <strong>\u05E9\u05D9\u05E2\u05D5\u05E8 \u05E0\u05D9\u05DB\u05D5\u05D9:</strong> ${result.deductibleRate * 100}%</p>${bracketNote}<p><strong>\u05D4\u05D8\u05D1\u05D4 \u05DE\u05D9\u05D9\u05D3\u05D9\u05EA \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA:</strong> \u05DE\u05E1 \u05D4\u05DB\u05E0\u05E1\u05D4 ${money2(result.estimatedTotalTaxBenefit)} + \u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9/\u05D1\u05E8\u05D9\u05D0\u05D5\u05EA ${money2(result.estimatedNationalInsuranceBenefitTotal)}.</p><p><strong>\u05E9\u05D5\u05D5\u05D9 \u05E2\u05EA\u05D9\u05D3\u05D9 \u05DE\u05E9\u05D5\u05E2\u05E8:</strong> \u05E4\u05D8\u05D5\u05E8 \u05DE\u05DE\u05E1 \u05E8\u05D5\u05D5\u05D7\u05D9 \u05D4\u05D5\u05DF ${money2(result.estimatedCapitalGainsExemptionValueTotal)}, \u05D1\u05D4\u05E0\u05D7\u05EA 8% \u05DC\u05E9\u05E0\u05D4 \u05DC\u05BE6 \u05E9\u05E0\u05D9\u05DD \u05D5\u05DE\u05E1 \u05E9\u05DC 25% \u05E2\u05DC \u05D4\u05E8\u05D5\u05D5\u05D7.</p><p>\u05DE\u05E7\u05D5\u05E8\u05D5\u05EA: \u05DC\u05D5\u05D7 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9\u05D9\u05DD 2026 \u05E9\u05DC \u05E8\u05E9\u05D5\u05EA \u05D4\u05DE\u05E1\u05D9\u05DD \u05D5\u05E9\u05D9\u05E2\u05D5\u05E8\u05D9 \u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9 \u05DC\u05E2\u05E6\u05DE\u05D0\u05D9 \u05D4\u05D7\u05DC \u05DE\u05BE1.1.2026. \u05D0\u05D9\u05DE\u05D5\u05EA: 19.07.2026. \u05DB\u05DC \u05D4\u05E8\u05DB\u05D9\u05D1\u05D9\u05DD \u05D4\u05DD \u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D3\u05D5\u05E8\u05E9 \u05D0\u05D9\u05DE\u05D5\u05EA \u05D0\u05D9\u05E9\u05D9.</p>`;
+    setupValueSectionTracking(result);
   }
   form.addEventListener("click", (event) => {
     var _a;
@@ -1119,7 +1185,7 @@ ${url}`;
     trackEvent("whatsapp_clicked", {
       result_status: resultStatus(lastResult),
       fund_status: (lastProfile == null ? void 0 : lastProfile.fundStatus) || "",
-      button_location: link.id === "whatsapp-secondary" ? "secondary" : "primary",
+      button_location: link.id === "whatsapp-secondary" ? "bottom_secondary" : "main_after_value",
       ...attributionParameters
     });
     const notice = $("#whatsapp-status");
