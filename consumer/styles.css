@@ -434,16 +434,20 @@ input[aria-invalid="true"] { border-color: #dc2626; background: #fef2f2; box-sha
 
 .floating-result-summary { position:fixed; z-index:100; top:0; right:50%; display:none; width:min(calc(100% - 52px),948px); box-sizing:border-box; padding:8px 12px; transform:translateX(50%); align-items:center; justify-content:center; gap:12px; border:1px solid #bfdbfe; border-top:0; border-radius:0 0 14px 14px; background:rgba(255,255,255,.98); box-shadow:0 8px 24px rgba(15,23,42,.16); backdrop-filter:blur(10px); }
 .floating-result-summary.is-visible { display:flex; }
-.floating-result-summary > strong { position:absolute; right:18px; color:var(--slate-900); font-size:13px; white-space:nowrap; }
+.floating-result-summary > strong { position:absolute; right:18px; color:var(--slate-900); font-size:15px; white-space:nowrap; }
 .floating-result-summary > strong i { margin-left:6px; color:var(--blue); }
 .floating-result-summary > strong span { display:inline; }
 .floating-result-summary .sticky-result-chips { display:flex; margin:0 auto; }
+.floating-result-summary .sticky-result-chips small { font-size:10px; }
+.floating-result-summary .sticky-result-chips b { font-size:17px; }
 
 @media (max-width: 640px) {
   .floating-result-summary { display:none; grid-template-columns:minmax(0,.9fr) minmax(0,1.4fr); gap:5px; width:calc(100% - 10px); padding:6px; }
   .floating-result-summary.is-visible { display:grid; }
-  .floating-result-summary > strong { position:static; min-width:0; font-size:9px; line-height:1.3; white-space:normal; }
+  .floating-result-summary > strong { position:static; min-width:0; font-size:10.5px; line-height:1.3; white-space:normal; }
   .floating-result-summary > strong i { display:none; }
   .floating-result-summary .sticky-result-chips { min-width:0; gap:4px; margin:0; }
   .floating-result-summary .sticky-result-chips > span { min-width:0; padding:5px; }
+  .floating-result-summary .sticky-result-chips small { font-size:8.5px; }
+  .floating-result-summary .sticky-result-chips b { font-size:14px; }
 }

@@ -458,7 +458,7 @@ function renderDeadlineCard(taxYear) {
   $('#floating-countdown-days').textContent = days.toLocaleString('he-IL');
   $('#countdown-copy').textContent = days < 30
     ? 'אתה ממש קרוב לאבד את הטבת המס שלך — מומלץ לטפל עכשיו.'
-    : 'לא מחכים לדקה ה־90, זה הזמן להתייעץ עם בעל רישיון ולהיערך לניצול הטבות המס.';
+    : 'זה הזמן להתייעץ עם בעל רישיון ולהיערך לניצול הטבות המס.';
   $('#tax-countdown').hidden = days === 0;
 }
 
@@ -492,7 +492,8 @@ function renderResultIntro(result, profile) {
   }
   if (profile.fundStatus === 'none') {
     $('#result-title').textContent = 'עדיין אין לך קרן השתלמות — וזו נקודת התחלה חשובה';
-    message.textContent = `אפשר לבחון פתיחת קרן והפקדה של עד ${money(result.remaining)} עד סוף השנה, בהתאם לתזרים ולמצב האישי.`;
+    message.textContent = '';
+    message.hidden = true;
   } else if (result.depositedToDate === 0) {
     $('#result-title').textContent = 'עדיין לא התחלת לנצל את הטבת קרן ההשתלמות השנה';
     message.textContent = `נותרה יתרה של ${money(result.remaining)} שניתן לשקול להפקיד השנה.`;
