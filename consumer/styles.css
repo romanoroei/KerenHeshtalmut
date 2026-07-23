@@ -432,7 +432,7 @@ input[aria-invalid="true"] { border-color: #dc2626; background: #fef2f2; box-sha
   .result-intro.is-compact-sticky .sticky-result-chips > span { min-width:0; padding:5px; }
 }
 
-.floating-result-summary { position:fixed; z-index:100; top:0; right:50%; display:none; width:min(calc(100% - 20px),1160px); box-sizing:border-box; padding:8px 12px; transform:translateX(50%); align-items:center; justify-content:space-between; gap:12px; border:1px solid #bfdbfe; border-top:0; border-radius:0 0 14px 14px; background:rgba(255,255,255,.98); box-shadow:0 8px 24px rgba(15,23,42,.16); backdrop-filter:blur(10px); }
+.floating-result-summary { position:fixed; z-index:100; top:0; right:50%; display:none; width:min(calc(100% - 32px),980px); box-sizing:border-box; padding:8px 12px; transform:translateX(50%); align-items:center; justify-content:space-between; gap:12px; border:1px solid #bfdbfe; border-top:0; border-radius:0 0 14px 14px; background:rgba(255,255,255,.98); box-shadow:0 8px 24px rgba(15,23,42,.16); backdrop-filter:blur(10px); }
 .floating-result-summary.is-visible { display:flex; }
 .floating-result-summary > strong { color:var(--slate-900); font-size:13px; white-space:nowrap; }
 .floating-result-summary > strong i { margin-left:6px; color:var(--blue); }

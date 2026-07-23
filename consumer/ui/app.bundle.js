@@ -895,7 +895,7 @@ ${url}`;
     };
     const measure = () => {
       const rect = metrics.getBoundingClientRect();
-      if (rect.height > 0) activationY = rect.bottom + scrollY;
+      if (rect.height > 0) activationY = rect.top + scrollY + rect.height / 2;
       update();
     };
     addEventListener("scroll", () => {
