@@ -344,6 +344,27 @@ function renderPreDepositChecks(profile) {
     : 'לוודא שאין קרן נוספת ושפרטי הקרן שאליה מפקידים נכונים.';
 }
 
+function setupStickyResultSummary() {
+  const deadline = $('#tax-countdown');
+  const metrics = $('.result-metrics--essential');
+  if (!deadline || !metrics || deadline.dataset.stickyReady) return;
+  deadline.dataset.stickyReady = 'true';
+  let scheduled = false;
+  const update = () => {
+    scheduled = false;
+    const compact = metrics.getBoundingClientRect().bottom <= deadline.getBoundingClientRect().bottom;
+    deadline.classList.toggle('is-compact-sticky', compact);
+  };
+  addEventListener('scroll', () => {
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(update);
+  }, { passive: true });
+  addEventListener('resize', update, { passive: true });
+  update();
+  requestAnimationFrame(update);
+}
+
 function setupValueSectionTracking(result) {
   if (!('IntersectionObserver' in window)) return;
   const events = [
@@ -472,9 +493,10 @@ function renderResultIntro(result, profile) {
     message.textContent = `נותרה יתרה של ${money(result.remaining)} שניתן לשקול להפקיד השנה.`;
   } else {
     $('#result-title').textContent = 'התחלת נכון — ועדיין נשארה לך יתרה שניתן לנצל';
-    message.textContent = `לאחר ההפקדות שכבר בוצעו, נותרו עד ${money(result.remaining)} לניצול התקרה.`;
+    message.textContent = '';
+    message.hidden = true;
   }
-  message.hidden = false;
+  if (message.textContent) message.hidden = false;
   renderDeadlineCard(result.taxYear);
 }
 
@@ -482,6 +504,8 @@ function renderResult(result, profile) {
   lastProfile = profile;
   countUp($('#remaining'), result.remaining, money);
   countUp($('#tax-benefit'), result.estimatedCombinedBenefitTotal, money);
+  $('#sticky-remaining').textContent = money(result.remaining);
+  $('#sticky-tax-benefit').textContent = money(result.estimatedCombinedBenefitTotal);
   renderResultIntro(result, profile);
   countUp($('#deposited-to-date'), result.depositedToDate, money);
   countUp($('#projected-annual'), result.projectedAnnualDeposited, money);
@@ -513,6 +537,7 @@ function renderResult(result, profile) {
     : '';
   $('#calculation-details').innerHTML = `<p><strong>תקרת 2026:</strong> ${money(result.ceiling)} · <strong>הכנסה:</strong> ${money(result.income)} · <strong>הופקד השנה:</strong> ${money(result.depositedToDate)}${hasFutureProjection ? ` · <strong>צפוי עד סוף השנה כולל הוראת קבע:</strong> ${money(result.projectedAnnualDeposited)}` : ''}</p><p>אומדן ההטבות מחושב בהנחה של מיקסום ההפקדה השנתית עד התקרה, ולכן כולל גם את ההפקדות שכבר בוצעו ואת הוראת הקבע הצפויה עד סוף השנה — ולא רק את יתרת ההשלמה.</p><p><strong>מדרגת מס שולית משוערת לפני הניכוי:</strong> ${result.taxRate * 100}% · <strong>שיעור ניכוי:</strong> ${result.deductibleRate * 100}%</p>${bracketNote}<p><strong>הטבה מיידית משוערת:</strong> מס הכנסה ${money(result.estimatedTotalTaxBenefit)} + ביטוח לאומי/בריאות ${money(result.estimatedNationalInsuranceBenefitTotal)}.</p><p><strong>שווי עתידי משוער:</strong> פטור ממס רווחי הון ${money(result.estimatedCapitalGainsExemptionValueTotal)}, בהנחת 8% לשנה ל־6 שנים ומס של 25% על הרווח.</p><p>מקורות: לוח הניכויים 2026 של רשות המסים ושיעורי ביטוח לאומי לעצמאי החל מ־1.1.2026. אימות: 19.07.2026. כל הרכיבים הם אומדן הדורש אימות אישי.</p>`;
   setupValueSectionTracking(result);
+  setupStickyResultSummary();
 }
 
 form.addEventListener('click', (event) => {
@@ -590,7 +615,8 @@ form.addEventListener('submit', (event) => {
       $('#loading').hidden = true;
       renderResult(result, profile);
       $('#results').hidden = false;
-      $('#results').focus();
+      $('#results').focus({ preventScroll: true });
+      scrollTo(0, 0);
     }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 850);
   } catch {
     isSubmitting = false;

@@ -348,7 +348,9 @@ input[aria-invalid="true"] { border-color: #dc2626; background: #fef2f2; box-sha
 .results .tax-deadline { position:sticky; z-index:40; top:0; width:100%; min-width:0; box-sizing:border-box; margin-bottom:12px; background:rgba(239,246,255,.97); box-shadow:0 8px 20px rgba(15,23,42,.12); backdrop-filter:blur(10px); }
 .results .tax-deadline strong { white-space:nowrap; }
 .results .tax-deadline strong span { display:inline; }
-.results .result-metrics--essential { position:sticky; z-index:39; top:82px; padding:8px; border:1px solid #dbeafe; border-radius:18px; background:rgba(255,255,255,.97); box-shadow:0 8px 22px rgba(15,23,42,.12); backdrop-filter:blur(10px); }
+.results .result-metrics--essential { padding:8px; border:1px solid #dbeafe; border-radius:18px; background:#fff; box-shadow:0 8px 22px rgba(15,23,42,.1); }
+.results .result-metrics--essential .result-card { min-height:185px; padding:20px; }
+.results .result-metrics--essential .result-card > strong { font-size:clamp(31px,4.4vw,42px); }
 .result-card--blue > span > span { display:inline; color:inherit; font:inherit; }
 .deposit-mini > span { font-size:14px; color:var(--slate-900); }
 .deposit-mini > span > b { margin-top:4px; font-size:20px; }
@@ -357,6 +359,15 @@ input[aria-invalid="true"] { border-color: #dc2626; background: #fef2f2; box-sha
 .benefit-grid article { grid-template-columns:46px 1fr; gap:12px; padding:17px; }
 .benefit-grid small,.benefit-heading p { color:var(--slate-900); font-weight:650; }
 .calculation-disclaimer { margin:0 18px 18px !important; padding:12px 14px; border-radius:10px; color:var(--slate-900); background:#f1f5f9; font-size:11px; line-height:1.55; }
+.sticky-result-chips { display:none; align-items:stretch; gap:7px; margin-right:auto; }
+.tax-deadline.is-compact-sticky .sticky-result-chips { display:flex; }
+.tax-deadline.is-compact-sticky #countdown-copy { display:none; }
+.sticky-result-chips > span { display:flex; min-width:112px; padding:7px 10px; border:1px solid #bfdbfe; border-radius:10px; flex-direction:column; justify-content:center; background:#fff; }
+.sticky-result-chips small,.sticky-result-chips b { display:block; white-space:nowrap; }
+.sticky-result-chips small { color:var(--slate-700); font-size:9px; font-weight:800; }
+.sticky-result-chips b { color:var(--blue-dark); font-size:15px; line-height:1.2; }
+.sticky-result-chips > span:last-child b { color:#6d28d9; }
+.growth-card p,.growth-card small,.growth-notice,.scenario-card small,.growth-detail { color:var(--slate-900) !important; }
 
 @media (max-width: 640px) {
   .results .result-intro > div:first-child { margin-bottom:10px; }
@@ -365,7 +376,7 @@ input[aria-invalid="true"] { border-color: #dc2626; background: #fef2f2; box-sha
   .results .tax-deadline > i { flex-basis:34px; width:34px; height:34px; }
   .results .tax-deadline strong { font-size:11.5px; letter-spacing:-.2px; }
   .results .tax-deadline div > span { font-size:10.5px; }
-  .results .result-metrics--essential { grid-template-columns:repeat(2,minmax(0,1fr)); top:74px; gap:6px; margin:0 0 14px; padding:6px; }
+  .results .result-metrics--essential { grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; margin:0 0 14px; padding:6px; }
   .results .result-metrics--essential .result-card { min-height:128px; padding:12px 10px; }
   .results .result-metrics--essential .result-card > i { display:none; }
   .results .result-metrics--essential .result-card > span { font-size:11px; }
@@ -374,4 +385,12 @@ input[aria-invalid="true"] { border-color: #dc2626; background: #fef2f2; box-sha
   .results .result-metrics--essential .deposit-mini > span { font-size:10px; }
   .results .result-metrics--essential .deposit-mini > span > b { font-size:14px; }
   .results .result-metrics--essential #projected-deposit-row { display:none; }
+  .tax-deadline.is-compact-sticky { gap:6px; padding:7px; }
+  .tax-deadline.is-compact-sticky > i { display:none; }
+  .tax-deadline.is-compact-sticky .deadline-copy { flex:1 1 125px; min-width:0; }
+  .tax-deadline.is-compact-sticky .deadline-copy strong { white-space:normal; font-size:10px; line-height:1.25; }
+  .tax-deadline.is-compact-sticky .sticky-result-chips { flex:1 1 200px; gap:4px; }
+  .sticky-result-chips > span { flex:1; min-width:0; padding:6px; }
+  .sticky-result-chips small { font-size:7.5px; }
+  .sticky-result-chips b { font-size:12px; }
 }

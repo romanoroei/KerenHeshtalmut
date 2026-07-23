@@ -882,6 +882,26 @@ ${url}`;
     $("#fund-check-title").textContent = noFund ? "\u05D1\u05D7\u05D9\u05E8\u05EA \u05D2\u05D5\u05E3 \u05DE\u05E0\u05D4\u05DC" : "\u05E7\u05E8\u05E0\u05D5\u05EA \u05E7\u05D9\u05D9\u05DE\u05D5\u05EA";
     $("#fund-check-copy").textContent = noFund ? "\u05DC\u05D4\u05E9\u05D5\u05D5\u05EA \u05D1\u05D9\u05DF \u05D2\u05D5\u05E4\u05D9\u05DD \u05DE\u05E0\u05D4\u05DC\u05D9\u05DD \u05D5\u05DC\u05D1\u05D7\u05D5\u05E8 \u05E7\u05E8\u05DF \u05DC\u05E4\u05E0\u05D9 \u05D1\u05D9\u05E6\u05D5\u05E2 \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4." : "\u05DC\u05D5\u05D5\u05D3\u05D0 \u05E9\u05D0\u05D9\u05DF \u05E7\u05E8\u05DF \u05E0\u05D5\u05E1\u05E4\u05EA \u05D5\u05E9\u05E4\u05E8\u05D8\u05D9 \u05D4\u05E7\u05E8\u05DF \u05E9\u05D0\u05DC\u05D9\u05D4 \u05DE\u05E4\u05E7\u05D9\u05D3\u05D9\u05DD \u05E0\u05DB\u05D5\u05E0\u05D9\u05DD.";
   }
+  function setupStickyResultSummary() {
+    const deadline = $("#tax-countdown");
+    const metrics = $(".result-metrics--essential");
+    if (!deadline || !metrics || deadline.dataset.stickyReady) return;
+    deadline.dataset.stickyReady = "true";
+    let scheduled = false;
+    const update = () => {
+      scheduled = false;
+      const compact = metrics.getBoundingClientRect().bottom <= deadline.getBoundingClientRect().bottom;
+      deadline.classList.toggle("is-compact-sticky", compact);
+    };
+    addEventListener("scroll", () => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(update);
+    }, { passive: true });
+    addEventListener("resize", update, { passive: true });
+    update();
+    requestAnimationFrame(update);
+  }
   function setupValueSectionTracking(result) {
     if (!("IntersectionObserver" in window)) return;
     const events = [
@@ -1001,15 +1021,18 @@ ${url}`;
       message.textContent = `\u05E0\u05D5\u05EA\u05E8\u05D4 \u05D9\u05EA\u05E8\u05D4 \u05E9\u05DC ${money2(result.remaining)} \u05E9\u05E0\u05D9\u05EA\u05DF \u05DC\u05E9\u05E7\u05D5\u05DC \u05DC\u05D4\u05E4\u05E7\u05D9\u05D3 \u05D4\u05E9\u05E0\u05D4.`;
     } else {
       $("#result-title").textContent = "\u05D4\u05EA\u05D7\u05DC\u05EA \u05E0\u05DB\u05D5\u05DF \u2014 \u05D5\u05E2\u05D3\u05D9\u05D9\u05DF \u05E0\u05E9\u05D0\u05E8\u05D4 \u05DC\u05DA \u05D9\u05EA\u05E8\u05D4 \u05E9\u05E0\u05D9\u05EA\u05DF \u05DC\u05E0\u05E6\u05DC";
-      message.textContent = `\u05DC\u05D0\u05D7\u05E8 \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05DB\u05D1\u05E8 \u05D1\u05D5\u05E6\u05E2\u05D5, \u05E0\u05D5\u05EA\u05E8\u05D5 \u05E2\u05D3 ${money2(result.remaining)} \u05DC\u05E0\u05D9\u05E6\u05D5\u05DC \u05D4\u05EA\u05E7\u05E8\u05D4.`;
+      message.textContent = "";
+      message.hidden = true;
     }
-    message.hidden = false;
+    if (message.textContent) message.hidden = false;
     renderDeadlineCard(result.taxYear);
   }
   function renderResult(result, profile) {
     lastProfile = profile;
     countUp($("#remaining"), result.remaining, money2);
     countUp($("#tax-benefit"), result.estimatedCombinedBenefitTotal, money2);
+    $("#sticky-remaining").textContent = money2(result.remaining);
+    $("#sticky-tax-benefit").textContent = money2(result.estimatedCombinedBenefitTotal);
     renderResultIntro(result, profile);
     countUp($("#deposited-to-date"), result.depositedToDate, money2);
     countUp($("#projected-annual"), result.projectedAnnualDeposited, money2);
@@ -1037,6 +1060,7 @@ ${url}`;
     const bracketNote = result.taxBenefitUsesMultipleBrackets ? "<p><strong>\u05DC\u05EA\u05E9\u05D5\u05DE\u05EA \u05DC\u05D1:</strong> \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9 \u05D7\u05D5\u05E6\u05D4 \u05DE\u05D3\u05E8\u05D2\u05EA \u05DE\u05E1, \u05D5\u05DC\u05DB\u05DF \u05D4\u05D8\u05D1\u05EA \u05DE\u05E1 \u05D4\u05D4\u05DB\u05E0\u05E1\u05D4 \u05D7\u05D5\u05E9\u05D1\u05D4 \u05DC\u05E4\u05D9 \u05D4\u05DE\u05E1 \u05DC\u05E4\u05E0\u05D9 \u05D5\u05D0\u05D7\u05E8\u05D9 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9 \u05D5\u05D1\u05D4\u05EA\u05D0\u05DD \u05DC\u05DB\u05DC \u05DE\u05D3\u05E8\u05D2\u05D5\u05EA \u05D4\u05DE\u05E1 \u05D4\u05E8\u05DC\u05D5\u05D5\u05E0\u05D8\u05D9\u05D5\u05EA \u2014 \u05D5\u05DC\u05D0 \u05DC\u05E4\u05D9 \u05E9\u05D9\u05E2\u05D5\u05E8 \u05E9\u05D5\u05DC\u05D9 \u05D9\u05D7\u05D9\u05D3.</p>" : "";
     $("#calculation-details").innerHTML = `<p><strong>\u05EA\u05E7\u05E8\u05EA 2026:</strong> ${money2(result.ceiling)} \xB7 <strong>\u05D4\u05DB\u05E0\u05E1\u05D4:</strong> ${money2(result.income)} \xB7 <strong>\u05D4\u05D5\u05E4\u05E7\u05D3 \u05D4\u05E9\u05E0\u05D4:</strong> ${money2(result.depositedToDate)}${hasFutureProjection ? ` \xB7 <strong>\u05E6\u05E4\u05D5\u05D9 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4 \u05DB\u05D5\u05DC\u05DC \u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2:</strong> ${money2(result.projectedAnnualDeposited)}` : ""}</p><p>\u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D4\u05D8\u05D1\u05D5\u05EA \u05DE\u05D7\u05D5\u05E9\u05D1 \u05D1\u05D4\u05E0\u05D7\u05D4 \u05E9\u05DC \u05DE\u05D9\u05E7\u05E1\u05D5\u05DD \u05D4\u05D4\u05E4\u05E7\u05D3\u05D4 \u05D4\u05E9\u05E0\u05EA\u05D9\u05EA \u05E2\u05D3 \u05D4\u05EA\u05E7\u05E8\u05D4, \u05D5\u05DC\u05DB\u05DF \u05DB\u05D5\u05DC\u05DC \u05D2\u05DD \u05D0\u05EA \u05D4\u05D4\u05E4\u05E7\u05D3\u05D5\u05EA \u05E9\u05DB\u05D1\u05E8 \u05D1\u05D5\u05E6\u05E2\u05D5 \u05D5\u05D0\u05EA \u05D4\u05D5\u05E8\u05D0\u05EA \u05D4\u05E7\u05D1\u05E2 \u05D4\u05E6\u05E4\u05D5\u05D9\u05D4 \u05E2\u05D3 \u05E1\u05D5\u05E3 \u05D4\u05E9\u05E0\u05D4 \u2014 \u05D5\u05DC\u05D0 \u05E8\u05E7 \u05D0\u05EA \u05D9\u05EA\u05E8\u05EA \u05D4\u05D4\u05E9\u05DC\u05DE\u05D4.</p><p><strong>\u05DE\u05D3\u05E8\u05D2\u05EA \u05DE\u05E1 \u05E9\u05D5\u05DC\u05D9\u05EA \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA \u05DC\u05E4\u05E0\u05D9 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9:</strong> ${result.taxRate * 100}% \xB7 <strong>\u05E9\u05D9\u05E2\u05D5\u05E8 \u05E0\u05D9\u05DB\u05D5\u05D9:</strong> ${result.deductibleRate * 100}%</p>${bracketNote}<p><strong>\u05D4\u05D8\u05D1\u05D4 \u05DE\u05D9\u05D9\u05D3\u05D9\u05EA \u05DE\u05E9\u05D5\u05E2\u05E8\u05EA:</strong> \u05DE\u05E1 \u05D4\u05DB\u05E0\u05E1\u05D4 ${money2(result.estimatedTotalTaxBenefit)} + \u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9/\u05D1\u05E8\u05D9\u05D0\u05D5\u05EA ${money2(result.estimatedNationalInsuranceBenefitTotal)}.</p><p><strong>\u05E9\u05D5\u05D5\u05D9 \u05E2\u05EA\u05D9\u05D3\u05D9 \u05DE\u05E9\u05D5\u05E2\u05E8:</strong> \u05E4\u05D8\u05D5\u05E8 \u05DE\u05DE\u05E1 \u05E8\u05D5\u05D5\u05D7\u05D9 \u05D4\u05D5\u05DF ${money2(result.estimatedCapitalGainsExemptionValueTotal)}, \u05D1\u05D4\u05E0\u05D7\u05EA 8% \u05DC\u05E9\u05E0\u05D4 \u05DC\u05BE6 \u05E9\u05E0\u05D9\u05DD \u05D5\u05DE\u05E1 \u05E9\u05DC 25% \u05E2\u05DC \u05D4\u05E8\u05D5\u05D5\u05D7.</p><p>\u05DE\u05E7\u05D5\u05E8\u05D5\u05EA: \u05DC\u05D5\u05D7 \u05D4\u05E0\u05D9\u05DB\u05D5\u05D9\u05D9\u05DD 2026 \u05E9\u05DC \u05E8\u05E9\u05D5\u05EA \u05D4\u05DE\u05E1\u05D9\u05DD \u05D5\u05E9\u05D9\u05E2\u05D5\u05E8\u05D9 \u05D1\u05D9\u05D8\u05D5\u05D7 \u05DC\u05D0\u05D5\u05DE\u05D9 \u05DC\u05E2\u05E6\u05DE\u05D0\u05D9 \u05D4\u05D7\u05DC \u05DE\u05BE1.1.2026. \u05D0\u05D9\u05DE\u05D5\u05EA: 19.07.2026. \u05DB\u05DC \u05D4\u05E8\u05DB\u05D9\u05D1\u05D9\u05DD \u05D4\u05DD \u05D0\u05D5\u05DE\u05D3\u05DF \u05D4\u05D3\u05D5\u05E8\u05E9 \u05D0\u05D9\u05DE\u05D5\u05EA \u05D0\u05D9\u05E9\u05D9.</p>`;
     setupValueSectionTracking(result);
+    setupStickyResultSummary();
   }
   form.addEventListener("click", (event) => {
     var _a;
@@ -1116,7 +1140,8 @@ ${url}`;
         $("#loading").hidden = true;
         renderResult(result, profile);
         $("#results").hidden = false;
-        $("#results").focus();
+        $("#results").focus({ preventScroll: true });
+        scrollTo(0, 0);
       }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 850);
     } catch (e) {
       isSubmitting = false;
