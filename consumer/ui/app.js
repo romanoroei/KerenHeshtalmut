@@ -345,7 +345,7 @@ function renderPreDepositChecks(profile) {
 }
 
 function setupStickyResultSummary() {
-  const deadline = $('#tax-countdown');
+  const deadline = $('#result-intro');
   const metrics = $('.result-metrics--essential');
   if (!deadline || !metrics || deadline.dataset.stickyReady) return;
   deadline.dataset.stickyReady = 'true';
