@@ -47,7 +47,7 @@ export function buildShareMessage(url = SITE_CONFIG.publicBaseUrl) {
   return `עצמאי? מצאתי בדיקה קצרה שעוזרת להבין כמה כדאי לך להפקיד לקרן ההשתלמות השנה ומה שווי הטבות המס האפשריות.\n\nהבדיקה ללא הרשמה וללא התחייבות:\n${url}`;
 }
 
-export function buildConsumerShareUrl(url = SITE_CONFIG.publicBaseUrl) {
+export function buildConsumerShareUrl(url = `${SITE_CONFIG.publicBaseUrl}?share=20260724-2`) {
   const message = buildShareMessage(url);
   return `https://wa.me/?text=${encodeURIComponent(message)}`;
 }
