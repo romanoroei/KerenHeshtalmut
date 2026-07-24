@@ -191,7 +191,7 @@ test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקד
   assert.match(styles, /\.recommendation-disclaimer \{ color: var\(--slate-900\)/);
   assert.match(landing, /לחצו כאן ומתחילים בדיקה/);
   assert.match(landing, /תכנית עבודה ברורה/);
-  assert.match(landing, /ליווי פיננסי של בעל מקצוע/);
+  assert.match(landing, /ליווי פיננסי על ידי בעל רישיון/);
   assert.doesNotMatch(landing, /תוצאה ברורה/);
   assert.doesNotMatch(`${landing}\n${check}\n${source}`, /מחשבון פשוט/);
   assert.match(check, /data-cookie-settings/);
