@@ -36,6 +36,7 @@ test('all four core events define the documented parameter allowlists', () => {
   assert.ok(CORE_EVENT_PARAMETERS.whatsapp_clicked.has('button_location'));
   assert.ok(CORE_EVENT_PARAMETERS.result_interpretation_viewed.has('result_status'));
   assert.ok(CORE_EVENT_PARAMETERS.contact_process_viewed.has('content'));
+  assert.ok(CORE_EVENT_PARAMETERS.faq_more_questions_clicked.has('questions_visible'));
 });
 
 test('trackOnce does not mark an event before analytics consent', () => {

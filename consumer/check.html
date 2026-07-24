@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="./styles.css?v=20260724-20">
+  <link rel="stylesheet" href="./styles.css?v=20260724-21">
 </head>
 <body class="check-page">
   <main class="main-content" id="check">
@@ -125,7 +125,7 @@
             <h2 id="results-faq-title">שאלות נפוצות ששואלים אותי על קרן השתלמות לעצמאים</h2>
             <p>ריכזתי תשובות קצרות לשאלות הכי נשאלות</p>
           </div>
-          <div class="results-faq__list">
+          <div class="results-faq__list" id="results-faq-list">
             <details><summary>מהי קרן השתלמות לעצמאים?<i class="fas fa-chevron-down"></i></summary><div><p>קרן השתלמות היא אפיק חיסכון והשקעה שמאפשר לעצמאים להפקיד כסף, ליהנות מהטבות מס אפשריות ומהשקעה מקצועית ולמשוך את הכספים לאחר תקופת הוותק הקבועה בחוק, בכפוף לתנאים.</p></div></details>
             <details><summary>מי יכול לפתוח קרן השתלמות לעצמאים?<i class="fas fa-chevron-down"></i></summary><div><p>עצמאי שיש לו הכנסה מעסק או ממשלח יד יכול בדרך כלל לפתוח קרן השתלמות במעמד עצמאי ולהפקיד אליה בהתאם להכנסתו ולתקרות המס הרלוונטיות.</p></div></details>
             <details><summary>האם עצמאי חייב להפקיד לקרן השתלמות?<i class="fas fa-chevron-down"></i></summary><div><p>לא. בניגוד להפקדה לפנסיה, הפקדה לקרן השתלמות אינה חובה. עם זאת, עבור עצמאים רבים היא יכולה להיות כלי חיסכון יעיל בזכות הטבות המס והאפשרות לחיסכון לטווח בינוני וארוך.</p></div></details>
@@ -157,6 +157,10 @@
             <details><summary>מה כדאי לבדוק לפני שמבצעים הפקדה?<i class="fas fa-chevron-down"></i></summary><div><p>לפני ההפקדה כדאי לבדוק:</p><ul><li>האם קיימת זכאות לפתיחת קרן השתלמות.</li><li>מהי ההכנסה החייבת המשוערת.</li><li>כמה כבר הופקד השנה.</li><li>מהי התקרה הרלוונטית.</li><li>האם הקרן והמסלול מתאימים.</li><li>מה גובה דמי הניהול.</li><li>האם ההפקדה מתאימה לתזרים.</li><li>האם קיימות קרנות נוספות שכדאי לבדוק.</li></ul></div></details>
             <details><summary>האם הבדיקה והשיחה עם רועי הן ללא עלות?<i class="fas fa-chevron-down"></i></summary><div><p>כן. המעבר על התוצאה והשיחה הראשונית עם רועי הם ללא עלות וללא התחייבות.</p><p>אין חובה לפתוח מוצר, להעביר קרן או לבצע שינוי.</p><p>אם בהמשך יוצע שירות אחר בתשלום, הוא יוצג ויוסכם מראש לפני ביצוע פעולה.</p></div></details>
           </div>
+          <div class="results-faq__more">
+            <button id="faq-load-more" type="button" aria-controls="results-faq-list" aria-expanded="false"><span id="faq-load-more-label">עוד שאלות נפוצות</span><i class="fas fa-chevron-down"></i></button>
+            <small id="faq-progress" aria-live="polite">5 מתוך 30 שאלות מוצגות</small>
+          </div>
         </section>
 
         <section class="faq-contact">
@@ -186,6 +190,6 @@
   </div>
   <script type="module" src="./analytics/bootstrap.js"></script>
   <script type="module" src="./ui/tax-year-status.js?v=20260721-1"></script>
-  <script defer src="./ui/app.bundle.js?v=20260724-8"></script>
+  <script defer src="./ui/app.bundle.js?v=20260724-9"></script>
 </body>
 </html>

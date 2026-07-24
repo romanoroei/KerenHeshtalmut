@@ -534,7 +534,8 @@ ${url}`;
     deposit_options_viewed: /* @__PURE__ */ new Set(["result_status", "source", "medium", "campaign", "content", "term", "referrer_code"]),
     pre_deposit_checks_viewed: /* @__PURE__ */ new Set(["result_status", "source", "medium", "campaign", "content", "term", "referrer_code"]),
     growth_scenarios_viewed: /* @__PURE__ */ new Set(["result_status", "source", "medium", "campaign", "content", "term", "referrer_code"]),
-    contact_process_viewed: /* @__PURE__ */ new Set(["result_status", "source", "medium", "campaign", "content", "term", "referrer_code"])
+    contact_process_viewed: /* @__PURE__ */ new Set(["result_status", "source", "medium", "campaign", "content", "term", "referrer_code"]),
+    faq_more_questions_clicked: /* @__PURE__ */ new Set(["batch_number", "questions_visible", "questions_total", "result_status", "source", "medium", "campaign", "content", "term", "referrer_code"])
   });
   var PENDING_EVENTS_KEY = "consumer_pending_analytics_events";
   var QUEUEABLE_EVENTS = /* @__PURE__ */ new Set(["landing_view", "calculator_started"]);
@@ -1215,6 +1216,50 @@ ${url}`;
   $$(".calculation-details, #more-recommendations").forEach((details) => details.addEventListener("toggle", () => {
     if (details.open) trackEvent("details_opened", { details_type: details.classList.contains("calculation-details") ? "calculation_method" : "additional_actions" });
   }));
+  function setupFaqProgressiveDisclosure() {
+    const items = $$("#results-faq-list > details");
+    const button = $("#faq-load-more");
+    const label = $("#faq-load-more-label");
+    const progress = $("#faq-progress");
+    if (!items.length || !button || !label || !progress) return;
+    const batchSize = 5;
+    const labels2 = [
+      "\u05E2\u05D5\u05D3 \u05E9\u05D0\u05DC\u05D5\u05EA \u05E0\u05E4\u05D5\u05E6\u05D5\u05EA",
+      "\u05DC\u05D4\u05E6\u05D9\u05D2 \u05E2\u05D5\u05D3 \u05EA\u05E9\u05D5\u05D1\u05D5\u05EA \u05E7\u05E6\u05E8\u05D5\u05EA",
+      "\u05DC\u05E9\u05D0\u05DC\u05D5\u05EA \u05E0\u05D5\u05E1\u05E4\u05D5\u05EA \u05E9\u05DB\u05D3\u05D0\u05D9 \u05DC\u05D4\u05DB\u05D9\u05E8",
+      "\u05DC\u05D4\u05DE\u05E9\u05D9\u05DA \u05DC\u05E2\u05D5\u05D3 \u05E9\u05D0\u05DC\u05D5\u05EA",
+      "\u05DC\u05D7\u05DE\u05E9 \u05D4\u05E9\u05D0\u05DC\u05D5\u05EA \u05D4\u05D0\u05D7\u05E8\u05D5\u05E0\u05D5\u05EA"
+    ];
+    let visibleCount = Math.min(batchSize, items.length);
+    items.forEach((item, index) => {
+      item.hidden = index >= visibleCount;
+    });
+    const update = (announcement = "") => {
+      const isComplete = visibleCount >= items.length;
+      button.hidden = isComplete;
+      button.setAttribute("aria-expanded", String(isComplete));
+      if (!isComplete) label.textContent = labels2[Math.min(visibleCount / batchSize - 1, labels2.length - 1)];
+      progress.textContent = announcement || `${visibleCount} \u05DE\u05EA\u05D5\u05DA ${items.length} \u05E9\u05D0\u05DC\u05D5\u05EA \u05DE\u05D5\u05E6\u05D2\u05D5\u05EA`;
+    };
+    button.addEventListener("click", () => {
+      const previousCount = visibleCount;
+      visibleCount = Math.min(items.length, visibleCount + batchSize);
+      items.slice(previousCount, visibleCount).forEach((item) => {
+        item.hidden = false;
+      });
+      const batchNumber = Math.ceil((visibleCount - batchSize) / batchSize);
+      trackEvent("faq_more_questions_clicked", {
+        batch_number: batchNumber,
+        questions_visible: visibleCount,
+        questions_total: items.length,
+        result_status: resultStatus(lastResult),
+        ...attributionParameters
+      });
+      update(`\u05E0\u05E4\u05EA\u05D7\u05D5 \u05E2\u05D5\u05D3 ${visibleCount - previousCount} \u05E9\u05D0\u05DC\u05D5\u05EA. ${visibleCount} \u05DE\u05EA\u05D5\u05DA ${items.length} \u05E9\u05D0\u05DC\u05D5\u05EA \u05DE\u05D5\u05E6\u05D2\u05D5\u05EA`);
+    });
+    update();
+  }
+  setupFaqProgressiveDisclosure();
   $$("#whatsapp, #whatsapp-secondary, #faq-whatsapp").forEach((link) => link.addEventListener("click", () => {
     trackEvent("whatsapp_clicked", {
       result_status: resultStatus(lastResult),

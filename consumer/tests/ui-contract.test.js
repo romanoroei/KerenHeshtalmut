@@ -84,6 +84,9 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   assert.match(html, /שאלות נפוצות ששואלים אותי על קרן השתלמות לעצמאים/);
   assert.match(html, /ריכזתי תשובות קצרות לשאלות הכי נשאלות/);
   assert.match(html, /id="faq-whatsapp"/);
+  assert.match(html, /id="faq-load-more"/);
+  assert.match(source, /faq_more_questions_clicked/);
+  assert.match(source, /visibleCount = Math\.min\(items\.length, visibleCount \+ batchSize\)/);
   assert.match(html, /id="back-to-top"/);
   assert.match(html, /מידע חשוב על קרן השתלמות לעצמאים<\/h3>/);
   assert.match(html, /מה נכון עבורך\?/);

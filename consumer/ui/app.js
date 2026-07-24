@@ -664,6 +664,47 @@ $$('.calculation-details, #more-recommendations').forEach((details) => details.a
   if (details.open) trackEvent('details_opened', { details_type: details.classList.contains('calculation-details') ? 'calculation_method' : 'additional_actions' });
 }));
 
+function setupFaqProgressiveDisclosure() {
+  const items = $$('#results-faq-list > details');
+  const button = $('#faq-load-more');
+  const label = $('#faq-load-more-label');
+  const progress = $('#faq-progress');
+  if (!items.length || !button || !label || !progress) return;
+  const batchSize = 5;
+  const labels = [
+    'עוד שאלות נפוצות',
+    'להציג עוד תשובות קצרות',
+    'לשאלות נוספות שכדאי להכיר',
+    'להמשיך לעוד שאלות',
+    'לחמש השאלות האחרונות',
+  ];
+  let visibleCount = Math.min(batchSize, items.length);
+  items.forEach((item, index) => { item.hidden = index >= visibleCount; });
+  const update = (announcement = '') => {
+    const isComplete = visibleCount >= items.length;
+    button.hidden = isComplete;
+    button.setAttribute('aria-expanded', String(isComplete));
+    if (!isComplete) label.textContent = labels[Math.min((visibleCount / batchSize) - 1, labels.length - 1)];
+    progress.textContent = announcement || `${visibleCount} מתוך ${items.length} שאלות מוצגות`;
+  };
+  button.addEventListener('click', () => {
+    const previousCount = visibleCount;
+    visibleCount = Math.min(items.length, visibleCount + batchSize);
+    items.slice(previousCount, visibleCount).forEach((item) => { item.hidden = false; });
+    const batchNumber = Math.ceil((visibleCount - batchSize) / batchSize);
+    trackEvent('faq_more_questions_clicked', {
+      batch_number: batchNumber,
+      questions_visible: visibleCount,
+      questions_total: items.length,
+      result_status: resultStatus(lastResult),
+      ...attributionParameters,
+    });
+    update(`נפתחו עוד ${visibleCount - previousCount} שאלות. ${visibleCount} מתוך ${items.length} שאלות מוצגות`);
+  });
+  update();
+}
+setupFaqProgressiveDisclosure();
+
 $$('#whatsapp, #whatsapp-secondary, #faq-whatsapp').forEach((link) => link.addEventListener('click', () => {
   trackEvent('whatsapp_clicked', {
     result_status: resultStatus(lastResult),

@@ -13,6 +13,7 @@ const CORE_EVENT_PARAMETERS = Object.freeze({
   pre_deposit_checks_viewed: new Set(['result_status', 'source', 'medium', 'campaign', 'content', 'term', 'referrer_code']),
   growth_scenarios_viewed: new Set(['result_status', 'source', 'medium', 'campaign', 'content', 'term', 'referrer_code']),
   contact_process_viewed: new Set(['result_status', 'source', 'medium', 'campaign', 'content', 'term', 'referrer_code']),
+  faq_more_questions_clicked: new Set(['batch_number', 'questions_visible', 'questions_total', 'result_status', 'source', 'medium', 'campaign', 'content', 'term', 'referrer_code']),
 });
 const PENDING_EVENTS_KEY = 'consumer_pending_analytics_events';
 const QUEUEABLE_EVENTS = new Set(['landing_view', 'calculator_started']);
