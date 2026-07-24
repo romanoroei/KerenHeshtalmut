@@ -97,9 +97,10 @@ test('מסך הפתיחה אינו מציג תגית צפה ליד תמונת ה
   assert.match(landing, /landing-assurance/);
   assert.match(landing, /<span class="landing-tax-term">כדאי<i class="fas fa-circle-info"[^>]*><\/i><\/span>/);
   assert.match(landing, /תוך פחות מדקה תקבל תמונת מצב, תחזית עתידית ופירוט צעדים שכדאי לשקול/);
-  assert.match(landing, /כדאיות מבחינת מיסוי וניצול הטבות המס בלבד/);
+  assert.match(landing, /כדאיות מיסוית וניצול הטבות המס/);
   assert.match(landing, /אינה מהווה ייעוץ מס, שיווק פנסיוני או המלצה אישית/);
   assert.match(landing, /class="landing-tax-note"><i class="fas fa-circle-info"/);
+  assert.match(landing, /כדאיות מיסוית וניצול הטבות המס\. הבדיקה אינה מהווה ייעוץ מס, שיווק פנסיוני או המלצה אישית/);
   assert.ok(landing.indexOf('landing-assurance') < landing.indexOf('landing-tax-note'));
   assert.doesNotMatch(landing, /בוא נבדוק כמה כדאי לך להפקיד/);
 });
