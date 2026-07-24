@@ -80,7 +80,8 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   assert.match(html, /לפני שמפקידים כדאי לבדוק/);
   assert.doesNotMatch(html, /מה גובה דמי הניהול מהצבירה\./);
   assert.match(html, /בדיקות נוספות/);
-  assert.match(html, /בוא נתמקד במה שחשוב לך/);
+  assert.match(html, /בוא נתמקד במה שציינת שחשוב לך/);
+  assert.match(html, /הצג צעדים נוספים/);
   assert.match(html, /שאלות נפוצות ששואלים אותי על קרן השתלמות לעצמאים/);
   assert.match(html, /ריכזתי תשובות קצרות לשאלות הכי נשאלות/);
   assert.match(html, /id="faq-whatsapp"/);
@@ -89,7 +90,12 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   assert.match(source, /visibleCount = Math\.min\(items\.length, visibleCount \+ batchSize\)/);
   assert.match(html, /id="back-to-top"/);
   assert.match(html, /מידע חשוב על קרן השתלמות לעצמאים<\/h3>/);
-  assert.match(html, /מה נכון עבורך\?/);
+  assert.match(html, /אז מה נכון עבורך\?/);
+  assert.match(html, /תחזית קדימה/);
+  assert.match(html, /התאמה אישית/);
+  assert.match(html, /אפשר לעבור על התוצאות ביחד/);
+  assert.match(html, /עוברים על הנתונים/);
+  assert.match(html, /בהתאם לשיחה אני אמליץ מה נכון לבצע/);
 });
 
 test('סטטוס שנת המס מוצג רק כאשר השנה הנוכחית טרם אומתה', async () => {
@@ -105,7 +111,7 @@ test('מסך הפתיחה אינו מציג תגית צפה ליד תמונת ה
   const landing = await readFile(new URL('../index.html', import.meta.url), 'utf8');
   assert.doesNotMatch(landing, /landing-result-chip/);
   assert.match(landing, /landing-assurance/);
-  assert.match(landing, /<span class="landing-tax-term">כדאי<i class="fas fa-circle-info"[^>]*><\/i><\/span>/);
+  assert.match(landing, /<span class="landing-tax-term">כדאי<\/span> לך להפקיד לקרן ההשתלמות השנה\?<i class="fas fa-circle-info landing-heading-info"/);
   assert.match(landing, /תוך פחות מדקה תקבל תמונת מצב, תחזית עתידית ופירוט צעדים שכדאי לשקול/);
   assert.match(landing, /כדאיות מיסוית וניצול הטבות המס/);
   assert.match(landing, /אינה מהווה ייעוץ מס, שיווק פנסיוני או המלצה אישית/);
@@ -186,9 +192,12 @@ test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקד
   const source = await readFile(new URL('../ui/app.js', import.meta.url), 'utf8');
   const styles = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
   const cookieBootstrap = await readFile(new URL('../analytics/bootstrap.js', import.meta.url), 'utf8');
+  const taxData = await readFile(new URL('../data/tax-data.js', import.meta.url), 'utf8');
   assert.match(check, /id="share-benefits"/);
   assert.match(check, /מכירים עצמאי שהבדיקה יכולה לעזור לו\?/);
   assert.match(check, /שתפו את האתר/);
+  assert.doesNotMatch(check, /id="native-share"/);
+  assert.doesNotMatch(check, /id="copy-share-link"/);
   assert.match(check, /class="restart-link"/);
   assert.doesNotMatch(check, /class="btn btn-share"/);
   assert.doesNotMatch(check, /name="(?:lumpSum|monthlyDeposit|monthsDeposited)"[^>]*value="0"/);
@@ -208,11 +217,15 @@ test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקד
   assert.doesNotMatch(`${landing}\n${check}\n${source}`, /מחשבון פשוט/);
   assert.match(check, /data-cookie-settings/);
   assert.match(cookieBootstrap, /classList\.add\('is-attention-slow'\)/);
-  assert.match(cookieBootstrap, /classList\.add\('is-attention-fast'\)/);
+  assert.match(cookieBootstrap, /attentionSession < 3/);
+  assert.doesNotMatch(cookieBootstrap, /is-attention-fast/);
   assert.match(cookieBootstrap, /}, 3000\)/);
-  assert.equal((cookieBootstrap.match(/}, 5000\)/g) || []).length, 2);
-  assert.match(cookieBootstrap, /classList\.remove\('is-attention-fast'\), 2000\)/);
+  assert.equal((cookieBootstrap.match(/setTimeout\(runConsentAttention, 5000\)/g) || []).length, 2);
   assert.match(check, /<i class="fab fa-whatsapp"><\/i> WhatsApp/);
+  assert.match(styles, /\.year-segments > span \{[^}]*font-size:12\.5px/);
+  assert.match(taxData, /מסלול השקעה שמרני/);
+  assert.match(taxData, /מסלול השקעה בסיכון בינוני/);
+  assert.match(taxData, /מסלול השקעה בסיכון גבוה/);
   assert.match(source, /link\.id === 'faq-whatsapp' \? 'faq_contact'/);
   assert.doesNotMatch(check, />למחשבון המקצועי/);
   assert.match(landing, /property="og:image" content="https:\/\/romanoroei\.github\.io\/KerenHeshtalmut\/consumer-og-share\.jpg/);

@@ -81,9 +81,9 @@
     });
   }
   var RETURN_SCENARIOS = Object.freeze([
-    { id: "conservative", label: "\u05E9\u05DE\u05E8\u05E0\u05D9", annualRate: 0.04 },
-    { id: "middle", label: "\u05D1\u05D9\u05E0\u05D9\u05D9\u05DD", annualRate: 0.07 },
-    { id: "high", label: "\u05D2\u05D1\u05D5\u05D4", annualRate: 0.09 }
+    { id: "conservative", label: "\u05DE\u05E1\u05DC\u05D5\u05DC \u05D4\u05E9\u05E7\u05E2\u05D4 \u05E9\u05DE\u05E8\u05E0\u05D9", annualRate: 0.04 },
+    { id: "middle", label: "\u05DE\u05E1\u05DC\u05D5\u05DC \u05D4\u05E9\u05E7\u05E2\u05D4 \u05D1\u05E1\u05D9\u05DB\u05D5\u05DF \u05D1\u05D9\u05E0\u05D5\u05E0\u05D9", annualRate: 0.07 },
+    { id: "high", label: "\u05DE\u05E1\u05DC\u05D5\u05DC \u05D4\u05E9\u05E7\u05E2\u05D4 \u05D1\u05E1\u05D9\u05DB\u05D5\u05DF \u05D2\u05D1\u05D5\u05D4", annualRate: 0.09 }
   ]);
 
   // consumer/engine/calculator.js
@@ -1271,20 +1271,6 @@ ${url}`;
     if (notice) notice.textContent = "WhatsApp \u05E0\u05E4\u05EA\u05D7 \u05D1\u05D7\u05DC\u05D5\u05DF \u05D7\u05D3\u05E9. \u05DC\u05D0\u05D7\u05E8 \u05E9\u05DC\u05D9\u05D7\u05EA \u05D4\u05D4\u05D5\u05D3\u05E2\u05D4 \u05E8\u05D5\u05E2\u05D9 \u05D9\u05D5\u05DB\u05DC \u05DC\u05D7\u05D6\u05D5\u05E8 \u05D0\u05DC\u05D9\u05DA.";
   }));
   $("#share-benefits").addEventListener("click", () => trackEvent("share_clicked", { share_method: "whatsapp", entry_source: attribution.source }));
-  $("#copy-share-link").addEventListener("click", async () => {
-    await navigator.clipboard.writeText(SITE_CONFIG.publicBaseUrl);
-    $("#share-feedback").textContent = "\u05D4\u05E7\u05D9\u05E9\u05D5\u05E8 \u05D4\u05D5\u05E2\u05EA\u05E7";
-    trackEvent("share_clicked", { share_method: "copy_link", entry_source: attribution.source });
-  });
-  var nativeShare = $("#native-share");
-  nativeShare.hidden = typeof navigator.share !== "function";
-  nativeShare.addEventListener("click", async () => {
-    try {
-      await navigator.share({ title: "\u05D1\u05D3\u05D9\u05E7\u05EA \u05E7\u05E8\u05DF \u05D4\u05E9\u05EA\u05DC\u05DE\u05D5\u05EA \u05DC\u05E2\u05E6\u05DE\u05D0\u05D9\u05DD", text: buildShareMessage(""), url: SITE_CONFIG.publicBaseUrl });
-      trackEvent("share_clicked", { share_method: "native_share", entry_source: attribution.source });
-    } catch (e) {
-    }
-  });
   function restartCalculator() {
     try {
       sessionStorage.removeItem(FORM_STATE_KEY);

@@ -1,9 +1,8 @@
 import { buildGrowthSchedule, calculateConsumerResult, normalizeMoney } from '../engine/calculator.js';
 import { calculateUtilizationScore } from '../engine/score.js';
 import { buildCta, buildRecommendation } from '../engine/recommendations.js';
-import { buildConsumerShareUrl, buildShareMessage, buildWhatsAppUrl } from '../messages/whatsapp.js';
+import { buildConsumerShareUrl, buildWhatsAppUrl } from '../messages/whatsapp.js';
 import { buildAdvisorChecks, buildGoalHighlights } from '../personalization.js';
-import { SITE_CONFIG } from '../config.js';
 import { attributionEventParameters, getAttribution } from '../analytics/attribution.js';
 import { trackEvent, trackOnce, trackOnceOrQueue } from '../analytics/tracking.js';
 import { countUp } from './animations.js';
@@ -717,16 +716,6 @@ $$('#whatsapp, #whatsapp-secondary, #faq-whatsapp').forEach((link) => link.addEv
 }));
 
 $('#share-benefits').addEventListener('click', () => trackEvent('share_clicked', { share_method: 'whatsapp', entry_source: attribution.source }));
-$('#copy-share-link').addEventListener('click', async () => {
-  await navigator.clipboard.writeText(SITE_CONFIG.publicBaseUrl);
-  $('#share-feedback').textContent = 'הקישור הועתק';
-  trackEvent('share_clicked', { share_method: 'copy_link', entry_source: attribution.source });
-});
-const nativeShare = $('#native-share');
-nativeShare.hidden = typeof navigator.share !== 'function';
-nativeShare.addEventListener('click', async () => {
-  try { await navigator.share({ title: 'בדיקת קרן השתלמות לעצמאים', text: buildShareMessage(''), url: SITE_CONFIG.publicBaseUrl }); trackEvent('share_clicked', { share_method: 'native_share', entry_source: attribution.source }); } catch { /* Cancellation is not an error. */ }
-});
 
 function restartCalculator() {
   try { sessionStorage.removeItem(FORM_STATE_KEY); sessionStorage.removeItem('consumer_event_calculator_completed'); sessionStorage.removeItem('consumer_event_calculator_started'); } catch { /* Ignore unavailable storage. */ }

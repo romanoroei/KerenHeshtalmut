@@ -4,34 +4,31 @@ import { clearPendingAnalyticsEvents, flushPendingAnalyticsEvents, loadAnalytics
 
 const notice = document.getElementById('cookieNotice');
 const acceptButton = document.getElementById('acceptCookies');
-let firstAttentionDelay;
-let firstAttentionStop;
-let finalAttentionDelay;
-let finalAttentionStop;
+let attentionDelay;
+let attentionStop;
+let attentionSession = 0;
 const consentStillPending = () => getConsentStatus() === 'unknown' && notice?.classList.contains('is-visible');
 const stopConsentAttention = () => {
-  clearTimeout(firstAttentionDelay);
-  clearTimeout(firstAttentionStop);
-  clearTimeout(finalAttentionDelay);
-  clearTimeout(finalAttentionStop);
-  acceptButton?.classList.remove('is-attention-slow', 'is-attention-fast');
+  clearTimeout(attentionDelay);
+  clearTimeout(attentionStop);
+  attentionSession = 0;
+  acceptButton?.classList.remove('is-attention-slow');
+};
+const runConsentAttention = () => {
+  if (!consentStillPending()) return;
+  attentionSession += 1;
+  acceptButton?.classList.add('is-attention-slow');
+  attentionStop = setTimeout(() => {
+    acceptButton?.classList.remove('is-attention-slow');
+    if (attentionSession < 3 && consentStillPending()) {
+      attentionDelay = setTimeout(runConsentAttention, 5000);
+    }
+  }, 3000);
 };
 const scheduleConsentAttention = () => {
   stopConsentAttention();
   if (getConsentStatus() !== 'unknown') return;
-  firstAttentionDelay = setTimeout(() => {
-    if (!consentStillPending()) return;
-    acceptButton?.classList.add('is-attention-slow');
-    firstAttentionStop = setTimeout(() => {
-      acceptButton?.classList.remove('is-attention-slow');
-      if (!consentStillPending()) return;
-      finalAttentionDelay = setTimeout(() => {
-        if (!consentStillPending()) return;
-        acceptButton?.classList.add('is-attention-fast');
-        finalAttentionStop = setTimeout(() => acceptButton?.classList.remove('is-attention-fast'), 2000);
-      }, 5000);
-    }, 3000);
-  }, 5000);
+  attentionDelay = setTimeout(runConsentAttention, 5000);
 };
 const showConsent = () => {
   const isVisible = getConsentStatus() === 'unknown';

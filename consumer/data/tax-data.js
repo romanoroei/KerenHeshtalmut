@@ -85,7 +85,7 @@ export function getTaxDataContext(date = new Date(), registry = TAX_DATA_BY_YEAR
 }
 
 export const RETURN_SCENARIOS = Object.freeze([
-  { id: 'conservative', label: 'שמרני', annualRate: 0.04 },
-  { id: 'middle', label: 'ביניים', annualRate: 0.07 },
-  { id: 'high', label: 'גבוה', annualRate: 0.09 },
+  { id: 'conservative', label: 'מסלול השקעה שמרני', annualRate: 0.04 },
+  { id: 'middle', label: 'מסלול השקעה בסיכון בינוני', annualRate: 0.07 },
+  { id: 'high', label: 'מסלול השקעה בסיכון גבוה', annualRate: 0.09 },
 ]);
