@@ -477,6 +477,15 @@ ${url}`;
     const goals = Array.isArray(profile.goals) ? profile.goals : [];
     return [...new Set(goals.filter((goal) => VALID_GOALS.includes(goal)))];
   }
+  function buildGoalHighlights(profile = {}) {
+    const labels2 = {
+      tax: { icon: "fa-receipt", label: "\u05D4\u05D8\u05D1\u05EA \u05D4\u05DE\u05E1" },
+      saving: { icon: "fa-chart-line", label: "\u05D4\u05D2\u05D3\u05DC\u05EA \u05D4\u05D7\u05D9\u05E1\u05DB\u05D5\u05DF" },
+      monthly: { icon: "fa-calendar-check", label: "\u05D4\u05D5\u05E8\u05D0\u05EA \u05E7\u05D1\u05E2" },
+      check: { icon: "fa-compass", label: "\u05D1\u05D3\u05D9\u05E7\u05EA \u05D4\u05D3\u05E8\u05DA" }
+    };
+    return selectedGoals(profile).map((goal) => labels2[goal]);
+  }
   function buildGoalContext(result, profile = {}) {
     const goals = selectedGoals(profile);
     if (!goals.length) return "";
@@ -940,6 +949,7 @@ ${url}`;
   function renderPersonalization(result, profile) {
     const context = buildGoalContext(result, profile);
     $("#goal-context").hidden = !context;
+    $("#goal-highlights").innerHTML = buildGoalHighlights(profile).map(({ icon, label }) => `<span><i class="fas ${icon}" aria-hidden="true"></i>${label}</span>`).join("");
     $("#goal-context-copy").textContent = context;
     $("#advisor-checks").innerHTML = buildAdvisorChecks(result, profile).map((item) => `<li><i class="fas fa-circle-check"></i><span>${item}</span></li>`).join("");
   }
@@ -1103,6 +1113,7 @@ ${url}`;
     lastProfile = profile;
     countUp($("#remaining"), result.remaining, money2);
     countUp($("#tax-benefit"), result.estimatedCombinedBenefitTotal, money2);
+    $("#benefit-total-repeat").textContent = money2(result.estimatedCombinedBenefitTotal);
     $("#sticky-remaining").textContent = money2(result.remaining);
     $("#sticky-tax-benefit").textContent = money2(result.estimatedCombinedBenefitTotal);
     renderResultIntro(result, profile);

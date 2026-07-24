@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { buildAdvisorChecks, buildGoalContext } from '../personalization.js';
+import { buildAdvisorChecks, buildGoalContext, buildGoalHighlights } from '../personalization.js';
 
 const result = { taxYear: 2026, remaining: 10000, overCeiling: 0 };
 const profile = (goals, fundStatus = 'existing') => ({ goals, fundStatus });
@@ -30,6 +30,13 @@ test('כמה מטרות מחזירות פסקה אחת ללא קודים טכנ�
 
 test('ללא מטרה האזור אינו מקבל תוכן', () => {
   assert.equal(buildGoalContext(result, profile([])), '');
+});
+
+test('המטרות שנבחרו הופכות לתגיות קצרות עם אייקונים', () => {
+  assert.deepEqual(buildGoalHighlights(profile(['tax', 'saving', 'tax', 'unknown'])), [
+    { icon: 'fa-receipt', label: 'הטבת המס' },
+    { icon: 'fa-chart-line', label: 'הגדלת החיסכון' },
+  ]);
 });
 
 test('הוראת קבע לאחר ניצול מלא מתייחסת לשנה הבאה', () => {

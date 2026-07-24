@@ -5,6 +5,16 @@ function selectedGoals(profile = {}) {
   return [...new Set(goals.filter((goal) => VALID_GOALS.includes(goal)))];
 }
 
+export function buildGoalHighlights(profile = {}) {
+  const labels = {
+    tax: { icon: 'fa-receipt', label: 'הטבת המס' },
+    saving: { icon: 'fa-chart-line', label: 'הגדלת החיסכון' },
+    monthly: { icon: 'fa-calendar-check', label: 'הוראת קבע' },
+    check: { icon: 'fa-compass', label: 'בדיקת הדרך' },
+  };
+  return selectedGoals(profile).map((goal) => labels[goal]);
+}
+
 export function buildGoalContext(result, profile = {}) {
   const goals = selectedGoals(profile);
   if (!goals.length) return '';

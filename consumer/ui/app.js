@@ -2,7 +2,7 @@ import { buildGrowthSchedule, calculateConsumerResult, normalizeMoney } from '..
 import { calculateUtilizationScore } from '../engine/score.js';
 import { buildCta, buildRecommendation } from '../engine/recommendations.js';
 import { buildConsumerShareUrl, buildShareMessage, buildWhatsAppUrl } from '../messages/whatsapp.js';
-import { buildAdvisorChecks, buildGoalContext } from '../personalization.js';
+import { buildAdvisorChecks, buildGoalContext, buildGoalHighlights } from '../personalization.js';
 import { SITE_CONFIG } from '../config.js';
 import { attributionEventParameters, getAttribution } from '../analytics/attribution.js';
 import { trackEvent, trackOnce, trackOnceOrQueue } from '../analytics/tracking.js';
@@ -297,6 +297,9 @@ function renderScore(result, profile) {
 function renderPersonalization(result, profile) {
   const context = buildGoalContext(result, profile);
   $('#goal-context').hidden = !context;
+  $('#goal-highlights').innerHTML = buildGoalHighlights(profile)
+    .map(({ icon, label }) => `<span><i class="fas ${icon}" aria-hidden="true"></i>${label}</span>`)
+    .join('');
   $('#goal-context-copy').textContent = context;
   $('#advisor-checks').innerHTML = buildAdvisorChecks(result, profile)
     .map((item) => `<li><i class="fas fa-circle-check"></i><span>${item}</span></li>`)
@@ -520,6 +523,7 @@ function renderResult(result, profile) {
   lastProfile = profile;
   countUp($('#remaining'), result.remaining, money);
   countUp($('#tax-benefit'), result.estimatedCombinedBenefitTotal, money);
+  $('#benefit-total-repeat').textContent = money(result.estimatedCombinedBenefitTotal);
   $('#sticky-remaining').textContent = money(result.remaining);
   $('#sticky-tax-benefit').textContent = money(result.estimatedCombinedBenefitTotal);
   renderResultIntro(result, profile);

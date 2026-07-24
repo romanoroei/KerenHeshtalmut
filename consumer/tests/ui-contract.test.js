@@ -34,14 +34,17 @@ test('האתר אינו יכול לסגור את חלון הדפדפן ומגן 
 test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחירת מטרות מרובה', async () => {
   const html = await readFile(new URL('../check.html', import.meta.url), 'utf8');
   assert.match(html, /שלב 1 מתוך 4/);
-  assert.match(html, /האם יש לך קרן השתלמות/);
+  assert.match(html, /מה ההכנסה השנתית שלך מהעסק\?/);
+  assert.match(html, /האם יש לך קרן השתלמות לעצמאים\?/);
   assert.equal((html.match(/type="radio" name="fundStatus"/g) || []).length, 2);
   assert.match(html, /value="existing"/);
   assert.doesNotMatch(html, /לא נזילה|לא בטוח אם היא נזילה/);
   assert.match(html, /כמה הפקדת לקרן שלך השנה/);
-  assert.match(html, /מה הצבירה הנוכחית בקרן\? <span>\(כולל מה שכבר הופקד השנה\)<\/span>/);
+  assert.match(html, /כמה הפקדת השנה\? <span>\(סכום חד פעמי\)<\/span>/);
+  assert.match(html, /כמה מופקד בהוראת קבע בכל חודש\?/);
+  assert.match(html, /מה הצבירה הנוכחית בקרן\? <span>\(כולל מה שכבר הופקד עד היום\)<\/span>/);
   assert.match(html, /class="balance-forecast-card"/);
-  assert.match(html, /רוצה לראות תחזית על הצבירה הקיימת\?/);
+  assert.match(html, /רוצה לקבל תחזית על הצבירה הקיימת\?/);
   assert.doesNotMatch(html, /תחזית אישית מדויקת יותר|הוספת הצבירה הקיימת תאפשר/);
   assert.doesNotMatch(html, /class="optional-balance"/);
   assert.match(html, /id="stage-restart"[^>]*>.*נקה והתחל מחדש/);
@@ -65,6 +68,14 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   assert.ok(html.indexOf('id="contact-process"') < html.indexOf('id="whatsapp-secondary"'));
   assert.match(html, /id="countdown-days"/);
   assert.match(html, /id="whatsapp-secondary"/);
+  assert.match(html, /class="result-card result-card--purple benefit-details-link" href="#benefit-breakdown"/);
+  assert.match(html, /איך אני מקבל את הכסף\?/);
+  assert.match(html, /id="benefit-total-repeat"/);
+  assert.match(html, /כך מורכב הסכום שראית למעלה/);
+  assert.match(html, /לפני שמפקידים כדאי לבדוק/);
+  assert.match(html, /מה גובה דמי הניהול מהצבירה\./);
+  assert.match(html, /מידע חשוב על קרן השתלמות לעצמאים\./);
+  assert.match(html, /מה נכון עבורך\?/);
 });
 
 test('סטטוס שנת המס מוצג רק כאשר השנה הנוכחית טרם אומתה', async () => {
