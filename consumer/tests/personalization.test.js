@@ -56,8 +56,8 @@ test('מטרת חיסכון ללא קרן מתחילה בפתיחת קרן מת�
 test('אזור הבדיקה מציג לכל היותר ארבע נקודות ומשתנה לפי המצב', () => {
   const noFund = buildAdvisorChecks(result, profile(['saving', 'check'], 'none'));
   assert.ok(noFund.length <= 4);
-  assert.match(noFund.join(' '), /גוף מנהל/);
-  assert.match(noFund.join(' '), /באיזה חברה, ומסלול השקעה כדאי לנהל את הקרן/);
+  assert.ok(noFund.includes('באיזה חברה, ומסלול השקעה כדאי לנהל את הקרן'));
+  assert.doesNotMatch(noFund.join(' '), /איזה גוף מנהל, מסלול ודמי ניהול כדאי לבדוק לפני פתיחת הקרן/);
   assert.doesNotMatch(noFund.join(' '), /קרן נוספת או ישנה/);
   const over = buildAdvisorChecks({ ...result, overCeiling: 1000 }, profile(['tax']));
   assert.match(over.join(' '), /חלופות.*מעל התקרה/);
