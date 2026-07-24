@@ -90,6 +90,7 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   assert.match(source, /visibleCount = Math\.min\(items\.length, visibleCount \+ batchSize\)/);
   assert.match(html, /id="back-to-top"/);
   assert.match(html, /מידע חשוב על קרן השתלמות לעצמאים<\/h3>/);
+  assert.match(html, /אפשר לעבור מנהל השקעות או לשנות מסלול/);
   assert.match(html, /אז מה נכון עבורך\?/);
   assert.match(html, /תחזית קדימה/);
   assert.match(html, /התאמה אישית/);
