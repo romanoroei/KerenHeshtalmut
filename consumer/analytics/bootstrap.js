@@ -4,20 +4,33 @@ import { clearPendingAnalyticsEvents, flushPendingAnalyticsEvents, loadAnalytics
 
 const notice = document.getElementById('cookieNotice');
 const acceptButton = document.getElementById('acceptCookies');
-let attentionDelay;
-let attentionStop;
+let firstAttentionDelay;
+let firstAttentionStop;
+let finalAttentionDelay;
+let finalAttentionStop;
+const consentStillPending = () => getConsentStatus() === 'unknown' && notice?.classList.contains('is-visible');
 const stopConsentAttention = () => {
-  clearTimeout(attentionDelay);
-  clearTimeout(attentionStop);
-  acceptButton?.classList.remove('is-attention');
+  clearTimeout(firstAttentionDelay);
+  clearTimeout(firstAttentionStop);
+  clearTimeout(finalAttentionDelay);
+  clearTimeout(finalAttentionStop);
+  acceptButton?.classList.remove('is-attention-slow', 'is-attention-fast');
 };
 const scheduleConsentAttention = () => {
   stopConsentAttention();
   if (getConsentStatus() !== 'unknown') return;
-  attentionDelay = setTimeout(() => {
-    if (getConsentStatus() !== 'unknown' || !notice?.classList.contains('is-visible')) return;
-    acceptButton?.classList.add('is-attention');
-    attentionStop = setTimeout(() => acceptButton?.classList.remove('is-attention'), 2000);
+  firstAttentionDelay = setTimeout(() => {
+    if (!consentStillPending()) return;
+    acceptButton?.classList.add('is-attention-slow');
+    firstAttentionStop = setTimeout(() => {
+      acceptButton?.classList.remove('is-attention-slow');
+      if (!consentStillPending()) return;
+      finalAttentionDelay = setTimeout(() => {
+        if (!consentStillPending()) return;
+        acceptButton?.classList.add('is-attention-fast');
+        finalAttentionStop = setTimeout(() => acceptButton?.classList.remove('is-attention-fast'), 2000);
+      }, 5000);
+    }, 3000);
   }, 5000);
 };
 const showConsent = () => {

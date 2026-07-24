@@ -207,8 +207,11 @@ test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקד
   assert.doesNotMatch(landing, /תוצאה ברורה/);
   assert.doesNotMatch(`${landing}\n${check}\n${source}`, /מחשבון פשוט/);
   assert.match(check, /data-cookie-settings/);
-  assert.match(cookieBootstrap, /setTimeout\(\(\) => acceptButton\?\.classList\.remove\('is-attention'\), 2000\)/);
-  assert.match(cookieBootstrap, /}, 5000\)/);
+  assert.match(cookieBootstrap, /classList\.add\('is-attention-slow'\)/);
+  assert.match(cookieBootstrap, /classList\.add\('is-attention-fast'\)/);
+  assert.match(cookieBootstrap, /}, 3000\)/);
+  assert.equal((cookieBootstrap.match(/}, 5000\)/g) || []).length, 2);
+  assert.match(cookieBootstrap, /classList\.remove\('is-attention-fast'\), 2000\)/);
   assert.match(check, /<i class="fab fa-whatsapp"><\/i> WhatsApp/);
   assert.match(source, /link\.id === 'faq-whatsapp' \? 'faq_contact'/);
   assert.doesNotMatch(check, />למחשבון המקצועי/);
