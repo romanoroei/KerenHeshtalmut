@@ -405,7 +405,7 @@ function renderRecommendationSteps(result, profile) {
   const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
   const stepsForUser = [];
   if (profile.fundStatus === 'none') {
-    stepsForUser.push(buildRecommendation(result, profile));
+    stepsForUser.push('עדיין אין לך קרן השתלמות. לפני פתיחה כדאי לוודא זכאות.');
     stepsForUser.push('להשוות בין מסלולי השקעה ודמי ניהול לפני פתיחת הקרן.');
     if (profile.goals.includes('monthly')) {
       const targetPayments = Math.min(result.scheduledMonthsRemaining, Math.floor(result.remaining / result.suggestedMonthly));
@@ -552,6 +552,7 @@ function renderResult(result, profile) {
   const whatsappUrl = buildWhatsAppUrl(result, profile);
   $('#whatsapp').href = whatsappUrl;
   $('#whatsapp-secondary').href = whatsappUrl;
+  $('#faq-whatsapp').href = whatsappUrl;
   $('#share-benefits').href = buildConsumerShareUrl();
   const bracketNote = result.taxBenefitUsesMultipleBrackets
     ? '<p><strong>לתשומת לב:</strong> הניכוי חוצה מדרגת מס, ולכן הטבת מס ההכנסה חושבה לפי המס לפני ואחרי הניכוי ובהתאם לכל מדרגות המס הרלוונטיות — ולא לפי שיעור שולי יחיד.</p>'
@@ -663,11 +664,11 @@ $$('.calculation-details, #more-recommendations').forEach((details) => details.a
   if (details.open) trackEvent('details_opened', { details_type: details.classList.contains('calculation-details') ? 'calculation_method' : 'additional_actions' });
 }));
 
-$$('#whatsapp, #whatsapp-secondary').forEach((link) => link.addEventListener('click', () => {
+$$('#whatsapp, #whatsapp-secondary, #faq-whatsapp').forEach((link) => link.addEventListener('click', () => {
   trackEvent('whatsapp_clicked', {
     result_status: resultStatus(lastResult),
     fund_status: lastProfile?.fundStatus || '',
-    button_location: link.id === 'whatsapp-secondary' ? 'bottom_secondary' : 'main_after_value',
+    button_location: link.id === 'whatsapp-secondary' ? 'bottom_secondary' : link.id === 'faq-whatsapp' ? 'faq_contact' : 'main_after_value',
     ...attributionParameters,
   });
   const notice = $('#whatsapp-status');
@@ -693,6 +694,9 @@ function restartCalculator() {
 }
 $('#restart').addEventListener('click', restartCalculator);
 $('#stage-restart').addEventListener('click', restartCalculator);
+$('#back-to-top').addEventListener('click', () => {
+  scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+});
 if (new URLSearchParams(location.search).has('restart')) {
   try { sessionStorage.removeItem(FORM_STATE_KEY); } catch { /* Ignore unavailable storage. */ }
   history.replaceState(null, '', './check.html');

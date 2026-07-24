@@ -51,6 +51,7 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   assert.match(html, /id="stage-restart"[^>]*>.*נקה והתחל מחדש/);
   assert.equal((html.match(/type="checkbox" name="goal"/g) || []).length, 4);
   assert.match(html, /id="recommendation-steps"/);
+  assert.match(source, /עדיין אין לך קרן השתלמות\. לפני פתיחה כדאי לוודא זכאות\./);
   assert.match(html, /id="existingBalance"/);
   assert.match(html, /class="deposit-mini"/);
   assert.match(html, /הופקד השנה/);
@@ -77,7 +78,13 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   assert.match(html, /id="benefit-total-repeat"/);
   assert.match(html, /כך מורכב הסכום שראית למעלה/);
   assert.match(html, /לפני שמפקידים כדאי לבדוק/);
-  assert.match(html, /מה גובה דמי הניהול מהצבירה\./);
+  assert.doesNotMatch(html, /מה גובה דמי הניהול מהצבירה\./);
+  assert.match(html, /בדיקות נוספות/);
+  assert.match(html, /בוא נתמקד במה שחשוב לך/);
+  assert.match(html, /שאלות נפוצות ששואלים אותי על קרן השתלמות לעצמאים/);
+  assert.match(html, /ריכזתי תשובות קצרות לשאלות הכי נשאלות/);
+  assert.match(html, /id="faq-whatsapp"/);
+  assert.match(html, /id="back-to-top"/);
   assert.match(html, /מידע חשוב על קרן השתלמות לעצמאים<\/h3>/);
   assert.match(html, /מה נכון עבורך\?/);
 });
@@ -197,7 +204,7 @@ test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקד
   assert.doesNotMatch(`${landing}\n${check}\n${source}`, /מחשבון פשוט/);
   assert.match(check, /data-cookie-settings/);
   assert.match(check, /<i class="fab fa-whatsapp"><\/i> WhatsApp/);
-  assert.match(source, /button_location: link\.id === 'whatsapp-secondary' \? 'bottom_secondary' : 'main_after_value'/);
+  assert.match(source, /link\.id === 'faq-whatsapp' \? 'faq_contact'/);
   assert.doesNotMatch(check, />למחשבון המקצועי/);
   assert.match(landing, /property="og:image" content="https:\/\/romanoroei\.github\.io\/KerenHeshtalmut\/consumer-og-share\.jpg/);
   assert.match(landing, /property="og:image:secure_url"/);
