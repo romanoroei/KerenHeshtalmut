@@ -2,6 +2,7 @@ import { buildGrowthSchedule, calculateConsumerResult, normalizeMoney } from '..
 import { calculateUtilizationScore } from '../engine/score.js';
 import { buildCta, buildRecommendation } from '../engine/recommendations.js';
 import { buildConsumerShareUrl, buildShareMessage, buildWhatsAppUrl } from '../messages/whatsapp.js';
+import { buildAdvisorChecks, buildGoalContext } from '../personalization.js';
 import { SITE_CONFIG } from '../config.js';
 import { attributionEventParameters, getAttribution } from '../analytics/attribution.js';
 import { trackEvent, trackOnce, trackOnceOrQueue } from '../analytics/tracking.js';
@@ -293,6 +294,15 @@ function renderScore(result, profile) {
   $('#score-components').innerHTML = components.map(([label, done]) => `<li><i class="fas fa-${done ? 'circle-check' : 'circle'}"></i>${label}</li>`).join('');
 }
 
+function renderPersonalization(result, profile) {
+  const context = buildGoalContext(result, profile);
+  $('#goal-context').hidden = !context;
+  $('#goal-context-copy').textContent = context;
+  $('#advisor-checks').innerHTML = buildAdvisorChecks(result, profile)
+    .map((item) => `<li><i class="fas fa-circle-check"></i><span>${item}</span></li>`)
+    .join('');
+}
+
 function renderInterpretation(result, profile) {
   const points = [];
   if (result.overCeiling > 0) {
@@ -530,6 +540,7 @@ function renderResult(result, profile) {
   const ctaCopy = buildCta(result, profile);
   $('#dynamic-cta').textContent = ctaCopy;
   renderScore(result, profile);
+  renderPersonalization(result, profile);
   renderRecommendationSteps(result, profile);
   renderPreDepositChecks(profile);
   renderScenarios(result);

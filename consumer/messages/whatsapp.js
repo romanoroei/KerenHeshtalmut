@@ -35,7 +35,7 @@ export function buildWhatsAppMessage(result, profile = {}, attribution = getAttr
     `${goals || 'לבדוק מה נכון למצב שלי'}.`,
     '',
     ...(referrerName ? [`הגעתי לבדיקה דרך ${referrerName}.`, ''] : []),
-    'אשמח שתבדוק איתי מה הצעד הבא שמתאים למצב שלי.',
+    'אשמח לעבור איתך על התוצאה ולבדוק מה הצעד הבא שמתאים למצב שלי.',
   ].join('\n');
 }
 
