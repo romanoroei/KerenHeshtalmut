@@ -57,9 +57,12 @@ test('אזור הבדיקה מציג לכל היותר ארבע נקודות ו�
   const noFund = buildAdvisorChecks(result, profile(['saving', 'check'], 'none'));
   assert.ok(noFund.length <= 4);
   assert.match(noFund.join(' '), /גוף מנהל/);
+  assert.match(noFund.join(' '), /באיזה חברה, ומסלול השקעה כדאי לנהל את הקרן/);
   assert.doesNotMatch(noFund.join(' '), /קרן נוספת או ישנה/);
   const over = buildAdvisorChecks({ ...result, overCeiling: 1000 }, profile(['tax']));
   assert.match(over.join(' '), /חלופות.*מעל התקרה/);
+  const standard = buildAdvisorChecks(result, profile([]));
+  assert.match(standard.join(' '), /בהדרגה או לבצע שילוב של הסכום/);
 });
 
 test('כרטיס השיחה מבהיר במדויק מה ללא עלות', async () => {
