@@ -92,6 +92,8 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   assert.match(html, /מידע חשוב על קרן השתלמות לעצמאים<\/h3>/);
   assert.match(html, /אפשר לעבור מנהל השקעות או לשנות מסלול/);
   assert.match(html, /אז מה נכון עבורך\?/);
+  assert.ok(html.indexOf('id="pre-deposit-checks"') < html.indexOf('id="advisor-value"'));
+  assert.ok(html.indexOf('id="advisor-value"') < html.indexOf('id="fund-knowledge"'));
   assert.match(html, /תחזית קדימה/);
   assert.match(html, /התאמה אישית/);
   assert.match(html, /אפשר לעבור על התוצאות ביחד/);
