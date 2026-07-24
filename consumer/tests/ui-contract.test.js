@@ -209,6 +209,9 @@ test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקד
   assert.match(source, /כולל הוראת קבע/);
   assert.match(source, /location\.assign\('\.\/check\.html\?restart=1'\)/);
   assert.match(source, /currentStep > 0/);
+  assert.match(source, /זה הזמן להתייעץ עם בעל רישיון לגבי פתרון להפקדות נוספות \./);
+  assert.match(source, /אם יש כסף פנוי נוסף , צריך להחליט איפה כדאי לנהל אותו/);
+  assert.match(source, /countdownHeading\.hidden = true/);
   assert.doesNotMatch(source, /is-floating/);
   assert.match(styles, /\.tax-deadline \{/);
   assert.match(styles, /\.deposit-options \{/);

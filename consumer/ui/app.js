@@ -299,7 +299,9 @@ function renderPersonalization(result, profile) {
   $('#goal-highlights').innerHTML = highlights
     .map(({ icon, label }) => `<span><i class="fas ${icon}" aria-hidden="true"></i>${label}</span>`)
     .join('');
-  $('#goal-context-copy').textContent = 'התכנית המוצעת משלבת בין הסכום שנשאר להפקדה, ההשפעה לטווח ארוך והבדיקות שכדאי לבצע לפני שמחליטים.';
+  $('#goal-context-copy').textContent = result.remaining === 0
+    ? 'אם יש כסף פנוי נוסף , צריך להחליט איפה כדאי לנהל אותו'
+    : 'התכנית המוצעת משלבת בין הסכום שנשאר להפקדה, ההשפעה לטווח ארוך והבדיקות שכדאי לבצע לפני שמחליטים.';
   $('#advisor-checks').innerHTML = buildAdvisorChecks(result, profile)
     .map((item) => `<li><i class="fas fa-circle-check"></i><span>${item}</span></li>`)
     .join('');
@@ -463,9 +465,20 @@ function renderRecommendationSteps(result, profile) {
   $('#more-recommendations').hidden = additional.length === 0;
 }
 
-function renderDeadlineCard(taxYear) {
+function renderDeadlineCard(taxYear, isCeilingReached = false) {
   const target = new Date(taxYear, 11, 31, 23, 59, 59, 999);
   const days = Math.max(0, Math.ceil((target.getTime() - Date.now()) / 86400000));
+  const fullCeilingCopy = 'זה הזמן להתייעץ עם בעל רישיון לגבי פתרון להפקדות נוספות .';
+  const countdownHeading = $('#countdown-heading');
+  const floatingCountdownLabel = $('#floating-countdown-label');
+  if (isCeilingReached) {
+    countdownHeading.hidden = true;
+    $('#countdown-copy').textContent = fullCeilingCopy;
+    floatingCountdownLabel.innerHTML = `<i class="fas fa-calendar-check"></i> ${fullCeilingCopy}`;
+    $('#tax-countdown').hidden = false;
+    return;
+  }
+  countdownHeading.hidden = false;
   $('#countdown-days').textContent = days.toLocaleString('he-IL');
   $('#floating-countdown-days').textContent = days.toLocaleString('he-IL');
   $('#countdown-copy').textContent = days < 30
@@ -492,14 +505,14 @@ function renderResultIntro(result, profile) {
       ? `הסכום הצפוי שמעל התקרה הוא ${money(result.overCeiling)}. כדאי לבדוק אותו לפני ביצוע הפקדות נוספות.`
       : `הסכום שמעל התקרה הוא ${money(result.overCeiling)}. כדאי לבדוק אותו לפני ביצוע הפקדות נוספות.`;
     message.hidden = false;
-    renderDeadlineCard(result.taxYear);
+    renderDeadlineCard(result.taxYear, result.remaining === 0);
     return;
   }
   if (result.remaining === 0) {
     $('#result-title').textContent = `ניצלת את מלוא התקרה המוטבת לשנת ${result.taxYear}`;
     message.textContent = 'אין צורך לבצע הפקדה נוספת כדי לנצל את התקרה השנה.';
     message.hidden = false;
-    renderDeadlineCard(result.taxYear);
+    renderDeadlineCard(result.taxYear, true);
     return;
   }
   if (profile.fundStatus === 'none') {

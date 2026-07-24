@@ -65,6 +65,8 @@ test('אזור הבדיקה מציג לכל היותר ארבע נקודות ו�
   assert.match(standard.join(' '), /בהדרגה או לבצע שילוב של הסכום/);
   const taxGoal = buildAdvisorChecks(result, profile(['tax']));
   assert.ok(taxGoal.includes('האם נכון להשלים את ההפקדה עכשיו, בהדרגה או לבצע שילוב של הסכום.'));
+  const fullCeiling = buildAdvisorChecks({ ...result, remaining: 0 }, profile([]));
+  assert.doesNotMatch(fullCeiling.join(' '), /האם נכון להשלים את ההפקדה עכשיו/);
 });
 
 test('כרטיס השיחה מבהיר במדויק מה ללא עלות', async () => {
