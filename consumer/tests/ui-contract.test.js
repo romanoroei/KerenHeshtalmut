@@ -95,6 +95,11 @@ test('מסך הפתיחה אינו מציג תגית צפה ליד תמונת ה
   const landing = await readFile(new URL('../index.html', import.meta.url), 'utf8');
   assert.doesNotMatch(landing, /landing-result-chip/);
   assert.match(landing, /landing-assurance/);
+  assert.match(landing, /<h1><span>עצמאי\?<\/span><span>כמה כדאי לך להפקיד לקרן ההשתלמות השנה\?<\/span><\/h1>/);
+  assert.match(landing, /תוך פחות מדקה תקבל תמונת מצב, תחזית עתידית ופירוט צעדים שכדאי לשקול/);
+  assert.match(landing, /המילה „כדאי” מתייחסת לכדאיות מבחינת מיסוי וניצול הטבות המס בלבד/);
+  assert.match(landing, /אינה מהווה ייעוץ מס, שיווק פנסיוני או המלצה אישית/);
+  assert.doesNotMatch(landing, /בוא נבדוק כמה כדאי לך להפקיד/);
 });
 
 test('רכיבי הציות של האתר המקצועי זמינים בשני מסכי המחשבון', async () => {
