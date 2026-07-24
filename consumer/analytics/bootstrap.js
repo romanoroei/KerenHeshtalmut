@@ -3,13 +3,7 @@ import { getConsentStatus, setConsentStatus } from './consent.js';
 import { clearPendingAnalyticsEvents, flushPendingAnalyticsEvents, loadAnalytics, trackOnce, trackOnceOrQueue } from './tracking.js';
 
 const notice = document.getElementById('cookieNotice');
-const consentButtons = notice ? [...notice.querySelectorAll('button')] : [];
-const showConsent = () => {
-  const isOpen = getConsentStatus() === 'unknown';
-  notice?.classList.toggle('is-visible', isOpen);
-  document.body.classList.toggle('has-open-cookie-consent', isOpen);
-  if (isOpen) requestAnimationFrame(() => consentButtons[0]?.focus());
-};
+const showConsent = () => notice?.classList.toggle('is-visible', getConsentStatus() === 'unknown');
 const choose = async (status) => {
   setConsentStatus(status);
   showConsent();
@@ -24,18 +18,6 @@ showConsent();
 if (getConsentStatus() === 'accepted') loadAnalytics();
 document.getElementById('acceptCookies')?.addEventListener('click', () => choose('accepted'));
 document.getElementById('essentialCookies')?.addEventListener('click', () => choose('essential_only'));
-document.addEventListener('keydown', (event) => {
-  if (getConsentStatus() !== 'unknown' || event.key !== 'Tab' || !consentButtons.length) return;
-  const first = consentButtons[0];
-  const last = consentButtons[consentButtons.length - 1];
-  if (event.shiftKey && document.activeElement === first) {
-    event.preventDefault();
-    last.focus();
-  } else if (!event.shiftKey && document.activeElement === last) {
-    event.preventDefault();
-    first.focus();
-  }
-});
 document.querySelectorAll('[data-cookie-settings]').forEach((button) => button.addEventListener('click', () => {
   try { localStorage.removeItem('consumer_analytics_consent'); } catch { /* Ignore unavailable storage. */ }
   showConsent();

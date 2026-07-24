@@ -111,7 +111,6 @@ test('רכיבי הציות של האתר המקצועי זמינים בשני �
 
   for (const html of [landing, check]) {
     assert.match(html, /id="cookieNotice"/);
-    assert.match(html, /id="cookieNotice" role="dialog" aria-modal="true"/);
     assert.match(html, /אפשר לשפר את החוויה\?/);
     assert.match(html, /id="disclaimer"/);
     assert.match(html, /class="disclosure-modal"/);
