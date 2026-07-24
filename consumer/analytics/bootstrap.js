@@ -3,7 +3,29 @@ import { getConsentStatus, setConsentStatus } from './consent.js';
 import { clearPendingAnalyticsEvents, flushPendingAnalyticsEvents, loadAnalytics, trackOnce, trackOnceOrQueue } from './tracking.js';
 
 const notice = document.getElementById('cookieNotice');
-const showConsent = () => notice?.classList.toggle('is-visible', getConsentStatus() === 'unknown');
+const acceptButton = document.getElementById('acceptCookies');
+let attentionDelay;
+let attentionStop;
+const stopConsentAttention = () => {
+  clearTimeout(attentionDelay);
+  clearTimeout(attentionStop);
+  acceptButton?.classList.remove('is-attention');
+};
+const scheduleConsentAttention = () => {
+  stopConsentAttention();
+  if (getConsentStatus() !== 'unknown') return;
+  attentionDelay = setTimeout(() => {
+    if (getConsentStatus() !== 'unknown' || !notice?.classList.contains('is-visible')) return;
+    acceptButton?.classList.add('is-attention');
+    attentionStop = setTimeout(() => acceptButton?.classList.remove('is-attention'), 2000);
+  }, 5000);
+};
+const showConsent = () => {
+  const isVisible = getConsentStatus() === 'unknown';
+  notice?.classList.toggle('is-visible', isVisible);
+  if (isVisible) scheduleConsentAttention();
+  else stopConsentAttention();
+};
 const choose = async (status) => {
   setConsentStatus(status);
   showConsent();

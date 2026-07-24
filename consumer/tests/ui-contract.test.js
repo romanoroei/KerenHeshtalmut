@@ -185,6 +185,7 @@ test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקד
   const landing = await readFile(new URL('../index.html', import.meta.url), 'utf8');
   const source = await readFile(new URL('../ui/app.js', import.meta.url), 'utf8');
   const styles = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
+  const cookieBootstrap = await readFile(new URL('../analytics/bootstrap.js', import.meta.url), 'utf8');
   assert.match(check, /id="share-benefits"/);
   assert.match(check, /מכירים עצמאי שהבדיקה יכולה לעזור לו\?/);
   assert.match(check, /שתפו את האתר/);
@@ -206,6 +207,8 @@ test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקד
   assert.doesNotMatch(landing, /תוצאה ברורה/);
   assert.doesNotMatch(`${landing}\n${check}\n${source}`, /מחשבון פשוט/);
   assert.match(check, /data-cookie-settings/);
+  assert.match(cookieBootstrap, /setTimeout\(\(\) => acceptButton\?\.classList\.remove\('is-attention'\), 2000\)/);
+  assert.match(cookieBootstrap, /}, 5000\)/);
   assert.match(check, /<i class="fab fa-whatsapp"><\/i> WhatsApp/);
   assert.match(source, /link\.id === 'faq-whatsapp' \? 'faq_contact'/);
   assert.doesNotMatch(check, />למחשבון המקצועי/);
