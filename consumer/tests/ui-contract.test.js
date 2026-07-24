@@ -112,8 +112,8 @@ test('מסך הפתיחה אינו מציג תגית צפה ליד תמונת ה
   const landing = await readFile(new URL('../index.html', import.meta.url), 'utf8');
   assert.doesNotMatch(landing, /landing-result-chip/);
   assert.match(landing, /landing-assurance/);
-  assert.match(landing, /<span class="landing-tax-term">כדאי<\/span> לך להפקיד לקרן ההשתלמות השנה\?<i class="fas fa-circle-info landing-heading-info"/);
-  assert.match(landing, /תוך פחות מדקה תקבל תמונת מצב, תחזית עתידית ופירוט צעדים שכדאי לשקול/);
+  assert.match(landing, /<span class="landing-tax-term">כדאי<\/span> לך להפקיד לקרן ההשתלמות השנה\?<\/span>/);
+  assert.match(landing, /תוך פחות מדקה תקבל תמונת מצב, תחזית עתידית ופירוט צעדים שכדאי לשקול<i class="fas fa-circle-info landing-heading-info"/);
   assert.match(landing, /כדאיות מיסוית וניצול הטבות המס/);
   assert.match(landing, /אינה מהווה ייעוץ מס, שיווק פנסיוני או המלצה אישית/);
   assert.match(landing, /class="landing-tax-note"><i class="fas fa-circle-info"/);
