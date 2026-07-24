@@ -45,6 +45,7 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   assert.match(html, /כמה מופקד בהוראת קבע בכל חודש\?/);
   assert.match(html, /מה הצבירה הנוכחית בקרן\? <span>\(כולל מה שכבר הופקד עד היום\)<\/span>/);
   assert.match(html, /class="balance-forecast-card"/);
+  assert.doesNotMatch(html, /לפי ההכנסה שהזנת, ייתכן שקיימת עבורך אפשרות להוצאה מוכרת בגין ההפקדה/);
   assert.match(html, /רוצה לקבל תחזית על הצבירה הקיימת\?/);
   assert.doesNotMatch(html, /תחזית אישית מדויקת יותר|הוספת הצבירה הקיימת תאפשר/);
   assert.doesNotMatch(html, /class="optional-balance"/);
@@ -213,6 +214,9 @@ test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקד
   assert.match(styles, /\.deposit-options \{/);
   assert.match(styles, /\.contact-process ol \{/);
   assert.match(styles, /\.recommendation-disclaimer \{ color: var\(--slate-900\)/);
+  assert.match(styles, /\.step h3 \{[^}]*font-size: clamp\(24px,3\.5vw,32px\)/);
+  assert.match(styles, /\.choice-card \{[^}]*border: 2px solid var\(--slate-200\)/);
+  assert.match(styles, /\.balance-forecast-card \{[^}]*border: 0;[^}]*background: transparent;[^}]*box-shadow: none/);
   assert.match(landing, /לחצו כאן ומתחילים בדיקה/);
   assert.match(landing, /תכנית עבודה ברורה/);
   assert.match(landing, /ליווי פיננסי על ידי בעל רישיון/);
