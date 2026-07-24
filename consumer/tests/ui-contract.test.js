@@ -33,6 +33,7 @@ test('האתר אינו יכול לסגור את חלון הדפדפן ומגן 
 
 test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחירת מטרות מרובה', async () => {
   const html = await readFile(new URL('../check.html', import.meta.url), 'utf8');
+  const source = await readFile(new URL('../ui/app.js', import.meta.url), 'utf8');
   assert.match(html, /שלב 1 מתוך 4/);
   assert.match(html, /מה ההכנסה השנתית שלך מהעסק\?/);
   assert.match(html, /האם יש לך קרן השתלמות לעצמאים\?/);
@@ -64,6 +65,9 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   assert.doesNotMatch(html, /id="deposit-options-section"/);
   assert.ok(html.indexOf('class="benefit-breakdown"') < html.indexOf('id="preparedness-score"'));
   assert.ok(html.indexOf('id="preparedness-score"') < html.indexOf('id="action-plan-section"'));
+  assert.ok(html.indexOf('id="goal-context"') < html.indexOf('id="action-plan-section"'));
+  assert.doesNotMatch(html, /כמה צעדים מעשיים שאפשר לבחון לפי תמונת המצב שהזנת/);
+  assert.match(source, /התכנית המוצעת משלבת בין הסכום שנשאר להפקדה, ההשפעה לטווח ארוך והבדיקות שכדאי לבצע לפני שמחליטים/);
   assert.ok(html.indexOf('id="pre-deposit-checks"') < html.indexOf('class="whatsapp-card"'));
   assert.ok(html.indexOf('id="contact-process"') < html.indexOf('id="whatsapp-secondary"'));
   assert.match(html, /id="countdown-days"/);

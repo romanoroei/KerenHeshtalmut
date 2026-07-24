@@ -192,8 +192,10 @@ input[aria-invalid="true"] { border-color: #dc2626; background: #fef2f2; box-sha
 .whatsapp-card + .support-grid { margin-top: 30px; }
 .secondary-cta { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-top: 18px; padding: 20px 22px; border: 1px solid #a7f3d0; border-radius: var(--radius); background: linear-gradient(135deg,#ecfdf5,#fff); box-shadow: var(--shadow); }.secondary-cta h3 { margin: 3px 0; color: var(--slate-900); font-size: 18px; }.secondary-cta p { margin: 0; color: var(--slate-600); font-size: 11px; font-weight: 650; }
 .action-plan-card { margin-bottom: 18px; padding: 26px; border: 1.5px solid #bfdbfe; border-radius: var(--radius); background: linear-gradient(135deg,#eff6ff,#fff); box-shadow: var(--shadow); }
+.action-plan-heading { margin-bottom:16px; }
 .action-plan-heading h3 { margin: 3px 0; color: var(--slate-900); font-size: 24px; }.action-plan-heading p { margin: 0; color: var(--slate-600); font-size: 13px; font-weight: 700; }
 .goal-context { display:block; margin:16px 0 4px; padding:16px; border:1px solid #bfdbfe; border-radius:13px; color:var(--slate-900); background:#fff; }
+.goal-context--standalone { margin:0 0 18px; padding:20px 22px; border-width:1.5px; border-radius:var(--radius); background:linear-gradient(135deg,#fff,#eff6ff); box-shadow:var(--shadow); }
 .goal-context-heading { display:flex; align-items:center; gap:10px; }
 .goal-context-heading i { flex:0 0 auto; width:38px; height:38px; display:grid; place-items:center; border-radius:11px; color:var(--blue); background:#dbeafe; font-size:18px; }
 .goal-context-heading strong { font-size:16px; }
@@ -201,6 +203,7 @@ input[aria-invalid="true"] { border-color: #dc2626; background: #fef2f2; box-sha
 .goal-highlights span { display:inline-flex; align-items:center; gap:7px; min-height:34px; padding:7px 11px; border:1px solid #bfdbfe; border-radius:999px; color:var(--blue-dark); background:#eff6ff; font-size:12px; font-weight:850; }
 .goal-highlights i { color:var(--blue); font-size:13px; }
 .goal-context p { margin:0; color:var(--slate-700); font-size:12px; font-weight:650; line-height:1.55; }
+.goal-context--standalone p { font-size:13px; font-weight:750; }
 .advisor-value > p { margin:0; color:var(--slate-700); font-size:12px; font-weight:650; }
 .advisor-value ul { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px 16px; margin:15px 0 0; padding:0; list-style:none; }
 .advisor-value li { display:flex; align-items:flex-start; gap:8px; padding:10px 12px; border-radius:11px; color:var(--slate-800); background:#f8fafc; font-size:11.5px; font-weight:700; line-height:1.5; }
