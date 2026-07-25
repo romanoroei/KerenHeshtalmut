@@ -547,3 +547,18 @@ input[aria-invalid="true"] { border-color: #dc2626; background: #fef2f2; box-sha
   .share-prompt span { font-size:12px; }
   .share-actions .share-link { font-size:13.5px; }
 }
+
+.ceiling-confetti { position:fixed; z-index:300; inset:0; overflow:hidden; pointer-events:none; }
+.ceiling-confetti i { position:absolute; top:-10vh; left:var(--confetti-x); width:9px; height:16px; border-radius:2px; background:var(--confetti-color); opacity:0; animation:ceiling-confetti-fall var(--confetti-duration) cubic-bezier(.18,.72,.32,1) var(--confetti-delay) forwards; }
+.ceiling-confetti i.is-round { width:10px; height:10px; border-radius:50%; }
+
+@keyframes ceiling-confetti-fall {
+  0% { opacity:0; transform:translate3d(0,-8vh,0) rotate(0); }
+  8% { opacity:1; }
+  88% { opacity:1; }
+  100% { opacity:0; transform:translate3d(var(--confetti-drift),115vh,0) rotate(var(--confetti-spin)); }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .ceiling-confetti { display:none; }
+}

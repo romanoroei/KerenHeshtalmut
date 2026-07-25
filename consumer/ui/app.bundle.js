@@ -692,6 +692,29 @@ ${url}`;
   function resultStatus(result) {
     return result.overCeiling > 0 ? "over_ceiling" : result.remaining === 0 ? "ceiling_reached" : "remaining";
   }
+  function launchCeilingConfetti(result) {
+    var _a;
+    if (result.depositedToDate !== result.ceiling || result.overCeiling !== 0) return;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    (_a = document.querySelector(".ceiling-confetti")) == null ? void 0 : _a.remove();
+    const confetti = document.createElement("div");
+    const colors = ["#2563eb", "#7c3aed", "#16a34a", "#f59e0b", "#ec4899", "#06b6d4"];
+    confetti.className = "ceiling-confetti";
+    confetti.setAttribute("aria-hidden", "true");
+    for (let index = 0; index < 72; index += 1) {
+      const piece = document.createElement("i");
+      piece.style.setProperty("--confetti-x", `${Math.random() * 100}vw`);
+      piece.style.setProperty("--confetti-drift", `${(Math.random() - 0.5) * 26}vw`);
+      piece.style.setProperty("--confetti-delay", `${Math.random() * 0.45}s`);
+      piece.style.setProperty("--confetti-duration", `${2.7 + Math.random() * 0.9}s`);
+      piece.style.setProperty("--confetti-spin", `${540 + Math.random() * 900}deg`);
+      piece.style.setProperty("--confetti-color", colors[index % colors.length]);
+      piece.classList.toggle("is-round", index % 5 === 0);
+      confetti.append(piece);
+    }
+    document.body.append(confetti);
+    setTimeout(() => confetti.remove(), 4200);
+  }
   function scheduleAdvance(action, expectedStep = currentStep, delay = 220) {
     clearTimeout(advanceTimer);
     advanceTimer = setTimeout(() => {
@@ -1206,6 +1229,7 @@ ${url}`;
         $("#results").hidden = false;
         $("#results").focus({ preventScroll: true });
         scrollTo(0, 0);
+        launchCeilingConfetti(result);
       }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 850);
     } catch (e) {
       isSubmitting = false;

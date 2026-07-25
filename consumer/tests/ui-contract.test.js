@@ -190,6 +190,17 @@ test('מסך התוצאה מציג יתרה פעם אחת, ספירת ימים �
   assert.doesNotMatch(source, /dynamic-cta-secondary'\)\.textContent = ctaCopy/);
 });
 
+test('קונפטי מוצג רק כאשר ההפקדה בפועל שווה בדיוק לתקרה', async () => {
+  const source = await readFile(new URL('../ui/app.js', import.meta.url), 'utf8');
+  const styles = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
+
+  assert.match(source, /result\.depositedToDate !== result\.ceiling \|\| result\.overCeiling !== 0/);
+  assert.match(source, /launchCeilingConfetti\(result\)/);
+  assert.match(source, /prefers-reduced-motion: reduce/);
+  assert.match(styles, /\.ceiling-confetti \{[^}]*pointer-events:none/);
+  assert.match(styles, /@keyframes ceiling-confetti-fall/);
+});
+
 test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקדימה של המחשבון', async () => {
   const check = await readFile(new URL('../check.html', import.meta.url), 'utf8');
   const landing = await readFile(new URL('../index.html', import.meta.url), 'utf8');
