@@ -428,6 +428,25 @@ function setupValueSectionTracking(result) {
   events.forEach(([id]) => { const element = $(`#${id}`); if (element) observer.observe(element); });
 }
 
+function setupActionPlanAnimation() {
+  const section = $('#action-plan-section');
+  if (!section) return;
+  const items = $$('#recommendation-steps > li', section);
+  if (!items.length) return;
+  section.classList.remove('has-step-animation', 'is-steps-visible');
+
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
+
+  items.forEach((item, index) => item.style.setProperty('--action-step-delay', `${index * 140}ms`));
+  section.classList.add('has-step-animation');
+  const observer = new IntersectionObserver(([entry]) => {
+    if (!entry?.isIntersecting) return;
+    requestAnimationFrame(() => section.classList.add('is-steps-visible'));
+    observer.disconnect();
+  }, { threshold: 0.25, rootMargin: '0px 0px -8% 0px' });
+  observer.observe(section);
+}
+
 function renderRecommendationSteps(result, profile) {
   const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
   const stepsForUser = [];
@@ -489,6 +508,7 @@ function renderRecommendationSteps(result, profile) {
   const additional = stepsForUser.slice(2);
   $('#additional-recommendation-steps').innerHTML = additional.map((step, index) => itemHtml(step, index + 2)).join('');
   $('#more-recommendations').hidden = additional.length === 0;
+  setupActionPlanAnimation();
 }
 
 function renderDeadlineCard(taxYear, isCeilingReached = false) {

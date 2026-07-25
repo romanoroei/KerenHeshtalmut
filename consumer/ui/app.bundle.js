@@ -995,6 +995,22 @@ ${url}`;
       if (element) observer.observe(element);
     });
   }
+  function setupActionPlanAnimation() {
+    const section = $("#action-plan-section");
+    if (!section) return;
+    const items = $$("#recommendation-steps > li", section);
+    if (!items.length) return;
+    section.classList.remove("has-step-animation", "is-steps-visible");
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return;
+    items.forEach((item, index) => item.style.setProperty("--action-step-delay", `${index * 140}ms`));
+    section.classList.add("has-step-animation");
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!(entry == null ? void 0 : entry.isIntersecting)) return;
+      requestAnimationFrame(() => section.classList.add("is-steps-visible"));
+      observer.disconnect();
+    }, { threshold: 0.25, rootMargin: "0px 0px -8% 0px" });
+    observer.observe(section);
+  }
   function renderRecommendationSteps(result, profile) {
     const monthNames = ["\u05D9\u05E0\u05D5\u05D0\u05E8", "\u05E4\u05D1\u05E8\u05D5\u05D0\u05E8", "\u05DE\u05E8\u05E5", "\u05D0\u05E4\u05E8\u05D9\u05DC", "\u05DE\u05D0\u05D9", "\u05D9\u05D5\u05E0\u05D9", "\u05D9\u05D5\u05DC\u05D9", "\u05D0\u05D5\u05D2\u05D5\u05E1\u05D8", "\u05E1\u05E4\u05D8\u05DE\u05D1\u05E8", "\u05D0\u05D5\u05E7\u05D8\u05D5\u05D1\u05E8", "\u05E0\u05D5\u05D1\u05DE\u05D1\u05E8", "\u05D3\u05E6\u05DE\u05D1\u05E8"];
     const stepsForUser = [];
@@ -1056,6 +1072,7 @@ ${url}`;
     const additional = stepsForUser.slice(2);
     $("#additional-recommendation-steps").innerHTML = additional.map((step, index) => itemHtml(step, index + 2)).join("");
     $("#more-recommendations").hidden = additional.length === 0;
+    setupActionPlanAnimation();
   }
   function renderDeadlineCard(taxYear, isCeilingReached = false) {
     const target = new Date(taxYear, 11, 31, 23, 59, 59, 999);

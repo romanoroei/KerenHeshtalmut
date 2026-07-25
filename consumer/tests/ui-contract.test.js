@@ -233,6 +233,11 @@ test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקד
   assert.match(styles, /\.balance-forecast-card \{[^}]*border: 0;[^}]*background: transparent;[^}]*box-shadow: none/);
   assert.match(styles, /\.floating-result-summary \{[^}]*translateY\(calc\(-100% - 18px\)\)[^}]*transition:transform \.42s/);
   assert.match(styles, /\.floating-result-summary\.is-visible \{[^}]*translateY\(0\)[^}]*opacity:1/);
+  assert.match(source, /setupActionPlanAnimation\(\)/);
+  assert.match(source, /--action-step-delay', `\$\{index \* 140\}ms`/);
+  assert.match(source, /observer\.observe\(section\)/);
+  assert.match(styles, /\.action-plan-card\.has-step-animation #recommendation-steps > li \{[^}]*opacity:0[^}]*translateY\(16px\)/);
+  assert.match(styles, /\.action-plan-card\.has-step-animation\.is-steps-visible #recommendation-steps > li \{[^}]*opacity:1[^}]*translateY\(0\)/);
   assert.match(landing, /לחצו כאן ומתחילים בדיקה/);
   assert.match(landing, /תכנית עבודה ברורה/);
   assert.match(landing, /ליווי פיננסי על ידי בעל רישיון/);
