@@ -87,6 +87,9 @@ test('השאלון בנוי מארבעה שלבים עם הסתעפות ובחי
   assert.match(html, /ריכזתי תשובות קצרות לשאלות הכי נשאלות/);
   assert.match(html, /id="faq-whatsapp"/);
   assert.match(html, /id="faq-load-more"/);
+  assert.match(html, /ולהפקיד אלי בהתאם לתקרות המס הרלוונטיות/);
+  assert.match(html, /הטבת המס של הוצאה מוכרת תלויה בין היתר בהכנסה החייבת ובנתוני המס האישיים שלך/);
+  assert.match(html, /עדיין תהיה זכאי להטבת פטור ממס רווח הון על ההפקדה עד התקרה המוטבת בלי קשר לגובה הכנסותיך/);
   assert.match(source, /faq_more_questions_clicked/);
   assert.match(source, /visibleCount = Math\.min\(items\.length, visibleCount \+ batchSize\)/);
   assert.match(html, /id="back-to-top"/);
@@ -113,6 +116,7 @@ test('סטטוס שנת המס מוצג רק כאשר השנה הנוכחית ט
 
 test('מסך הפתיחה אינו מציג תגית צפה ליד תמונת היועץ', async () => {
   const landing = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+  assert.match(landing, /מה תקבל בסיום הבדיקה\?/);
   assert.doesNotMatch(landing, /landing-result-chip/);
   assert.match(landing, /landing-assurance/);
   assert.match(landing, /<span class="landing-tax-term">כדאי<\/span> לך להפקיד לקרן ההשתלמות השנה\?<\/span>/);
