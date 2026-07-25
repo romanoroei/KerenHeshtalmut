@@ -117,6 +117,10 @@ test('סטטוס שנת המס מוצג רק כאשר השנה הנוכחית ט
 test('מסך הפתיחה אינו מציג תגית צפה ליד תמונת היועץ', async () => {
   const landing = await readFile(new URL('../index.html', import.meta.url), 'utf8');
   assert.match(landing, /מה תקבל בסיום הבדיקה\?/);
+  assert.match(landing, /תמונת מצב של כמה עוד ניתן להפקיד והאם מתאימה הפקדה חודשית או חד־פעמית/);
+  assert.match(landing, /תחזית עתידית ופירוט צעדים שכדאי לשקול/);
+  assert.match(landing, /להתאים עבורך תכנית אישית/);
+  assert.match(landing, /החישוב והנתונים במחשבון הוא הערכה כללית בלבד ואינם מהווים ייעוץ מס/);
   assert.doesNotMatch(landing, /landing-result-chip/);
   assert.match(landing, /landing-assurance/);
   assert.match(landing, /<span class="landing-tax-term">כדאי<\/span> לך להפקיד לקרן ההשתלמות השנה\?<\/span>/);
