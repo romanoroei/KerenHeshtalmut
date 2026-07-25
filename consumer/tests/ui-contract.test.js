@@ -231,6 +231,8 @@ test('מסך התוצאה מציע שיתוף ב-WhatsApp עם תצוגה מקד
   assert.match(styles, /\.step h3 \{[^}]*font-size: clamp\(24px,3\.5vw,32px\)/);
   assert.match(styles, /\.choice-card \{[^}]*border: 2px solid var\(--slate-200\)/);
   assert.match(styles, /\.balance-forecast-card \{[^}]*border: 0;[^}]*background: transparent;[^}]*box-shadow: none/);
+  assert.match(styles, /\.floating-result-summary \{[^}]*translateY\(calc\(-100% - 18px\)\)[^}]*transition:transform \.42s/);
+  assert.match(styles, /\.floating-result-summary\.is-visible \{[^}]*translateY\(0\)[^}]*opacity:1/);
   assert.match(landing, /לחצו כאן ומתחילים בדיקה/);
   assert.match(landing, /תכנית עבודה ברורה/);
   assert.match(landing, /ליווי פיננסי על ידי בעל רישיון/);
