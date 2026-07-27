@@ -14,6 +14,7 @@ const steps = $$('.step');
 const money = (value) => new Intl.NumberFormat('he-IL', {
   style: 'currency', currency: 'ILS', maximumFractionDigits: 0,
 }).format(Math.round(value));
+const formatPercent = (rate) => `${Number((rate * 100).toFixed(2))}%`;
 const labels = {
   none: 'עדיין אין קרן', existing: 'יש קרן השתלמות',
 };
@@ -593,10 +594,10 @@ function renderResult(result, profile) {
   $('#deposit-mini').classList.toggle('is-single', !hasFutureProjection);
   $('#future-scheduled').textContent = hasFutureProjection ? `מתוכם ${money(result.futureScheduledDeposits)} צפויים בהוראת הקבע עד סוף השנה` : '';
   countUp($('#income-tax-benefit'), result.estimatedTotalTaxBenefit, money);
-  const taxRatesCopy = result.taxRatesUsed.map((rate) => `${rate * 100}%`).join(' ו־');
+  const taxRatesCopy = result.taxRatesUsed.map(formatPercent).join(' ו־');
   $('#income-tax-note').textContent = result.taxBenefitUsesMultipleBrackets
     ? `הניכוי חוצה מדרגות מס; האומדן חושב לפי המדרגות ${taxRatesCopy}.`
-    : `על ההפקדה השנתית המוכרת, לפי מס שולי משוער של ${taxRatesCopy || `${result.taxRate * 100}%`}.`;
+    : `על ההפקדה השנתית המוכרת, לפי מס שולי משוער של ${taxRatesCopy || formatPercent(result.taxRate)}.`;
   countUp($('#insurance-benefit'), result.estimatedNationalInsuranceBenefitTotal, money);
   countUp($('#capital-gains-benefit'), result.estimatedCapitalGainsExemptionValueTotal, money);
   const ctaCopy = buildCta(result, profile);
@@ -615,7 +616,7 @@ function renderResult(result, profile) {
   const bracketNote = result.taxBenefitUsesMultipleBrackets
     ? '<p><strong>לתשומת לב:</strong> הניכוי חוצה מדרגת מס, ולכן הטבת מס ההכנסה חושבה לפי המס לפני ואחרי הניכוי ובהתאם לכל מדרגות המס הרלוונטיות — ולא לפי שיעור שולי יחיד.</p>'
     : '';
-  $('#calculation-details').innerHTML = `<p><strong>תקרת 2026:</strong> ${money(result.ceiling)} · <strong>הכנסה:</strong> ${money(result.income)} · <strong>הופקד השנה:</strong> ${money(result.depositedToDate)}${hasFutureProjection ? ` · <strong>צפוי עד סוף השנה כולל הוראת קבע:</strong> ${money(result.projectedAnnualDeposited)}` : ''}</p><p>אומדן ההטבות מחושב בהנחה של מיקסום ההפקדה השנתית עד התקרה, ולכן כולל גם את ההפקדות שכבר בוצעו ואת הוראת הקבע הצפויה עד סוף השנה — ולא רק את יתרת ההשלמה.</p><p><strong>מדרגת מס שולית משוערת לפני הניכוי:</strong> ${result.taxRate * 100}% · <strong>שיעור ניכוי:</strong> ${result.deductibleRate * 100}%</p>${bracketNote}<p><strong>הטבה מיידית משוערת:</strong> מס הכנסה ${money(result.estimatedTotalTaxBenefit)} + ביטוח לאומי/בריאות ${money(result.estimatedNationalInsuranceBenefitTotal)}.</p><p><strong>שווי עתידי משוער:</strong> פטור ממס רווחי הון ${money(result.estimatedCapitalGainsExemptionValueTotal)}, בהנחת 8% לשנה ל־6 שנים ומס של 25% על הרווח.</p><p>מקורות: לוח הניכויים 2026 של רשות המסים ושיעורי ביטוח לאומי לעצמאי החל מ־1.1.2026. אימות: 19.07.2026. כל הרכיבים הם אומדן הדורש אימות אישי.</p>`;
+  $('#calculation-details').innerHTML = `<p><strong>תקרת 2026:</strong> ${money(result.ceiling)} · <strong>הכנסה:</strong> ${money(result.income)} · <strong>הופקד השנה:</strong> ${money(result.depositedToDate)}${hasFutureProjection ? ` · <strong>צפוי עד סוף השנה כולל הוראת קבע:</strong> ${money(result.projectedAnnualDeposited)}` : ''}</p><p>אומדן ההטבות מחושב בהנחה של מיקסום ההפקדה השנתית עד התקרה, ולכן כולל גם את ההפקדות שכבר בוצעו ואת הוראת הקבע הצפויה עד סוף השנה — ולא רק את יתרת ההשלמה.</p><p><strong>מדרגת מס שולית משוערת לפני הניכוי:</strong> ${formatPercent(result.taxRate)} · <strong>שיעור ניכוי:</strong> ${formatPercent(result.deductibleRate)}</p>${bracketNote}<p><strong>הטבה מיידית משוערת:</strong> מס הכנסה ${money(result.estimatedTotalTaxBenefit)} + ביטוח לאומי/בריאות ${money(result.estimatedNationalInsuranceBenefitTotal)}.</p><p><strong>שווי עתידי משוער:</strong> פטור ממס רווחי הון ${money(result.estimatedCapitalGainsExemptionValueTotal)}, בהנחת 8% לשנה ל־6 שנים ומס של 25% על הרווח.</p><p>מקורות: לוח הניכויים 2026 של רשות המסים ושיעורי ביטוח לאומי לעצמאי החל מ־1.1.2026. אימות: 19.07.2026. כל הרכיבים הם אומדן הדורש אימות אישי.</p>`;
   setupValueSectionTracking(result);
   setupStickyResultSummary();
 }

@@ -174,6 +174,10 @@ test('מסך התוצאה מציג יתרה פעם אחת, ספירת ימים �
   assert.match(source, /חלק מההפקדה שלך עשוי להיות מעל התקרה המוטבת/);
   assert.match(source, /isProjectedOverage/);
   assert.match(source, /taxRatesCopy/);
+  assert.match(source, /const formatPercent = \(rate\) => `\$\{Number\(\(rate \* 100\)\.toFixed\(2\)\)\}%`/);
+  assert.match(source, /result\.taxRatesUsed\.map\(formatPercent\)/);
+  assert.match(source, /formatPercent\(result\.taxRate\)/);
+  assert.match(source, /formatPercent\(result\.deductibleRate\)/);
   assert.match(source, /\.sort\(\(a, b\) => Number\(b\[1\]\) - Number\(a\[1\]\)\)/);
   assert.match(source, /ניצלת את מלוא התקרה המוטבת לשנת/);
   assert.match(source, /renderDeadlineCard/);
